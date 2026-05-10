@@ -1,0 +1,302 @@
+import { motion, AnimatePresence } from 'motion/react';
+import { Menu, X, Rocket, Zap, Users, Code, Info, LogOut, ChevronDown, ChevronRight, LayoutDashboard, User as UserIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../lib/AuthContext';
+import { Link, useLocation } from 'react-router-dom';
+
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
+  const [activeHash, setActiveHash] = useState(window.location.hash || '#about');
+  const { user, login, logout } = useAuth();
+
+  const navLinks = [
+    { name: 'About', href: '/#about', type: 'anchor' },
+    { name: 'Projects', href: '/#projects', type: 'anchor' },
+    { name: 'Meet The Team', href: '/#teams', type: 'anchor' },
+    { name: 'Community', href: '/community', type: 'link' },
+  ];
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    const handleHashChange = () => setActiveHash(window.location.hash);
+
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('hashchange', handleHashChange);
+
+    // Intersection Observer to update active hash on scroll
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveHash(`#${entry.target.id}`);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    navLinks.forEach((link) => {
+      if (link.type === 'anchor') {
+        const id = link.href.replace('/#', '');
+        const el = document.getElementById(id);
+        if (el) observer.observe(el);
+      }
+    });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('hashchange', handleHashChange);
+      observer.disconnect();
+    };
+  }, []);
+
+  const Bracket = ({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }) => {
+    const styles = {
+      tl: 'top-0 left-0 border-t border-l',
+      tr: 'top-0 right-0 border-t border-r',
+      bl: 'bottom-0 left-0 border-b border-l',
+      br: 'bottom-0 right-0 border-b border-r',
+    };
+    return <div className={`absolute w-2 h-2 border-white/40 ${styles[position]}`} />;
+  };
+
+  return (
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'glass-nav py-4' : 'bg-transparent py-8'}`}>
+      <div className="max-w-[1920px] mx-auto px-8 md:px-12 flex items-center justify-between">
+        
+        {/* Logo Section */}
+        <Link to="/" className="flex items-center gap-4 group cursor-pointer">
+          <motion.div
+            animate={{ y: [0, -5, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="relative"
+          >
+            <div className="absolute inset-0 bg-firefox-orange/20 blur-xl rounded-full scale-150 animate-pulse" />
+            <img 
+              src="/input_file_0.png" 
+              alt="MFC Logo" 
+              className="w-12 h-12 md:w-14 md:h-14 object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,106,0,0.5)]" 
+            />
+          </motion.div>
+          <div className="hidden lg:flex flex-col gap-0 text-left">
+            <span className="font-display font-black text-xs tracking-[0.3em] uppercase text-zinc-400 group-hover:text-white transition-colors text-left">Mozilla</span>
+            <span className="font-display font-black text-lg tracking-tighter uppercase text-white -mt-1 text-left">Firefox Club</span>
+          </div>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <div className="hidden xl:flex items-center gap-4">
+          {navLinks.map((link) => {
+            const isAnchorActive = link.type === 'anchor' && activeHash === link.href.replace('/', '');
+            const isLinkActive = link.type === 'link' && location.pathname === link.href;
+            const isActive = isAnchorActive || isLinkActive;
+
+            const content = (
+              <>
+                {isActive && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-12 h-12 glow-orb animate-pulse-glow" />
+                    <div className="absolute inset-x-2 inset-y-1">
+                      <Bracket position="tl" />
+                      <Bracket position="tr" />
+                      <Bracket position="bl" />
+                      <Bracket position="br" />
+                    </div>
+                  </div>
+                )}
+                <span className="relative z-10">{link.name}</span>
+              </>
+            );
+
+            if (link.type === 'anchor') {
+              return (
+                <motion.a
+                  key={link.name}
+                  href={link.href}
+                  whileHover={{ y: -2 }}
+                  className={`relative px-6 py-3 text-[11px] font-display font-black uppercase tracking-[0.2em] transition-all duration-300 ${isActive ? 'text-[#FF5C00]' : 'text-zinc-400 hover:text-white hover:drop-shadow-[0_0_10px_rgba(255,106,0,0.3)]'}`}
+                >
+                  {content}
+                </motion.a>
+              );
+            }
+
+            return (
+              <motion.div key={link.name} whileHover={{ y: -2 }}>
+                <Link
+                  to={link.href}
+                  className={`relative px-6 py-3 text-[11px] font-display font-black uppercase tracking-[0.2em] transition-all duration-300 ${isActive ? 'text-[#FF5C00]' : 'text-zinc-400 hover:text-white hover:drop-shadow-[0_0_10px_rgba(255,106,0,0.3)]'}`}
+                >
+                  {content}
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* CTA Section */}
+        <div className="flex items-center gap-6">
+          {!user ? (
+            <motion.button
+              whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(255, 106, 0, 0.4)' }}
+              whileTap={{ scale: 0.95 }}
+              onClick={login}
+              className="hidden md:flex px-10 py-5 bg-[#ff6a00] text-white rounded-none font-display font-black text-[10px] uppercase tracking-[0.4em] transition-all relative overflow-hidden group"
+            >
+              <span className="relative z-10">Join Community</span>
+              <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 opacity-10" />
+            </motion.button>
+          ) : (
+            <div className="relative">
+              <button 
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2 border border-white/10 px-4 py-2 rounded-full hover:bg-white/5 transition-colors"
+              >
+                <img 
+                  src={user.photoURL || ''} 
+                  alt="Avatar" 
+                  className="w-6 h-6 rounded-full border border-white/20"
+                />
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#f5f5f5] hidden lg:block">{user.displayName?.split(' ')[0]}</span>
+                <ChevronDown size={14} className={`transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {isProfileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute right-0 mt-2 w-56 glass rounded-2xl p-2 shadow-2xl border border-white/5"
+                  >
+                    <div className="p-3 border-b border-white/5 mb-1">
+                      <p className="text-[9px] font-black text-[#ff6a00] uppercase tracking-widest">MFCZ Portal</p>
+                      <p className="text-[10px] font-semibold truncate text-[#f5f5f5]">{user.email}</p>
+                    </div>
+                    
+                    <Link 
+                      to="/dashboard"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-300 hover:bg-white/5 transition-colors text-[10px] uppercase font-black tracking-widest"
+                    >
+                      <LayoutDashboard size={16} />
+                      Dashboard
+                    </Link>
+
+                    <button 
+                      onClick={() => { logout(); setIsProfileOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-400/10 transition-colors text-[10px] uppercase font-black tracking-widest"
+                    >
+                      <LogOut size={16} />
+                      Logout
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+
+          <button 
+            onClick={() => setIsOpen(!isOpen)}
+            className="xl:hidden w-12 h-12 flex items-center justify-center text-white"
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            className="fixed inset-0 top-0 left-0 w-full h-screen bg-[#050505] z-[100] flex flex-col p-8 pt-32"
+          >
+            <div className="flex flex-col gap-8">
+              {navLinks.map((link, i) => {
+                const isAnchorActive = link.type === 'anchor' && activeHash === link.href.replace('/', '');
+                const isLinkActive = link.type === 'link' && location.pathname === link.href;
+                const isActive = isAnchorActive || isLinkActive;
+
+                if (link.type === 'anchor') {
+                  return (
+                    <motion.a
+                      key={link.name}
+                      href={link.href}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      onClick={() => setIsOpen(false)}
+                      className={`text-4xl font-display font-black uppercase tracking-tighter transition-colors flex items-center justify-between group ${isActive ? 'text-[#FF5C00]' : 'text-white hover:text-[#FF5C00]'}`}
+                    >
+                      {link.name}
+                      <ChevronRight className={`transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+                    </motion.a>
+                  );
+                }
+
+                return (
+                  <motion.div
+                    key={link.name}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    <Link
+                      to={link.href}
+                      onClick={() => setIsOpen(false)}
+                      className={`text-4xl font-display font-black uppercase tracking-tighter transition-colors flex items-center justify-between group ${isActive ? 'text-[#FF5C00]' : 'text-white hover:text-[#FF5C00]'}`}
+                    >
+                      {link.name}
+                      <ChevronRight className={`transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+                    </Link>
+                  </motion.div>
+                );
+              })}
+              {!user ? (
+                <motion.button
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8 }}
+                  onClick={login}
+                  className="mt-12 w-full py-6 bg-[#ff6a00] text-white font-display font-black uppercase tracking-[0.4em]"
+                >
+                  Join Community
+                </motion.button>
+              ) : (
+                <motion.div
+                   initial={{ opacity: 0 }}
+                   animate={{ opacity: 1 }}
+                   transition={{ delay: 0.8 }}
+                >
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsOpen(false)}
+                    className="mt-12 w-full py-6 bg-white/5 border border-white/10 text-white font-display font-black uppercase tracking-[0.4em] flex items-center justify-center gap-3"
+                  >
+                    <LayoutDashboard />
+                    Dashboard
+                  </Link>
+                </motion.div>
+              )}
+            </div>
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="absolute top-8 right-8 w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-white"
+            >
+              <X size={32} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
+  );
+};
+
+export default Navbar;
+

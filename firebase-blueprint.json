@@ -1,0 +1,85 @@
+{
+  "entities": {
+    "Event": {
+      "title": "Club Event",
+      "description": "An upcoming or past event organized by the club.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "type": { "type": "string", "enum": ["Hackathon", "Workshop", "Sprints", "Member-Led"] },
+        "location": { "type": "string" },
+        "image": { "type": "string" }
+      },
+      "required": ["title", "description", "date", "type"]
+    },
+    "TeamMember": {
+      "title": "Team Member",
+      "description": "A member of the club's core team.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "team": { "type": "string", "enum": ["Technical", "Operations", "Marketing", "Community"] },
+        "photo": { "type": "string" },
+        "social": { "type": "object" }
+      },
+      "required": ["name", "role", "team"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "A project built by club members.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string" },
+        "github": { "type": "string" },
+        "techStack": { "type": "array" }
+      },
+      "required": ["title", "description", "status"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Public profile of a club member.",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string" },
+        "username": { "type": "string" },
+        "memberId": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "bio": { "type": "string" },
+        "skills": { "type": "array" },
+        "domains": { "type": "array" },
+        "socialLinks": { "type": "object" },
+        "college": { "type": "string" },
+        "department": { "type": "string" },
+        "year": { "type": "string" },
+        "badges": { "type": "array" },
+        "portfolio": { "type": "string" },
+        "favMozTech": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fullName", "username", "memberId"]
+    }
+  },
+  "firestore": {
+    "users": {
+      "schema": "UserProfile",
+      "description": "Public community profiles"
+    },
+    "projects": {
+      "schema": "Project",
+      "description": "Showcase of club projects"
+    },
+    "events": {
+      "schema": "Event",
+      "description": "Club activities and schedule"
+    },
+    "team": {
+      "schema": "TeamMember",
+      "description": "Current club leadership and members"
+    }
+  }
+}
