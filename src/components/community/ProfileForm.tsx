@@ -19,8 +19,8 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
     username: data.username || '',
     bio: data.bio || '',
     photoURL: data.photoURL || user.photoURL || '',
-    skills: data.skills?.join(', ') || '',
-    domains: data.domains?.join(', ') || '',
+    skills: Array.isArray(data.skills) ? data.skills.join(', ') : (data.skills || ''),
+    domains: Array.isArray(data.domains) ? data.domains.join(', ') : (data.domains || ''),
     college: data.college || 'Zeal College of Engineering and Research',
     department: data.department || '',
     year: data.year || 'First',
@@ -45,8 +45,8 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
       const cleanData = {
         ...formData,
         memberId,
-        skills: formData.skills.split(',').map((s: string) => s.trim()).filter((s: string) => s !== ''),
-        domains: formData.domains.split(',').map((s: string) => s.trim()).filter((s: string) => s !== ''),
+        skills: typeof formData.skills === 'string' ? formData.skills.split(',').map((s: string) => s.trim()).filter((s: string) => s !== '') : (Array.isArray(formData.skills) ? formData.skills : []),
+        domains: typeof formData.domains === 'string' ? formData.domains.split(',').map((s: string) => s.trim()).filter((s: string) => s !== '') : (Array.isArray(formData.domains) ? formData.domains : []),
         updatedAt: new Date().toISOString()
       };
 
@@ -206,6 +206,16 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
                  placeholder="React, CSS, Python, Figma"
                  value={formData.skills}
                  onChange={(e) => setFormData({...formData, skills: e.target.value})}
+                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors"
+               />
+             </div>
+             <div>
+               <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">Domains of Interest (comma separated)</label>
+               <input 
+                 type="text"
+                 placeholder="Web Dev, AI, Open Source"
+                 value={formData.domains}
+                 onChange={(e) => setFormData({...formData, domains: e.target.value})}
                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors"
                />
              </div>

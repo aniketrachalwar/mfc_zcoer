@@ -17,7 +17,7 @@ import { LayoutDashboard, Rocket, X } from 'lucide-react';
 
 // Shell container for common UI
 const Layout = ({ children, scaleX }: { children: React.ReactNode; scaleX: any }) => {
-  const { error, clearError, user } = useAuth();
+  const { error, success, clearError, clearSuccess, user } = useAuth();
   
   return (
     <div className="relative min-h-screen bg-zinc-950 text-white selection:bg-firefox-orange selection:text-white">
@@ -46,6 +46,30 @@ const Layout = ({ children, scaleX }: { children: React.ReactNode; scaleX: any }
                 <p className="text-sm font-bold text-red-100">{error}</p>
               </div>
               <button onClick={clearError} className="text-red-400 hover:text-red-600 transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Success Toast */}
+      <AnimatePresence>
+        {success && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4"
+          >
+            <div className="bg-green-500/10 border border-green-500/20 backdrop-blur-xl p-4 rounded-2xl flex items-center justify-between gap-4 shadow-2xl">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
+                  <Rocket size={18} />
+                </div>
+                <p className="text-sm font-bold text-green-100">{success}</p>
+              </div>
+              <button onClick={clearSuccess} className="text-green-400 hover:text-green-600 transition-colors">
                 <X size={18} />
               </button>
             </div>

@@ -2,15 +2,26 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X, Rocket, Zap, Users, Code, Info, LogOut, ChevronDown, ChevronRight, LayoutDashboard, User as UserIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import AuthModal from './AuthModal';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const [activeHash, setActiveHash] = useState(window.location.hash || '#about');
-  const { user, login, logout } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { user, logout } = useAuth();
+
+  const handleJoinClick = () => {
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  };
 
   const navLinks = [
     { name: 'About', href: '/#about', type: 'anchor' },
@@ -76,14 +87,14 @@ const Navbar = () => {
           >
             <div className="absolute inset-0 bg-firefox-orange/20 blur-xl rounded-full scale-150 animate-pulse" />
             <img 
-              src="/input_file_0.png" 
+              src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png" 
               alt="MFC Logo" 
-              className="w-12 h-12 md:w-14 md:h-14 object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,106,0,0.5)]" 
+              className="w-16 h-16 md:w-20 md:h-20 object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,106,0,0.5)]" 
             />
           </motion.div>
           <div className="hidden lg:flex flex-col gap-0 text-left">
-            <span className="font-display font-black text-xs tracking-[0.3em] uppercase text-zinc-400 group-hover:text-white transition-colors text-left">Mozilla</span>
-            <span className="font-display font-black text-lg tracking-tighter uppercase text-white -mt-1 text-left">Firefox Club</span>
+            <span className="font-display font-black text-xs tracking-[0.3em] uppercase text-zinc-400 group-hover:text-white transition-colors text-left"></span>
+            <span className="font-display font-black text-lg tracking-tighter uppercase text-white -mt-1 text-left"></span>
           </div>
         </Link>
 
@@ -143,7 +154,7 @@ const Navbar = () => {
             <motion.button
               whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(255, 106, 0, 0.4)' }}
               whileTap={{ scale: 0.95 }}
-              onClick={login}
+              onClick={handleJoinClick}
               className="hidden md:flex px-10 py-5 bg-[#ff6a00] text-white rounded-none font-display font-black text-[10px] uppercase tracking-[0.4em] transition-all relative overflow-hidden group"
             >
               <span className="relative z-10">Join Community</span>
@@ -263,7 +274,7 @@ const Navbar = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.8 }}
-                  onClick={login}
+                  onClick={handleJoinClick}
                   className="mt-12 w-full py-6 bg-[#ff6a00] text-white font-display font-black uppercase tracking-[0.4em]"
                 >
                   Join Community
@@ -294,6 +305,8 @@ const Navbar = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </nav>
   );
 };

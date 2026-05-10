@@ -16,7 +16,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       try {
         const docRef = doc(db, 'users', user.uid);
         const docSnap = await getDoc(docRef);
@@ -32,13 +35,19 @@ const Dashboard = () => {
     fetchProfile();
   }, [user]);
 
-  if (authLoading || loading) return (
+  if (authLoading) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
   if (!user) return <Navigate to="/" />;
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 
   return (
     <div className="pt-32 pb-20 px-4 min-h-screen">
