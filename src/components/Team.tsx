@@ -5,6 +5,7 @@ import { Github, Linkedin, Instagram, ChevronDown } from 'lucide-react';
 const Team = () => {
   const [selectedCohort, setSelectedCohort] = useState('25-26');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   const cohorts = {
     '25-26': [
@@ -64,6 +65,7 @@ const Team = () => {
                           onClick={() => {
                             setSelectedCohort(cohort);
                             setIsDropdownOpen(false);
+                            setShowAll(false);
                           }}
                           className={`w-full text-left px-6 py-4 rounded-2xl font-display font-black text-[11px] uppercase tracking-[0.1em] transition-all hover:bg-firefox-orange hover:text-white ${
                             selectedCohort === cohort ? 'bg-firefox-orange/20 text-firefox-orange' : 'text-zinc-400'
@@ -89,65 +91,79 @@ const Team = () => {
             transition={{ duration: 0.5 }}
           >
             {cohorts[selectedCohort as keyof typeof cohorts].length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-20">
-                {cohorts[selectedCohort as keyof typeof cohorts].map((member, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    whileHover={{ y: -10 }}
-                    transition={{ 
-                      type: "spring",
-                      stiffness: 300,
-                      damping: 20,
-                      delay: i * 0.05 
-                    }}
-                    className="flex flex-col items-center text-center group cursor-default"
-                  >
-                    <div className="relative w-40 h-40 md:w-48 md:h-48 mb-8">
-                      <div className="absolute inset-x-0 inset-y-0 rounded-full border-[2px] border-firefox-orange scale-110 group-hover:scale-115 transition-all duration-500 shadow-[0_0_30px_rgba(255,92,0,0.3)] opacity-0 group-hover:opacity-100" />
-                      <div className="w-full h-full rounded-full overflow-hidden relative z-10 border-2 border-zinc-950 group-hover:border-firefox-orange/50 transition-colors duration-500">
-                        <img src={member.img} alt={member.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <div className="flex flex-col items-center w-full">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-20 w-full">
+                  {cohorts[selectedCohort as keyof typeof cohorts].slice(0, showAll ? undefined : 4).map((member, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      whileHover={{ y: -10 }}
+                      transition={{ 
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20,
+                        delay: (i % 4) * 0.05 
+                      }}
+                      className="flex flex-col items-center text-center group cursor-default"
+                    >
+                      <div className="relative w-40 h-40 md:w-48 md:h-48 mb-8">
+                        <div className="absolute inset-x-0 inset-y-0 rounded-full border-[2px] border-firefox-orange scale-110 group-hover:scale-115 transition-all duration-500 shadow-[0_0_30px_rgba(255,92,0,0.3)] opacity-0 group-hover:opacity-100" />
+                        <div className="w-full h-full rounded-full overflow-hidden relative z-10 border-2 border-zinc-950 group-hover:border-firefox-orange/50 transition-colors duration-500">
+                          <img src={member.img} alt={member.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-1 transform group-hover:translate-y-[-4px] transition-transform duration-500">
-                      <h3 className="text-xl md:text-2xl font-display font-black uppercase text-white tracking-tight">
-                        {member.name.split(' ')[0]} <br />
-                        <span className="text-transparent group-hover:text-white transition-colors duration-500" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.3)' }}>
-                          {member.name.split(' ').slice(1).join(' ')}
-                        </span>
-                      </h3>
-                      <p className="text-firefox-orange font-bold text-[10px] uppercase tracking-widest">
-                        {member.role}
-                      </p>
-                    </div>
+                      <div className="space-y-1 transform group-hover:translate-y-[-4px] transition-transform duration-500">
+                        <h3 className="text-xl md:text-2xl font-display font-black uppercase text-white tracking-tight">
+                          {member.name.split(' ')[0]} <br />
+                          <span className="text-transparent group-hover:text-white transition-colors duration-500" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.3)' }}>
+                            {member.name.split(' ').slice(1).join(' ')}
+                          </span>
+                        </h3>
+                        <p className="text-firefox-orange font-bold text-[10px] uppercase tracking-widest">
+                          {member.role}
+                        </p>
+                      </div>
 
-                    <div className="mt-6 flex gap-4 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 ease-out">
-                      <motion.a 
-                        href="#" 
-                        whileHover={{ y: -3 }}
-                        className="p-2 text-zinc-500 hover:text-white transition-colors"
-                      >
-                        <Linkedin size={16} />
-                      </motion.a>
-                      <motion.a 
-                        href="#" 
-                        whileHover={{ y: -3 }}
-                        className="p-2 text-zinc-500 hover:text-white transition-colors"
-                      >
-                        <Github size={16} />
-                      </motion.a>
-                      <motion.a 
-                        href="#" 
-                        whileHover={{ y: -3 }}
-                        className="p-2 text-zinc-500 hover:text-white transition-colors"
-                      >
-                        <Instagram size={16} />
-                      </motion.a>
-                    </div>
-                  </motion.div>
-                ))}
+                      <div className="mt-6 flex gap-4 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 ease-out">
+                        <motion.a 
+                          href="#" 
+                          whileHover={{ y: -3 }}
+                          className="p-2 text-zinc-500 hover:text-white transition-colors"
+                        >
+                          <Linkedin size={16} />
+                        </motion.a>
+                        <motion.a 
+                          href="#" 
+                          whileHover={{ y: -3 }}
+                          className="p-2 text-zinc-500 hover:text-white transition-colors"
+                        >
+                          <Github size={16} />
+                        </motion.a>
+                        <motion.a 
+                          href="#" 
+                          whileHover={{ y: -3 }}
+                          className="p-2 text-zinc-500 hover:text-white transition-colors"
+                        >
+                          <Instagram size={16} />
+                        </motion.a>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {!showAll && cohorts[selectedCohort as keyof typeof cohorts].length > 4 && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    onClick={() => setShowAll(true)}
+                    className="mt-24 px-8 py-4 bg-white/5 border border-white/10 hover:border-firefox-orange/50 hover:bg-firefox-orange/10 transition-all rounded-full font-display font-black text-[12px] uppercase tracking-[0.2em] text-white flex items-center gap-3 group"
+                  >
+                    Want to see more?
+                    <ChevronDown className="group-hover:translate-y-1 transition-transform text-firefox-orange" size={16} />
+                  </motion.button>
+                )}
               </div>
             ) : (
               <div className="min-h-[500px] flex items-center justify-center text-center relative">

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import ProfileCard from './ProfileCard';
-import { Share2, ArrowLeft, Loader2, Twitter, Linkedin, MessageCircle, Send, Instagram, Facebook } from 'lucide-react';
+import { Share2, ArrowLeft, Loader2, Twitter, Linkedin, MessageCircle, Send, Instagram, Facebook, Github, ExternalLink } from 'lucide-react';
 import { 
   TwitterShareButton, 
   LinkedinShareButton, 
@@ -15,6 +15,7 @@ import {
 
 const PublicProfile = () => {
   const { username } = useParams();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,13 +66,16 @@ const PublicProfile = () => {
   return (
     <div className="pt-32 pb-20 px-4 min-h-screen">
       <div className="max-w-4xl mx-auto flex flex-col items-center">
-        <Link 
-          to="/community"
-          className="self-start inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-12 group"
+        <button 
+          onClick={() => {
+            window.scrollTo(0, 0);
+            navigate('/community');
+          }}
+          className="relative z-50 self-start inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-12 group cursor-pointer"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           <span className="text-[10px] font-black uppercase tracking-widest">Back to Hub</span>
-        </Link>
+        </button>
 
         <div className="grid lg:grid-cols-2 gap-16 items-center w-full">
           {/* Visual Card */}
@@ -97,6 +101,39 @@ const PublicProfile = () => {
                 {profile.bio || "Building the open web and spreading the Mozilla magic at Zeal College."}
               </p>
             </div>
+
+            {/* User's Social Links */}
+            {(profile.socialLinks?.github || profile.socialLinks?.linkedin || profile.socialLinks?.twitter || profile.socialLinks?.instagram) && (
+              <div className="space-y-6">
+                <h3 className="text-xs font-black uppercase tracking-[0.4em] text-zinc-500 flex items-center gap-3">
+                  <ExternalLink size={14} className="text-firefox-orange" />
+                  Connect with {profile.fullName?.split(' ')[0] || 'User'}
+                </h3>
+                
+                <div className="flex flex-wrap gap-4">
+                  {profile.socialLinks?.github && (
+                    <a href={profile.socialLinks.github.startsWith('http') ? profile.socialLinks.github : `https://github.com/${profile.socialLinks.github.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all text-zinc-400">
+                      <Github size={20} />
+                    </a>
+                  )}
+                  {profile.socialLinks?.linkedin && (
+                    <a href={profile.socialLinks.linkedin.startsWith('http') ? profile.socialLinks.linkedin : `https://linkedin.com/in/${profile.socialLinks.linkedin.replace(/^\//, '')}`} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#0077b5] hover:text-white transition-all text-zinc-400">
+                      <Linkedin size={20} />
+                    </a>
+                  )}
+                  {profile.socialLinks?.twitter && (
+                    <a href={profile.socialLinks.twitter.startsWith('http') ? profile.socialLinks.twitter : `https://twitter.com/${profile.socialLinks.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#1DA1F2] hover:text-white transition-all text-zinc-400">
+                      <Twitter size={20} />
+                    </a>
+                  )}
+                  {profile.socialLinks?.instagram && (
+                    <a href={profile.socialLinks.instagram.startsWith('http') ? profile.socialLinks.instagram : `https://instagram.com/${profile.socialLinks.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#E1306C] hover:text-white transition-all text-zinc-400">
+                      <Instagram size={20} />
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-6">
               <h3 className="text-xs font-black uppercase tracking-[0.4em] text-zinc-500 flex items-center gap-3">

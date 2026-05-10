@@ -44,6 +44,40 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isPublic = false }) 
     }
   };
 
+  const shareCard = async () => {
+    if (cardRef.current === null) return;
+    
+    try {
+      const dataUrl = await toPng(cardRef.current, {
+        cacheBust: true,
+        backgroundColor: '#09090b',
+        style: {
+          transform: 'scale(1)',
+          borderRadius: '0'
+        }
+      });
+      
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `${profile.username}-mfc-card.png`, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `MFC ZCOER Member Card - ${profile.fullName}`,
+          text: `Check out my official MFC ZCOER member card!`,
+        });
+      } else {
+        // Fallback to download
+        const link = document.createElement('a');
+        link.download = `${profile.username}-mfc-card.png`;
+        link.href = dataUrl;
+        link.click();
+      }
+    } catch (err) {
+      console.error('Error sharing card:', err);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center gap-8">
       {/* The Actual Card */}
@@ -61,7 +95,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isPublic = false }) 
           {/* QR Code Watermark */}
           <div className="absolute bottom-10 right-8 opacity-20 group-hover:opacity-100 transition-opacity duration-700">
             <QRCodeSVG 
-              value={`${window.location.origin}/profile/${profile.username}`} 
+              value={`${window.location.origin}/verify/${profile.username}`} 
               size={60} 
               fgColor="#ffffff" 
               bgColor="transparent" 
@@ -73,7 +107,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isPublic = false }) 
             {/* Header */}
             <div className="flex justify-between items-start mb-8">
               <div className="w-12 h-12">
-                <img src="/input_file_0.png" alt="MFC" className="w-full h-full object-contain" />
+                <img crossOrigin="anonymous" src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png" alt="MFC" className="w-full h-full object-contain" />
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-black tracking-widest text-zinc-500 uppercase">Serial No.</p>
@@ -86,6 +120,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isPublic = false }) 
               <div className="absolute inset-0 bg-firefox-orange rounded-full blur-2xl opacity-30" />
               <div className="w-full h-full rounded-full border-2 border-white/20 p-1 relative z-10 overflow-hidden">
                 <img 
+                  crossOrigin="anonymous"
                   src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`} 
                   alt={profile.fullName}
                   className="w-full h-full rounded-full object-cover" 
@@ -153,13 +188,20 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isPublic = false }) 
 
       {/* Action Buttons */}
       {!isPublic && (
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <button 
             onClick={downloadCard}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-firefox-orange text-white font-display font-black text-[11px] uppercase tracking-widest hover:shadow-[0_0_20px_rgba(255,92,0,0.4)] transition-all"
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-white font-display font-black text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all"
           >
             <Download size={16} />
-            Download Card
+            Download
+          </button>
+          <button 
+            onClick={shareCard}
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-firefox-orange text-white font-display font-black text-[11px] uppercase tracking-widest hover:shadow-[0_0_20px_rgba(255,92,0,0.4)] transition-all"
+          >
+            <Share2 size={16} />
+            Share as Image
           </button>
         </div>
       )}

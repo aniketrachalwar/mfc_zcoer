@@ -1,4 +1,5 @@
 import Hero from './Hero';
+import UpcomingEvent from './UpcomingEvent';
 import About from './About';
 import Domains from './Domains';
 import Projects from './Projects';
@@ -12,6 +13,7 @@ const Home = () => {
   return (
     <>
       <Hero />
+      <UpcomingEvent />
       <About />
       <Domains />
       <Projects />

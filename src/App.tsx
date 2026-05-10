@@ -11,6 +11,8 @@ import Footer from './components/Footer';
 import CommunityPage from './components/community/CommunityPage';
 import Dashboard from './components/community/Dashboard';
 import PublicProfile from './components/community/PublicProfile';
+import VerifyProfile from './components/community/VerifyProfile';
+import EventDetails from './components/events/EventDetails';
 import { motion, useScroll, useSpring, AnimatePresence } from 'motion/react';
 import { useAuth } from './lib/AuthContext';
 import { LayoutDashboard, Rocket, X } from 'lucide-react';
@@ -116,6 +118,9 @@ export default function App() {
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile/:username" element={<PublicProfile />} />
+          <Route path="/event/:id" element={<EventDetails />} />
+          <Route path="/verify" element={<VerifyProfile />} />
+          <Route path="/verify/:username" element={<VerifyProfile />} />
         </Routes>
       </Layout>
     </Router>

@@ -146,8 +146,24 @@ const CommunityPage = () => {
 
                   <div className="flex items-center justify-between">
                     <div className="flex gap-3">
-                      {profile.socialLinks?.github && <Github size={16} className="text-zinc-500 hover:text-white transition-colors cursor-pointer" />}
-                      {profile.socialLinks?.linkedin && <Linkedin size={16} className="text-zinc-500 hover:text-white transition-colors cursor-pointer" />}
+                      {profile.socialLinks?.github && (
+                        <a 
+                          href={profile.socialLinks.github.startsWith('http') ? profile.socialLinks.github : `https://github.com/${profile.socialLinks.github.replace('@', '')}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          <Github size={16} className="text-zinc-500 hover:text-white transition-colors cursor-pointer" />
+                        </a>
+                      )}
+                      {profile.socialLinks?.linkedin && (
+                        <a 
+                          href={profile.socialLinks.linkedin.startsWith('http') ? profile.socialLinks.linkedin : `https://linkedin.com/in/${profile.socialLinks.linkedin.replace(/^\//, '')}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          <Linkedin size={16} className="text-zinc-500 hover:text-white transition-colors cursor-pointer" />
+                        </a>
+                      )}
                     </div>
                     <Link 
                       to={`/profile/${profile.username}`}

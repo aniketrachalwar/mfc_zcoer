@@ -55,14 +55,14 @@ const Hero = () => {
             transition={{ delay: 1, duration: 1 }}
             className="mt-16 flex flex-col md:flex-row items-center gap-6 md:gap-12 text-[#A0A0A0] text-sm md:text-[1.1rem] tracking-[0.3em] font-bold uppercase font-display max-w-6xl px-4"
           >
-            <span className="whitespace-nowrap">Firefox Answers To</span>
+            <span className="whitespace-nowrap">Firefox Answers To No One</span>
 
             <div className="flex flex-col items-center gap-4 py-4">
               <span className="text-[9px] font-black uppercase tracking-[0.5em] rotate-90 mb-4 opacity-50 text-firefox-orange">SCROLL</span>
               <div className="w-[1px] h-12 bg-gradient-to-b from-firefox-orange to-transparent" />
             </div>
 
-            <span className="whitespace-nowrap">No One But To You</span>
+            <span className="whitespace-nowrap">But To You</span>
           </motion.div>
         </motion.div>
       </div>

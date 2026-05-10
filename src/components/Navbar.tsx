@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X, Rocket, Zap, Users, Code, Info, LogOut, ChevronDown, ChevronRight, LayoutDashboard, User as UserIcon } from 'lucide-react';
+import { Menu, X, Rocket, Zap, Users, Code, Info, LogOut, ChevronDown, ChevronRight, LayoutDashboard, User as UserIcon, ScanLine } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -195,6 +195,15 @@ const Navbar = () => {
                     >
                       <LayoutDashboard size={16} />
                       Dashboard
+                    </Link>
+
+                    <Link 
+                      to="/verify"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-300 hover:bg-white/5 transition-colors text-[10px] uppercase font-black tracking-widest"
+                    >
+                      <ScanLine size={16} />
+                      Scanner
                     </Link>
 
                     <button 

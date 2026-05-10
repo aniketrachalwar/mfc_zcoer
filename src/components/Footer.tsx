@@ -20,16 +20,18 @@ const Footer = () => {
         {/* Social Bar */}
         <div className="flex justify-center gap-8 mb-32">
           {[
-            { icon: Mail, label: 'Email' },
-            { icon: Instagram, label: 'Instagram' },
-            { icon: Youtube, label: 'Youtube' },
-            { icon: Github, label: 'Github' },
-            { icon: Linkedin, label: 'Linkedin' },
-            { icon: Twitter, label: 'X' },
+            { icon: Mail, label: 'Email', url: 'mailto:mfc@zcoer.edu.in' },
+            { icon: Instagram, label: 'Instagram', url: 'https://www.instagram.com/mfc.zcoer/' },
+            { icon: Youtube, label: 'Youtube', url: '#' },
+            { icon: Github, label: 'Github', url: '#' },
+            { icon: Linkedin, label: 'Linkedin', url: '#' },
+            { icon: Twitter, label: 'X', url: '#' },
           ].map((social, i) => (
             <motion.a
                 key={i}
-                href="#"
+                href={social.url}
+                target={social.url !== '#' && !social.url.startsWith('mailto:') ? '_blank' : undefined}
+                rel={social.url !== '#' && !social.url.startsWith('mailto:') ? 'noopener noreferrer' : undefined}
                 whileHover={{ y: -5 }}
                 className="text-zinc-500 hover:text-firefox-orange transition-colors"
             >
