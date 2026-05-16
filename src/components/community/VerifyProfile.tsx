@@ -3,8 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { collection, query, where, getDocs, limit, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { ShieldCheck, XCircle, Loader2, ArrowLeft, Search, ScanLine, TicketCheck, Lock } from 'lucide-react';
+import { ShieldCheck, XCircle, Loader2, ArrowLeft, Search, ScanLine, TicketCheck, Lock, Camera } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
+import { Html5Qrcode } from 'html5-qrcode';
 
 const VerifyProfile = () => {
   const { username } = useParams<{ username?: string }>(); // acts as ID param
@@ -21,6 +22,54 @@ const VerifyProfile = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+
+  const [showAttendanceForm, setShowAttendanceForm] = useState(false);
+  const [attendanceData, setAttendanceData] = useState({
+    zprn: '',
+    department: '',
+    division: '',
+    rollNo: ''
+  });
+  const [pendingTicketRef, setPendingTicketRef] = useState<any>(null);
+  const [pendingTicketData, setPendingTicketData] = useState<any>(null);
+
+  useEffect(() => {
+    let html5QrCode: Html5Qrcode | null = null;
+
+    if (isScanning) {
+      // Need a slight delay to ensure the DOM element is rendered
+      setTimeout(() => {
+        html5QrCode = new Html5Qrcode("qr-reader");
+        html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
+            if (html5QrCode && html5QrCode.isScanning) {
+              html5QrCode.stop().then(() => {
+                setIsScanning(false);
+                setSearchInput(decodedText);
+                performVerification(decodedText);
+              }).catch(console.error);
+            }
+          },
+          (errorMessage) => {
+            // ignore continuous scanning errors
+          }
+        ).catch((err) => {
+          console.error("Camera error:", err);
+          setIsScanning(false);
+          setError("Camera access denied or unavailable.");
+        });
+      }, 100);
+    }
+
+    return () => {
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().catch(console.error);
+      }
+    };
+  }, [isScanning]);
 
   // 1. Check Access
   useEffect(() => {
@@ -62,16 +111,18 @@ const VerifyProfile = () => {
           const ticketData = ticketSnap.data();
           const isNewlyVerified = !ticketData.verified;
 
-          if (isNewlyVerified) {
-            await updateDoc(ticketRef, { 
-              verified: true, 
-              verifiedAt: new Date().toISOString(),
-              verifiedBy: user?.uid
-            });
-          }
-          
           const userSnap = await getDoc(doc(db, 'users', ticketData.userId));
           const eventSnap = await getDoc(doc(db, 'events', ticketData.eventId));
+
+          if (isNewlyVerified) {
+            setPendingTicketRef(ticketRef);
+            setPendingTicketData({ id: ticketSnap.id, ...ticketData });
+            setProfile(userSnap.data());
+            setEventData(eventSnap.data());
+            setShowAttendanceForm(true);
+            setSearchLoading(false);
+            return;
+          }
           
           setTicket({ id: ticketSnap.id, ...ticketData, isNewlyVerified });
           setProfile(userSnap.data());
@@ -119,6 +170,30 @@ const VerifyProfile = () => {
     }
   };
 
+  const submitAttendance = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!pendingTicketRef) return;
+    
+    setLoading(true);
+    try {
+      await updateDoc(pendingTicketRef, {
+        verified: true,
+        verifiedAt: new Date().toISOString(),
+        verifiedBy: user?.uid,
+        ...attendanceData
+      });
+      
+      setTicket({ ...pendingTicketData, verified: true, isNewlyVerified: true, ...attendanceData });
+      setShowAttendanceForm(false);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to mark attendance.");
+      setShowAttendanceForm(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (checkingAccess) {
     return (
       <div className="min-h-screen flex items-center justify-center pt-20 bg-[#09090b]">
@@ -156,10 +231,90 @@ const VerifyProfile = () => {
         <p className="text-zinc-500 mb-8 max-w-md">{error || "The provided identifier is invalid."}</p>
         
         <div className="flex gap-4">
-          <button onClick={() => { setError(null); setSearchInput(''); window.history.replaceState(null, '', '/verify'); }} className="px-8 py-3 bg-white/5 border border-white/10 rounded-full text-white font-display text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
+          <button onClick={() => { setError(null); setSearchInput(''); setIsScanning(false); setShowAttendanceForm(false); window.history.replaceState(null, '', '/verify'); }} className="px-8 py-3 bg-white/5 border border-white/10 rounded-full text-white font-display text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
             Scan Another
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // --- ATTENDANCE FORM VIEW ---
+  if (showAttendanceForm && profile && eventData) {
+    return (
+      <div className="min-h-screen bg-[#09090b] pt-32 pb-20 px-4 flex flex-col items-center justify-center">
+        <button onClick={() => { setShowAttendanceForm(false); setProfile(null); window.history.replaceState(null, '', '/verify'); }} className="absolute top-24 left-4 md:left-12 z-20 cursor-pointer inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group">
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="text-[10px] font-black uppercase tracking-widest">Cancel</span>
+        </button>
+
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="max-w-md w-full bg-zinc-900 border border-firefox-orange/30 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(255,92,0,0.1)] relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-firefox-orange/10 to-transparent pointer-events-none" />
+          
+          <div className="relative z-10 flex flex-col items-center mb-6">
+            <h1 className="text-2xl font-display font-black uppercase text-white mb-2">Mark Attendance</h1>
+            <p className="text-zinc-400 text-xs text-center">Collecting details for <span className="text-firefox-orange font-bold">{profile.fullName}</span> at <span className="text-white font-bold">{eventData.title}</span>.</p>
+          </div>
+
+          <form onSubmit={submitAttendance} className="relative z-10 space-y-4">
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 block">ZPRN No.</label>
+              <input
+                type="text"
+                required
+                value={attendanceData.zprn}
+                onChange={(e) => setAttendanceData({...attendanceData, zprn: e.target.value})}
+                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                placeholder="e.g. ZCOER/2026/001"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 block">Department</label>
+              <input
+                type="text"
+                required
+                value={attendanceData.department}
+                onChange={(e) => setAttendanceData({...attendanceData, department: e.target.value})}
+                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                placeholder="e.g. Computer Engineering"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 block">Division</label>
+                <input
+                  type="text"
+                  required
+                  value={attendanceData.division}
+                  onChange={(e) => setAttendanceData({...attendanceData, division: e.target.value})}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                  placeholder="e.g. A"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 block">Roll No.</label>
+                <input
+                  type="text"
+                  required
+                  value={attendanceData.rollNo}
+                  onChange={(e) => setAttendanceData({...attendanceData, rollNo: e.target.value})}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                  placeholder="e.g. 42"
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              className="w-full mt-6 py-4 bg-firefox-orange text-white rounded-xl font-display font-black uppercase tracking-widest text-xs hover:shadow-[0_0_20px_rgba(255,92,0,0.4)] transition-all"
+            >
+              Confirm Attendance
+            </button>
+          </form>
+        </motion.div>
       </div>
     );
   }
@@ -309,29 +464,55 @@ const VerifyProfile = () => {
           <p className="text-zinc-400 text-sm font-medium">Scan an Event Ticket QR code or Member ID. Scanner app will automatically submit the code.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="relative z-10 flex flex-col gap-4">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <Search size={18} className="text-zinc-500" />
-            </div>
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Scan QR or type ID..."
-              className="w-full bg-black/50 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-firefox-orange transition-colors"
-              required
-              autoFocus
-            />
+        {isScanning ? (
+          <div className="relative z-10 flex flex-col items-center w-full">
+            <div id="qr-reader" className="w-full rounded-xl overflow-hidden border-2 border-firefox-orange mb-4 bg-black/50"></div>
+            <button
+              onClick={() => setIsScanning(false)}
+              className="w-full py-4 bg-white/5 border border-white/10 text-white rounded-xl font-display font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all flex justify-center items-center"
+            >
+              Cancel Scan
+            </button>
           </div>
-          <button
-            type="submit"
-            disabled={searchLoading}
-            className="w-full py-4 bg-firefox-orange text-white rounded-xl font-display font-black uppercase tracking-widest text-xs hover:shadow-[0_0_20px_rgba(255,92,0,0.4)] transition-all flex justify-center items-center h-[52px]"
-          >
-            {searchLoading ? <Loader2 className="animate-spin" size={20} /> : "Verify Scan"}
-          </button>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="relative z-10 flex flex-col gap-4">
+            <button
+              type="button"
+              onClick={() => setIsScanning(true)}
+              className="w-full py-4 bg-white/5 border border-firefox-orange/30 text-firefox-orange rounded-xl font-display font-black uppercase tracking-widest text-xs hover:bg-firefox-orange/10 hover:border-firefox-orange transition-all flex justify-center items-center gap-2"
+            >
+              <Camera size={18} />
+              Open Camera to Scan
+            </button>
+            
+            <div className="flex items-center gap-4 my-2">
+              <div className="flex-1 h-px bg-white/10"></div>
+              <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Or enter manually</span>
+              <div className="flex-1 h-px bg-white/10"></div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <Search size={18} className="text-zinc-500" />
+              </div>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Type ID..."
+                className="w-full bg-black/50 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-firefox-orange transition-colors"
+                autoFocus
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={searchLoading || !searchInput.trim()}
+              className="w-full py-4 bg-firefox-orange text-white rounded-xl font-display font-black uppercase tracking-widest text-xs hover:shadow-[0_0_20px_rgba(255,92,0,0.4)] disabled:opacity-50 disabled:hover:shadow-none transition-all flex justify-center items-center h-[52px]"
+            >
+              {searchLoading ? <Loader2 className="animate-spin" size={20} /> : "Verify Code"}
+            </button>
+          </form>
+        )}
       </motion.div>
     </div>
   );

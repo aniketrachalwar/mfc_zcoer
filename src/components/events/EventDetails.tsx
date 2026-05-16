@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, MapPin, Trophy, ArrowLeft, CheckCircle2, Clock } from 'lucide-react';
+import { Calendar, MapPin, Trophy, ArrowLeft, CheckCircle2, Clock, Download } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
+import { toPng } from 'html-to-image';
 
 const EventDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -142,6 +143,21 @@ const EventDetails = () => {
     }
   };
 
+  const handleDownloadTicket = async () => {
+    const ticketElement = document.getElementById('ticket-card');
+    if (!ticketElement) return;
+
+    try {
+      const dataUrl = await toPng(ticketElement, { cacheBust: true, backgroundColor: '#09090b' });
+      const link = document.createElement('a');
+      link.download = `ticket-${id}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Failed to download ticket image', err);
+    }
+  };
+
   const isPast = new Date(event.date).getTime() < new Date().getTime();
 
   return (
@@ -250,20 +266,37 @@ const EventDetails = () => {
                     animate={{ scale: 1, opacity: 1 }}
                     className="w-full bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col items-center gap-4"
                   >
-                    <div className="w-full flex items-center justify-center gap-2 text-green-400 font-display font-black text-sm uppercase tracking-widest mb-2">
-                      <CheckCircle2 size={20} />
-                      Ticket Confirmed
+                    <div id="ticket-card" className="w-full flex flex-col items-center bg-[#09090b] p-6 rounded-2xl border border-white/10">
+                      <div className="w-full flex items-center justify-center gap-2 text-green-400 font-display font-black text-sm uppercase tracking-widest mb-4">
+                        <CheckCircle2 size={20} />
+                        Ticket Confirmed
+                      </div>
+                      <h3 className="text-white font-bold text-center mb-2">{event.title}</h3>
+                      <div className="flex items-center gap-2 text-zinc-400 text-xs font-bold uppercase tracking-widest mb-6">
+                        <Calendar size={14} />
+                        {new Date(event.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} • {new Date(event.date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                      {ticketId ? (
+                        <>
+                          <div className="bg-white p-4 rounded-2xl mb-4">
+                            <QRCodeSVG value={`${window.location.origin}/verify/${ticketId}`} size={150} />
+                          </div>
+                          <p className="text-zinc-500 text-[10px] font-mono uppercase tracking-widest text-center">ID: {ticketId.substring(0, 15)}...</p>
+                        </>
+                      ) : (
+                        <p className="text-zinc-400 text-xs text-center my-8">You are registered for this preview event!</p>
+                      )}
                     </div>
-                    {ticketId ? (
+                    {ticketId && (
                       <>
-                        <div className="bg-white p-4 rounded-2xl mb-2">
-                          <QRCodeSVG value={`${window.location.origin}/verify/${ticketId}`} size={150} />
-                        </div>
-                        <p className="text-zinc-500 text-[10px] font-mono uppercase tracking-widest">ID: {ticketId.substring(0, 15)}...</p>
-                        <p className="text-zinc-400 text-xs">Show this QR code at the entrance to verify your attendance.</p>
+                        <p className="text-zinc-400 text-xs text-center mt-2">Show this QR code at the entrance to verify your attendance.</p>
+                        <button 
+                          onClick={handleDownloadTicket}
+                          className="w-full py-4 mt-2 bg-firefox-orange/20 text-firefox-orange rounded-xl font-display font-black text-[10px] uppercase tracking-widest hover:bg-firefox-orange hover:text-white transition-all flex items-center justify-center gap-2"
+                        >
+                          <Download size={14} /> Download Ticket
+                        </button>
                       </>
-                    ) : (
-                      <p className="text-zinc-400 text-xs">You are registered for this preview event!</p>
                     )}
                   </motion.div>
                 )}

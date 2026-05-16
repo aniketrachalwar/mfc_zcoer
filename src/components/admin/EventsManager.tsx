@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Edit2, Trash2, X, Image as ImageIcon } from 'lucide-react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { Calendar, Plus, Edit2, Trash2, X, Image as ImageIcon, Download } from 'lucide-react';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -92,6 +92,74 @@ const EventsManager = () => {
     }
   };
 
+  const downloadAttendees = async (eventId: string, eventTitle: string) => {
+    try {
+      const q = query(collection(db, 'tickets'), where('eventId', '==', eventId), where('verified', '==', true));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        alert("No attendees marked present for this event yet.");
+        return;
+      }
+
+      let csvContent = "data:text/csv;charset=utf-8,";
+      csvContent += "Name,Username,Email,ZPRN,Department,Division,Roll No,Verified At\n";
+
+      for (const tktDoc of querySnapshot.docs) {
+        const data = tktDoc.data();
+        
+        // Fetch user info for name/email
+        let name = "Unknown";
+        let username = "unknown";
+        let email = "";
+        try {
+          const userSnap = await getDocs(query(collection(db, 'users'), where('uid', '==', data.userId)));
+          if (!userSnap.empty) {
+            const userData = userSnap.docs[0].data();
+            name = userData.fullName || "Unknown";
+            username = userData.username || "unknown";
+            email = userData.email || "";
+          } else {
+             // Try fetching by doc id
+             const uDoc = await getDocs(query(collection(db, 'users'), where('__name__', '==', data.userId)));
+             if (!uDoc.empty) {
+                const userData = uDoc.docs[0].data();
+                name = userData.fullName || "Unknown";
+                username = userData.username || "unknown";
+                email = userData.email || "";
+             }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+
+        const row = [
+          `"${name}"`,
+          `"${username}"`,
+          `"${email}"`,
+          `"${data.zprn || ''}"`,
+          `"${data.department || ''}"`,
+          `"${data.division || ''}"`,
+          `"${data.rollNo || ''}"`,
+          `"${data.verifiedAt || ''}"`
+        ];
+        csvContent += row.join(",") + "\n";
+      }
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `${eventTitle.replace(/\\s+/g, '_')}_Attendees.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    } catch (err) {
+      console.error("Error downloading attendees:", err);
+      alert("Failed to download attendees.");
+    }
+  };
+
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -141,7 +209,15 @@ const EventsManager = () => {
                 )}
                 <div className="absolute top-4 right-4 flex gap-2">
                   <button 
+                    onClick={() => downloadAttendees(event.id, event.title)}
+                    title="Download Attendees CSV"
+                    className="w-8 h-8 rounded-full bg-black/50 backdrop-blur text-green-400 flex items-center justify-center hover:bg-green-500 hover:text-white transition-colors"
+                  >
+                    <Download size={14} />
+                  </button>
+                  <button 
                     onClick={() => openForm(event)}
+                    title="Edit Event"
                     className="w-8 h-8 rounded-full bg-black/50 backdrop-blur text-white flex items-center justify-center hover:bg-firefox-orange transition-colors"
                   >
                     <Edit2 size={14} />
