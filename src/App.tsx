@@ -13,6 +13,15 @@ import Dashboard from './components/community/Dashboard';
 import PublicProfile from './components/community/PublicProfile';
 import VerifyProfile from './components/community/VerifyProfile';
 import EventDetails from './components/events/EventDetails';
+import { MemberProfilePage } from './components/progression';
+import AdminLayout from './components/admin/AdminLayout';
+import AdminDashboard from './components/admin/AdminDashboard';
+import MembersManager from './components/admin/MembersManager';
+import ContributionsManager from './components/admin/ContributionsManager';
+import EventsManager from './components/admin/EventsManager';
+import ProjectsManager from './components/admin/ProjectsManager';
+import MerchandiseManager from './components/admin/MerchandiseManager';
+import NotificationsManager from './components/admin/NotificationsManager';
 import { motion, useScroll, useSpring, AnimatePresence } from 'motion/react';
 import { useAuth } from './lib/AuthContext';
 import { LayoutDashboard, Rocket, X } from 'lucide-react';
@@ -117,10 +126,22 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<MemberProfilePage />} />
           <Route path="/profile/:username" element={<PublicProfile />} />
           <Route path="/event/:id" element={<EventDetails />} />
           <Route path="/verify" element={<VerifyProfile />} />
           <Route path="/verify/:username" element={<VerifyProfile />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="members" element={<MembersManager />} />
+            <Route path="contributions" element={<ContributionsManager />} />
+            <Route path="events" element={<EventsManager />} />
+            <Route path="projects" element={<ProjectsManager />} />
+            <Route path="merch" element={<MerchandiseManager />} />
+            <Route path="notifications" element={<NotificationsManager />} />
+          </Route>
         </Routes>
       </Layout>
     </Router>

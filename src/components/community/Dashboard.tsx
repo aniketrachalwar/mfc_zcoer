@@ -5,7 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import ProfileForm from './ProfileForm';
 import ProfileCard from './ProfileCard';
-import { Settings, User as UserIcon, Layout, Share2, LogOut, ChevronRight, Sparkles } from 'lucide-react';
+import { Settings, User as UserIcon, Layout, Share2, LogOut, ChevronRight, Sparkles, Shield } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -63,6 +63,15 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex gap-4">
+            {profile && (profile.role === 'admin' || profile.role === 'president' || profile.role === 'core_team') && (
+              <Link 
+                to="/admin"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-firefox-orange/10 border border-firefox-orange/20 hover:bg-firefox-orange hover:text-white transition-all group text-firefox-orange"
+              >
+                <Shield size={16} className="group-hover:text-white transition-colors" />
+                <span className="text-[10px] font-black uppercase tracking-widest group-hover:text-white transition-colors">Admin Portal</span>
+              </Link>
+            )}
             {profile && (
               <Link 
                 to={`/profile/${profile.username}`}
