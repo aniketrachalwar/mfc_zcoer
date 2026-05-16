@@ -104,8 +104,19 @@ const VerifyProfile = () => {
     try {
       // Extract ID if a full URL is scanned
       let processedQuery = queryStr.trim();
-      if (processedQuery.includes('/verify/')) {
-        processedQuery = processedQuery.split('/verify/').pop() || processedQuery;
+      try {
+        const url = new URL(processedQuery);
+        const pathParts = url.pathname.split('/').filter(Boolean);
+        if (pathParts.includes('verify')) {
+          processedQuery = pathParts[pathParts.indexOf('verify') + 1] || processedQuery;
+        }
+      } catch (e) {
+        if (processedQuery.includes('/verify/')) {
+          const parts = processedQuery.split('/verify/');
+          const lastPart = parts.pop() || '';
+          processedQuery = lastPart.endsWith('/') ? lastPart.slice(0, -1) : lastPart;
+          processedQuery = processedQuery || queryStr;
+        }
       }
 
       // Is it an Event Ticket ID? (format: userId_eventId)
@@ -115,6 +126,13 @@ const VerifyProfile = () => {
         
         if (ticketSnap.exists()) {
           const ticketData = ticketSnap.data();
+
+          if (ticketData.cancelled) {
+             setError(`This ticket was cancelled by the attendee. Reason: ${ticketData.cancelReason || 'None given'}`);
+             setSearchLoading(false);
+             return;
+          }
+
           const isNewlyVerified = !ticketData.verified;
 
           const userSnap = await getDoc(doc(db, 'users', ticketData.userId));
