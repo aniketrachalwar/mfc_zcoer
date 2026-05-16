@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../../lib/AuthContext';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import ProfileForm from './ProfileForm';
 import ProfileCard from './ProfileCard';
@@ -24,7 +24,42 @@ const Dashboard = () => {
         const docRef = doc(db, 'users', user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setProfile(docSnap.data());
+          const profileData = docSnap.data();
+          
+          // Streak Logic
+          const todayStr = new Date().toISOString().split('T')[0];
+          let lastLogin = profileData.lastLoginStr;
+          let streakCount = profileData.streakCount || 0;
+          let points = profileData.points || 0;
+
+          if (lastLogin !== todayStr) {
+             const yesterday = new Date();
+             yesterday.setDate(yesterday.getDate() - 1);
+             const yesterdayStr = yesterday.toISOString().split('T')[0];
+             
+             if (lastLogin === yesterdayStr) {
+                 streakCount += 1;
+             } else {
+                 streakCount = 1;
+             }
+
+             if (streakCount === 7) {
+                 points += 30;
+                 streakCount = 0; // reset streak for next 7 days
+             }
+
+             await updateDoc(docRef, {
+                 lastLoginStr: todayStr,
+                 streakCount: streakCount,
+                 points: points
+             });
+             
+             profileData.lastLoginStr = todayStr;
+             profileData.streakCount = streakCount;
+             profileData.points = points;
+          }
+
+          setProfile(profileData);
         }
       } catch (err) {
         console.error("Error fetching profile:", err);

@@ -44,6 +44,20 @@ const MembersManager = () => {
     }
   };
 
+  const handlePointsChange = async (userId: string, currentPoints: number) => {
+    const newPoints = window.prompt("Enter new points:", currentPoints.toString());
+    if (newPoints !== null && !isNaN(Number(newPoints))) {
+      try {
+        const pointsNum = Number(newPoints);
+        await updateDoc(doc(db, 'users', userId), { points: pointsNum });
+        setMembers(members.map(m => m.id === userId ? { ...m, points: pointsNum } : m));
+      } catch (error) {
+        console.error("Error updating points:", error);
+        alert("Failed to update points.");
+      }
+    }
+  };
+
   const handleDeleteMember = async (userId: string) => {
     if (window.confirm("Are you sure you want to remove this member? This action cannot be undone.")) {
       try {
@@ -90,6 +104,7 @@ const MembersManager = () => {
               <tr className="border-b border-white/10 text-xs font-black uppercase tracking-wider text-zinc-500">
                 <th className="p-4">Member</th>
                 <th className="p-4">Role</th>
+                <th className="p-4">Points</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
@@ -141,6 +156,16 @@ const MembersManager = () => {
                         <option value="president">President</option>
                         <option value="admin">Admin</option>
                       </select>
+                    </td>
+                    <td className="p-4">
+                      <button 
+                        onClick={() => handlePointsChange(member.id, member.points || 0)}
+                        className="bg-zinc-900 border border-white/10 rounded-lg px-3 py-1 text-xs text-white hover:border-firefox-orange flex items-center gap-2 group/btn"
+                        title="Edit Points"
+                      >
+                        {member.points || 0} pts
+                        <Edit2 size={12} className="text-zinc-500 group-hover/btn:text-firefox-orange" />
+                      </button>
                     </td>
                     <td className="p-4">
                       <select 

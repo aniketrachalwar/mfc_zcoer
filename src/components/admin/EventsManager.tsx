@@ -18,7 +18,8 @@ const EventsManager = () => {
     img: '',
     date: '',
     location: '',
-    prizes: ''
+    prizes: '',
+    totalSeats: 30
   });
 
   const fetchEvents = async () => {
@@ -47,11 +48,12 @@ const EventsManager = () => {
         img: event.img || '',
         date: event.date || '',
         location: event.location || '',
-        prizes: event.prizes || ''
+        prizes: event.prizes || '',
+        totalSeats: event.totalSeats || 30
       });
       setEditingId(event.id);
     } else {
-      setFormData({ title: '', type: 'Hackathon', desc: '', img: '', date: '', location: '', prizes: '' });
+      setFormData({ title: '', type: 'Hackathon', desc: '', img: '', date: '', location: '', prizes: '', totalSeats: 30 });
       setEditingId(null);
     }
     setIsFormOpen(true);
@@ -422,16 +424,30 @@ const EventsManager = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Prizes (Optional)</label>
-                  <input 
-                    type="text" 
-                    name="prizes"
-                    value={formData.prizes}
-                    onChange={handleChange}
-                    placeholder="e.g. ₹50,000 Pool + Exclusive Swags"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Prizes (Optional)</label>
+                    <input 
+                      type="text" 
+                      name="prizes"
+                      value={formData.prizes}
+                      onChange={handleChange}
+                      placeholder="e.g. ₹50,000 Pool + Exclusive Swags"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Total Seats</label>
+                    <input 
+                      type="number" 
+                      name="totalSeats"
+                      value={formData.totalSeats}
+                      onChange={handleChange}
+                      min="1"
+                      required
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                    />
+                  </div>
                 </div>
 
                 <button 

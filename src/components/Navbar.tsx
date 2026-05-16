@@ -25,6 +25,7 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'About', href: '/#about', type: 'anchor' },
+    { name: 'Leaderboard', href: '/#leaderboard', type: 'anchor' },
     { name: 'Projects', href: '/#projects', type: 'anchor' },
     { name: 'Meet The Team', href: '/#teams', type: 'anchor' },
     { name: 'Community', href: '/community', type: 'link' },

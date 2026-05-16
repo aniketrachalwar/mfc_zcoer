@@ -4,6 +4,8 @@ import { Search, Trophy, MapPin, ExternalLink, Github, Linkedin, Instagram, Twit
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../lib/AuthContext';
+import AuthModal from '../AuthModal';
 
 interface Profile {
   id: string;
@@ -24,11 +26,17 @@ interface Profile {
 }
 
 const CommunityPage = () => {
+  const { user, loading: authLoading } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     const fetchProfiles = async () => {
       try {
         const q = query(collection(db, 'users'), orderBy('memberId', 'asc'), limit(50));
@@ -42,7 +50,7 @@ const CommunityPage = () => {
       }
     };
     fetchProfiles();
-  }, []);
+  }, [user]);
 
   const filteredProfiles = profiles.filter(p => 
     p.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -50,10 +58,34 @@ const CommunityPage = () => {
     p.memberId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (authLoading) {
+    return (
+      <div className="pt-32 pb-20 px-4 min-h-screen flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="pt-32 pb-20 px-4 min-h-screen flex flex-col items-center justify-center text-center">
+        <Trophy className="text-firefox-orange mb-6" size={64} />
+        <h1 className="text-4xl md:text-5xl font-display font-black uppercase text-white mb-4">Members Only</h1>
+        <p className="text-zinc-400 mb-8 max-w-md">You need to log in to view and connect with the MFC ZCOER community members.</p>
+        <button 
+          onClick={() => setIsAuthModalOpen(true)}
+          className="px-10 py-4 bg-firefox-orange text-white rounded-full font-display font-black text-sm uppercase tracking-widest hover:bg-white hover:text-black transition-all"
+        >
+          Sign In / Join
+        </button>
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      </div>
+    );
+  }
+
   return (
     <div className="pt-32 pb-20 px-4 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

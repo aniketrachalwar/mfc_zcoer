@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import ProfileCard from './ProfileCard';
-import { Share2, ArrowLeft, Loader2, Twitter, Linkedin, MessageCircle, Send, Instagram, Facebook, Github, ExternalLink } from 'lucide-react';
+import { Share2, ArrowLeft, Loader2, Twitter, Linkedin, MessageCircle, Send, Instagram, Facebook, Github, ExternalLink, Calendar, CheckCircle2, Award } from 'lucide-react';
 import { 
   TwitterShareButton, 
   LinkedinShareButton, 
@@ -19,6 +19,7 @@ const PublicProfile = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [attendedEvents, setAttendedEvents] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -28,7 +29,29 @@ const PublicProfile = () => {
         if (querySnapshot.empty) {
           setError("Profile not found.");
         } else {
-          setProfile(querySnapshot.docs[0].data());
+          const profileData = querySnapshot.docs[0].data();
+          setProfile(profileData);
+          
+          // Fetch attended events
+          try {
+            const ticketsQuery = query(collection(db, 'tickets'), where('userId', '==', profileData.uid), where('verified', '==', true));
+            const ticketsSnap = await getDocs(ticketsQuery);
+            const eventsList = [];
+            for (const docSnap of ticketsSnap.docs) {
+              const tData = docSnap.data();
+              if (!tData.cancelled) {
+                const evRef = doc(db, 'events', tData.eventId);
+                const evSnap = await getDoc(evRef);
+                if (evSnap.exists()) {
+                  eventsList.push({ id: evSnap.id, ...evSnap.data(), verifiedAt: tData.verifiedAt });
+                }
+              }
+            }
+            eventsList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            setAttendedEvents(eventsList);
+          } catch (e) {
+            console.error("Failed to fetch attended events", e);
+          }
         }
       } catch (err) {
         console.error("Error fetching public profile:", err);
@@ -186,6 +209,37 @@ const PublicProfile = () => {
                 </div>
               </div>
             </div>
+
+            {/* Attended Events History & Badges */}
+            {attendedEvents.length > 0 && (
+              <div className="space-y-6">
+                <h3 className="text-xs font-black uppercase tracking-[0.4em] text-zinc-500 flex items-center gap-3">
+                  <Award size={14} className="text-firefox-orange" />
+                  Event Badges & History
+                </h3>
+                <div className="space-y-4">
+                  {attendedEvents.map(event => (
+                    <Link to={`/event/${event.id}`} key={event.id} className="block w-full bg-white/5 hover:bg-white/10 border border-white/10 p-5 rounded-2xl transition-colors group relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-firefox-orange/5 blur-2xl group-hover:bg-firefox-orange/10 transition-colors" />
+                      <div className="flex justify-between items-center relative z-10">
+                        <div>
+                           <p className="text-white font-bold text-sm uppercase tracking-wider group-hover:text-firefox-orange transition-colors">{event.title}</p>
+                           <p className="text-zinc-500 text-[10px] font-black tracking-widest uppercase mt-1">
+                             {new Date(event.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                           </p>
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                           <div className="w-10 h-10 rounded-full bg-firefox-orange/10 border border-firefox-orange/30 text-firefox-orange flex items-center justify-center shadow-[0_0_15px_rgba(255,92,0,0.2)]">
+                             <Award size={20} />
+                           </div>
+                           <span className="text-[8px] font-black uppercase text-firefox-orange tracking-widest">Attended</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </motion.div>
         </div>
       </div>

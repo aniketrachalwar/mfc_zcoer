@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { motion } from 'motion/react';
-import { Download, Share2, Github, Linkedin, Instagram, Twitter, Globe, Award } from 'lucide-react';
+import { Download, Share2, Github, Linkedin, Instagram, Twitter, Globe, Award, Trophy } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -16,6 +16,7 @@ interface ProfileCardProps {
     skills?: string[];
     socialLinks?: any;
     favMozTech?: string;
+    points?: number;
   };
   isPublic?: boolean;
 }
@@ -128,7 +129,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isPublic = false }) 
               </div>
             </div>
 
-            {/* User Info */}
             <div className="text-center mb-6">
               <h3 className="text-2xl font-display font-black uppercase text-white tracking-tight mb-1">
                 {profile.fullName}
@@ -136,6 +136,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isPublic = false }) 
               <p className="text-firefox-orange/80 text-[10px] font-black uppercase tracking-[0.3em]">
                 @{profile.username}
               </p>
+              <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-firefox-orange/10 border border-firefox-orange/20 rounded-full">
+                <Trophy size={12} className="text-firefox-orange" />
+                <span className="text-firefox-orange font-black text-xs uppercase tracking-widest">{profile.points || 0} PTS</span>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -201,7 +205,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isPublic = false }) 
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-firefox-orange text-white font-display font-black text-[11px] uppercase tracking-widest hover:shadow-[0_0_20px_rgba(255,92,0,0.4)] transition-all"
           >
             <Share2 size={16} />
-            Share as Image
+            Share Rank Card
           </button>
         </div>
       )}

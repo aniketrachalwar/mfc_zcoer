@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { collection, query, where, getDocs, limit, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { ShieldCheck, XCircle, Loader2, ArrowLeft, Search, ScanLine, TicketCheck, Lock, Camera } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
@@ -212,6 +212,11 @@ const VerifyProfile = () => {
         verifiedBy: user?.uid,
         ...attendanceData
       });
+      
+      if (pendingTicketData.userId) {
+        const userRef = doc(db, 'users', pendingTicketData.userId);
+        await updateDoc(userRef, { points: increment(15) });
+      }
       
       setTicket({ ...pendingTicketData, verified: true, isNewlyVerified: true, ...attendanceData });
       setShowAttendanceForm(false);

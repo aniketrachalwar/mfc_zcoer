@@ -6,16 +6,6 @@ const Footer = () => {
     <footer className="relative bg-zinc-950 pt-32 pb-12 px-6 overflow-hidden border-t border-white/5">
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Contact Form Link / CTA */}
-        <div className="flex flex-col items-center text-center mb-40">
-           <p className="text-zinc-500 font-display font-black uppercase tracking-[0.4em] text-xs mb-8">Ready to contribute?</p>
-           <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-16 py-6 border-2 border-firefox-orange rounded-3xl text-white font-display font-black uppercase tracking-[0.4em] hover:bg-firefox-orange transition-all shadow-[0_0_40px_rgba(255,113,57,0.2)]"
-           >
-              Submit
-           </motion.button>
-        </div>
 
         {/* Social Bar */}
         <div className="flex justify-center gap-8 mb-32">

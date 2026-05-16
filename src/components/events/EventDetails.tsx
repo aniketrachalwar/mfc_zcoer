@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Calendar, MapPin, Trophy, ArrowLeft, CheckCircle2, Clock, Download, XCircle } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, increment, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
@@ -12,12 +12,18 @@ const EventDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [registeredCount, setRegisteredCount] = useState(0);
+  const [isVerified, setIsVerified] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [attending, setAttending] = useState(false);
   const [ticketId, setTicketId] = useState<string | null>(null);
   const [showCancelForm, setShowCancelForm] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
+  
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [registrationData, setRegistrationData] = useState({
@@ -68,12 +74,26 @@ const EventDetails = () => {
           if (tktSnap.exists() && !tktSnap.data().cancelled) {
             setAttending(true);
             setTicketId(tktSnap.id);
+            if (tktSnap.data().verified) {
+              setIsVerified(true);
+            }
+            if (tktSnap.data().feedback) {
+              setFeedbackSubmitted(true);
+            }
           }
         } catch (err) {
           console.error("Error fetching ticket:", err);
         }
       }
       
+      try {
+        const q = query(collection(db, 'tickets'), where('eventId', '==', id), where('cancelled', '==', false));
+        const snap = await getDocs(q);
+        setRegisteredCount(snap.size);
+      } catch (err) {
+        console.error(err);
+      }
+
       setLoading(false);
     };
     fetchEvent();
@@ -184,6 +204,28 @@ const EventDetails = () => {
     }
   };
 
+  const submitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ticketId || !feedbackText.trim() || !user) return;
+    
+    try {
+      await updateDoc(doc(db, 'tickets', ticketId), {
+        feedback: feedbackText.trim(),
+        feedbackSubmittedAt: new Date().toISOString()
+      });
+      
+      await updateDoc(doc(db, 'users', user.uid), {
+         points: increment(5)
+      });
+      
+      setFeedbackSubmitted(true);
+      setShowFeedbackForm(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit feedback.");
+    }
+  };
+
   const handleDownloadTicket = async () => {
     const ticketElement = document.getElementById('ticket-card');
     if (!ticketElement) return;
@@ -199,7 +241,24 @@ const EventDetails = () => {
     }
   };
 
+  const handleDownloadCertificate = async () => {
+    const certElement = document.getElementById('certificate-card');
+    if (!certElement) return;
+    try {
+      certElement.style.display = 'flex'; // show temporarily
+      const dataUrl = await toPng(certElement, { cacheBust: true, backgroundColor: '#09090b', width: 800, height: 600 });
+      certElement.style.display = 'none'; // hide again
+      const link = document.createElement('a');
+      link.download = `Certificate-${event.title.replace(/\\s+/g, '_')}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Failed to download certificate', err);
+    }
+  };
+
   const isPast = new Date(event.date).getTime() < new Date().getTime();
+  const seatsLeft = (event.totalSeats || 30) - registeredCount;
 
   return (
     <div className="pt-32 pb-20 px-4 min-h-screen relative overflow-hidden">
@@ -287,23 +346,87 @@ const EventDetails = () => {
                     </div>
                   </div>
                 )}
+                
+                {!isPast && (
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Available Seats</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-firefox-orange">{Math.max(0, seatsLeft)} / {event.totalSeats || 30}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-firefox-orange rounded-full transition-all duration-1000" 
+                        style={{ width: `${Math.min(100, (Math.max(0, seatsLeft) / (event.totalSeats || 30)) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {isPast ? (
-                  <div className="w-full py-6 bg-white/5 border border-white/10 text-zinc-500 rounded-2xl font-display font-black text-sm uppercase tracking-[0.2em]">
-                    Registrations Closed
-                  </div>
+                  attending ? (
+                    <div className="space-y-4">
+                      {isVerified && (
+                        <button 
+                          onClick={handleDownloadCertificate}
+                          className="w-full py-4 bg-white/10 border border-white/20 text-white rounded-2xl font-display font-black text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all flex items-center justify-center gap-2"
+                        >
+                          <Download size={16} /> Download Certificate
+                        </button>
+                      )}
+                      
+                      {feedbackSubmitted ? (
+                        <div className="w-full py-6 bg-green-500/10 border border-green-500/20 text-green-400 rounded-2xl font-display font-black text-sm uppercase tracking-[0.2em] flex items-center justify-center gap-2">
+                          <CheckCircle2 size={18} /> Feedback Submitted (+5 Pts)
+                        </div>
+                      ) : !showFeedbackForm ? (
+                      <motion.button 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setShowFeedbackForm(true)}
+                        className="w-full py-6 bg-firefox-orange text-white rounded-2xl font-display font-black text-sm uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(255,92,0,0.4)] hover:bg-white hover:text-black transition-all"
+                      >
+                        Leave Feedback (+5 Points)
+                      </motion.button>
+                    ) : (
+                      <form onSubmit={submitFeedback} className="w-full bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col gap-4 text-left">
+                        <h3 className="text-white font-display font-black uppercase text-xl mb-2 text-center">Event Feedback</h3>
+                        <textarea 
+                          required
+                          value={feedbackText}
+                          onChange={(e) => setFeedbackText(e.target.value)}
+                          placeholder="What did you think of the event?"
+                          className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white text-sm focus:outline-none focus:border-firefox-orange transition-colors resize-none"
+                          rows={3}
+                        />
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => setShowFeedbackForm(false)} className="flex-1 py-3 bg-white/5 text-zinc-400 rounded-lg font-display font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">Cancel</button>
+                          <button type="submit" className="flex-1 py-3 bg-firefox-orange text-white rounded-lg font-display font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-all">Submit (+5 PTS)</button>
+                        </div>
+                      </form>
+                    )}
+                    </div>
+                  ) : (
+                    <div className="w-full py-6 bg-white/5 border border-white/10 text-zinc-500 rounded-2xl font-display font-black text-sm uppercase tracking-[0.2em]">
+                      Event Concluded
+                    </div>
+                  )
                 ) : !attending ? (
                   !showRegistrationForm ? (
                     <motion.button 
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={seatsLeft > 0 ? { scale: 1.02 } : {}}
+                      whileTap={seatsLeft > 0 ? { scale: 0.98 } : {}}
                       onClick={() => {
+                        if (seatsLeft <= 0) return;
                         if (!user) { alert("Please log in to register for events."); return; }
                         setShowRegistrationForm(true);
                       }}
-                      className="w-full py-6 bg-firefox-orange text-white rounded-2xl font-display font-black text-sm uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(255,92,0,0.4)] hover:bg-white hover:text-black hover:shadow-[0_0_40px_rgba(255,255,255,0.4)] transition-all"
+                      className={`w-full py-6 rounded-2xl font-display font-black text-sm uppercase tracking-[0.2em] transition-all ${
+                        seatsLeft > 0 
+                          ? 'bg-firefox-orange text-white shadow-[0_0_40px_rgba(255,92,0,0.4)] hover:bg-white hover:text-black hover:shadow-[0_0_40px_rgba(255,255,255,0.4)]'
+                          : 'bg-white/5 text-zinc-500 cursor-not-allowed border border-white/10'
+                      }`}
                     >
-                      Attend Event
+                      {seatsLeft > 0 ? 'Attend Event' : 'Sold Out'}
                     </motion.button>
                   ) : (
                     <motion.div 
@@ -420,6 +543,35 @@ const EventDetails = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* Hidden Certificate Element */}
+      <div id="certificate-card" style={{ display: 'none', width: '800px', height: '600px' }} className="flex-col items-center justify-center bg-[#09090b] text-white p-12 border-[16px] border-firefox-orange relative overflow-hidden text-center z-[-100]">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+        <h1 className="text-6xl font-display font-black uppercase text-firefox-orange mb-4 tracking-widest relative z-10">Certificate of Participation</h1>
+        <p className="text-xl text-zinc-400 mb-8 uppercase tracking-[0.2em] relative z-10">This certifies that</p>
+        <h2 className="text-5xl font-bold mb-8 text-white relative z-10">{user?.displayName || 'Participant'}</h2>
+        <p className="text-xl text-zinc-400 mb-8 max-w-2xl leading-relaxed relative z-10">
+          has successfully participated in the event <br/>
+          <span className="font-bold text-white text-3xl uppercase">{event.title}</span> <br/>
+          organized by the Mozilla Firefox Club ZCOER.
+        </p>
+        <div className="flex justify-between items-end w-full px-16 mt-auto relative z-10">
+           <div className="text-center">
+             <div className="w-40 border-b-2 border-zinc-600 mb-2"></div>
+             <p className="text-zinc-500 uppercase tracking-widest text-sm">Date</p>
+             <p className="text-white font-bold">{new Date(event.date).toLocaleDateString()}</p>
+           </div>
+           <div className="w-24 h-24 border-4 border-firefox-orange rounded-full flex items-center justify-center text-firefox-orange font-black uppercase -rotate-12">
+             Verified
+           </div>
+           <div className="text-center">
+             <div className="w-40 border-b-2 border-zinc-600 mb-2"></div>
+             <p className="text-zinc-500 uppercase tracking-widest text-sm">President</p>
+             <p className="text-white font-bold">MFC ZCOER</p>
+           </div>
+        </div>
+      </div>
+
     </div>
   );
 };

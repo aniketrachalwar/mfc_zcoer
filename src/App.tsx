@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
 import Footer from './components/Footer';
@@ -96,16 +96,17 @@ const Layout = ({ children, scaleX }: { children: React.ReactNode; scaleX: any }
 
       {/* Member Portal Overlay - Floating Action if logged in */}
       {user && (
-        <motion.a
-          href="/dashboard"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          whileHover={{ scale: 1.1 }}
-          className="fixed bottom-8 right-8 w-16 h-16 bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-full flex items-center justify-center shadow-2xl z-50 group overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-gradient-to-tr from-firefox-orange to-firefox-yellow opacity-0 group-hover:opacity-20 transition-opacity" />
-          <LayoutDashboard size={24} className="relative z-10" />
-        </motion.a>
+        <Link to="/dashboard" className="fixed bottom-8 right-8 z-50 block">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            whileHover={{ scale: 1.1 }}
+            className="w-16 h-16 bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-full flex items-center justify-center shadow-2xl group overflow-hidden relative"
+          >
+            <div className="absolute inset-0 bg-gradient-to-tr from-firefox-orange to-firefox-yellow opacity-0 group-hover:opacity-20 transition-opacity" />
+            <LayoutDashboard size={24} className="relative z-10" />
+          </motion.div>
+        </Link>
       )}
     </div>
   );

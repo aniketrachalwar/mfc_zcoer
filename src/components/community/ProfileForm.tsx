@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { User, AtSign, FileText, Camera, Link as LinkIcon, GraduationCap, Github, Linkedin, Instagram, Twitter, Save, Sparkles } from 'lucide-react';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, query, where, getDocs, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import confetti from 'canvas-confetti';
 
@@ -14,6 +14,8 @@ interface ProfileFormProps {
 const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) => {
   const [loading, setLoading] = useState(false);
   const data = initialData || {};
+  const isNewUser = data.points === undefined;
+  const [referralInput, setReferralInput] = useState('');
   const [formData, setFormData] = useState({
     fullName: data.fullName || user.displayName || '',
     username: data.username || '',
@@ -42,13 +44,57 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
       // Auto-generate member ID if not present
       const memberId = data.memberId || `MFCZ-${Math.floor(1000 + Math.random() * 9000)}`;
       
+      // Points and Gamification
+      let awardedPoints = data.points || 0;
+      let newReferralCode = data.referralCode;
+
+      if (isNewUser) {
+        awardedPoints += 25; // new user bonus
+        newReferralCode = `${formData.username.substring(0, 4).toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}`;
+        
+        // Handle Referral
+        if (referralInput.trim()) {
+           const refQuery = query(collection(db, 'users'), where('referralCode', '==', referralInput.trim()));
+           const refSnap = await getDocs(refQuery);
+           if (!refSnap.empty) {
+              const referrerDoc = refSnap.docs[0];
+              await updateDoc(doc(db, 'users', referrerDoc.id), {
+                 points: increment(20)
+              });
+              awardedPoints += 10;
+           }
+        }
+      }
+
+      // Check Profile Completion (100% complete)
+      const isComplete = Boolean(
+         formData.fullName && formData.username && formData.bio && formData.photoURL && 
+         formData.skills && formData.domains && formData.department && formData.year && formData.favMozTech
+      );
+
+      let completedRewarded = data.profileCompletedRewarded || false;
+      if (isComplete && !completedRewarded) {
+         awardedPoints += 20;
+         completedRewarded = true;
+      }
+
       const cleanData = {
         ...formData,
-        memberId,
+        memberId: memberId || '',
         skills: typeof formData.skills === 'string' ? formData.skills.split(',').map((s: string) => s.trim()).filter((s: string) => s !== '') : (Array.isArray(formData.skills) ? formData.skills : []),
         domains: typeof formData.domains === 'string' ? formData.domains.split(',').map((s: string) => s.trim()).filter((s: string) => s !== '') : (Array.isArray(formData.domains) ? formData.domains : []),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        points: awardedPoints || 0,
+        referralCode: newReferralCode || '',
+        profileCompletedRewarded: completedRewarded || false
       };
+
+      // Strip any undefined values to prevent Firebase errors
+      Object.keys(cleanData).forEach(key => {
+        if (cleanData[key as keyof typeof cleanData] === undefined) {
+          delete cleanData[key as keyof typeof cleanData];
+        }
+      });
 
       await setDoc(doc(db, 'users', user.uid), cleanData, { merge: true });
       
@@ -69,6 +115,43 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-12">
+      {isNewUser ? (
+        <div className="bg-firefox-orange/10 border border-firefox-orange/20 rounded-[2rem] p-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-firefox-orange/20 blur-[100px] rounded-full mix-blend-screen pointer-events-none" />
+          <h3 className="text-xl font-display font-black uppercase text-firefox-orange mb-2">Got a Referral Code?</h3>
+          <p className="text-zinc-400 text-sm mb-6">Enter a friend's referral code to get a head start with +10 bonus points! (They'll get +20 too!)</p>
+          <input 
+            type="text"
+            placeholder="e.g. JOHN1234"
+            value={referralInput}
+            onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
+            className="w-full max-w-sm bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors font-mono tracking-widest text-white uppercase"
+          />
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
+             <h4 className="text-zinc-500 font-black uppercase text-[10px] tracking-widest mb-2">Your Referral Code</h4>
+             <div className="bg-black/50 py-3 px-6 rounded-xl border border-white/5 font-mono text-xl text-firefox-orange tracking-widest font-black inline-block">
+                {data.referralCode || 'N/A'}
+             </div>
+             <p className="text-[10px] text-zinc-500 mt-3 font-medium">Share this code with friends! When they join, they get +10 pts and you get +20 pts.</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center flex flex-col items-center justify-center">
+             <h4 className="text-zinc-500 font-black uppercase text-[10px] tracking-widest mb-2">Profile Completion</h4>
+             {data.profileCompletedRewarded ? (
+                <div className="bg-green-500/10 text-green-400 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-green-500/20">
+                  100% Complete (+20 PTS Earned)
+                </div>
+             ) : (
+                <div className="text-firefox-orange text-xs font-black uppercase tracking-widest">
+                  Incomplete - Finish all fields for +20 PTS!
+                </div>
+             )}
+          </div>
+        </div>
+      )}
+
       {/* Profile Photo Section */}
       <div className="flex flex-col items-center gap-6">
         <div className="relative group">
