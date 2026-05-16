@@ -102,9 +102,15 @@ const VerifyProfile = () => {
     setEventData(null);
     
     try {
+      // Extract ID if a full URL is scanned
+      let processedQuery = queryStr.trim();
+      if (processedQuery.includes('/verify/')) {
+        processedQuery = processedQuery.split('/verify/').pop() || processedQuery;
+      }
+
       // Is it an Event Ticket ID? (format: userId_eventId)
-      if (queryStr.includes('_')) {
-        const ticketRef = doc(db, 'tickets', queryStr);
+      if (processedQuery.includes('_')) {
+        const ticketRef = doc(db, 'tickets', processedQuery);
         const ticketSnap = await getDoc(ticketRef);
         
         if (ticketSnap.exists()) {
@@ -117,6 +123,12 @@ const VerifyProfile = () => {
           if (isNewlyVerified) {
             setPendingTicketRef(ticketRef);
             setPendingTicketData({ id: ticketSnap.id, ...ticketData });
+            setAttendanceData({
+              zprn: ticketData.zprn || '',
+              department: ticketData.department || '',
+              division: ticketData.division || '',
+              rollNo: ticketData.rollNo || ''
+            });
             setProfile(userSnap.data());
             setEventData(eventSnap.data());
             setShowAttendanceForm(true);
@@ -133,11 +145,11 @@ const VerifyProfile = () => {
       }
 
       // Otherwise, it's a Member ID or Username search
-      let q = query(collection(db, 'users'), where('username', '==', queryStr.trim()), limit(1));
+      let q = query(collection(db, 'users'), where('username', '==', processedQuery), limit(1));
       let querySnapshot = await getDocs(q);
       
       if (querySnapshot.empty) {
-        q = query(collection(db, 'users'), where('memberId', '==', queryStr.trim()), limit(1));
+        q = query(collection(db, 'users'), where('memberId', '==', processedQuery), limit(1));
         querySnapshot = await getDocs(q);
       }
       

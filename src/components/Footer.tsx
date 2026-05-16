@@ -49,9 +49,12 @@ const Footer = () => {
         </div>
 
         {/* Legal Grid */}
-        <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-white/5 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
-           <p>© {new Date().getFullYear()} MOZILLA FIREFOX CLUB ZCOER. ALL RIGHTS RESERVED.</p>
-           <div className="flex gap-12 mt-8 md:mt-0">
+        <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-white/5 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 gap-6 md:gap-0">
+           <div className="flex flex-col items-center md:items-start gap-4">
+               <p className="text-center md:text-left">© {new Date().getFullYear()} MOZILLA FIREFOX CLUB ZCOER. ALL RIGHTS RESERVED.</p>
+               <p className="text-center md:text-left text-firefox-orange/80">DEVELOPED BY ANIKET RACHALWAR</p>
+           </div>
+           <div className="flex gap-8 md:gap-12">
                 <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
                 <a href="#" className="hover:text-white transition-colors">ZCOER Pune</a>
            </div>

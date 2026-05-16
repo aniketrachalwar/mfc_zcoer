@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, MapPin, Trophy, ArrowLeft, CheckCircle2, Clock, Download } from 'lucide-react';
+import { Calendar, MapPin, Trophy, ArrowLeft, CheckCircle2, Clock, Download, XCircle } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -15,6 +15,18 @@ const EventDetails = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [attending, setAttending] = useState(false);
   const [ticketId, setTicketId] = useState<string | null>(null);
+  const [showCancelForm, setShowCancelForm] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [isCancelling, setIsCancelling] = useState(false);
+  
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+  const [registrationData, setRegistrationData] = useState({
+    zprn: '',
+    department: '',
+    division: '',
+    rollNo: ''
+  });
+
   const { user } = useAuth();
 
   useEffect(() => {
@@ -53,7 +65,7 @@ const EventDetails = () => {
         try {
           const tktRef = doc(db, 'tickets', `${user.uid}_${id}`);
           const tktSnap = await getDoc(tktRef);
-          if (tktSnap.exists()) {
+          if (tktSnap.exists() && !tktSnap.data().cancelled) {
             setAttending(true);
             setTicketId(tktSnap.id);
           }
@@ -116,7 +128,8 @@ const EventDetails = () => {
     );
   }
 
-  const handleAttend = async () => {
+  const submitRegistration = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!user) {
       alert("Please log in to register for events.");
       return;
@@ -124,6 +137,7 @@ const EventDetails = () => {
     
     if (id === 'hackathon-2026') {
       setAttending(true);
+      setShowRegistrationForm(false);
       return;
     }
 
@@ -133,13 +147,40 @@ const EventDetails = () => {
         userId: user.uid,
         eventId: id,
         verified: false,
-        timestamp: new Date().toISOString()
-      });
+        cancelled: false,
+        timestamp: new Date().toISOString(),
+        ...registrationData
+      }, { merge: true });
       setAttending(true);
       setTicketId(newTicketId);
+      setShowRegistrationForm(false);
     } catch (e) {
       console.error("Failed to register for event", e);
       alert("Failed to register. Please try again.");
+    }
+  };
+
+  const submitCancelTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ticketId || !cancelReason.trim()) return;
+    
+    setIsCancelling(true);
+    try {
+      await setDoc(doc(db, 'tickets', ticketId), {
+        cancelled: true,
+        cancelReason: cancelReason.trim(),
+        cancelledAt: new Date().toISOString()
+      }, { merge: true });
+      
+      setAttending(false);
+      setTicketId(null);
+      setShowCancelForm(false);
+      setCancelReason("");
+    } catch (err) {
+      console.error("Error cancelling ticket:", err);
+      alert("Failed to cancel ticket. Please try again.");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -252,14 +293,51 @@ const EventDetails = () => {
                     Registrations Closed
                   </div>
                 ) : !attending ? (
-                  <motion.button 
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleAttend}
-                    className="w-full py-6 bg-firefox-orange text-white rounded-2xl font-display font-black text-sm uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(255,92,0,0.4)] hover:bg-white hover:text-black hover:shadow-[0_0_40px_rgba(255,255,255,0.4)] transition-all"
-                  >
-                    Attend Event
-                  </motion.button>
+                  !showRegistrationForm ? (
+                    <motion.button 
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        if (!user) { alert("Please log in to register for events."); return; }
+                        setShowRegistrationForm(true);
+                      }}
+                      className="w-full py-6 bg-firefox-orange text-white rounded-2xl font-display font-black text-sm uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(255,92,0,0.4)] hover:bg-white hover:text-black hover:shadow-[0_0_40px_rgba(255,255,255,0.4)] transition-all"
+                    >
+                      Attend Event
+                    </motion.button>
+                  ) : (
+                    <motion.div 
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="w-full bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col gap-4 text-left"
+                    >
+                      <h3 className="text-white font-display font-black uppercase text-xl mb-2 text-center">Complete Registration</h3>
+                      <form onSubmit={submitRegistration} className="space-y-4">
+                        <div>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 block">ZPRN No.</label>
+                          <input type="text" required value={registrationData.zprn} onChange={e => setRegistrationData({...registrationData, zprn: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors" placeholder="e.g. ZCOER/2026/001" />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 block">Department</label>
+                          <input type="text" required value={registrationData.department} onChange={e => setRegistrationData({...registrationData, department: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors" placeholder="e.g. Computer Engineering" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 block">Division</label>
+                            <input type="text" required value={registrationData.division} onChange={e => setRegistrationData({...registrationData, division: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors" placeholder="e.g. A" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 block">Roll No.</label>
+                            <input type="text" required value={registrationData.rollNo} onChange={e => setRegistrationData({...registrationData, rollNo: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors" placeholder="e.g. 42" />
+                          </div>
+                        </div>
+                        <div className="flex gap-2 pt-4">
+                          <button type="button" onClick={() => setShowRegistrationForm(false)} className="flex-1 py-3 bg-white/5 text-zinc-400 rounded-lg font-display font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">Cancel</button>
+                          <button type="submit" className="flex-1 py-3 bg-firefox-orange text-white rounded-lg font-display font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-all">Get Ticket</button>
+                        </div>
+                      </form>
+                    </motion.div>
+                  )
                 ) : (
                   <motion.div 
                     initial={{ scale: 0.9, opacity: 0 }}
@@ -296,6 +374,43 @@ const EventDetails = () => {
                         >
                           <Download size={14} /> Download Ticket
                         </button>
+
+                        {!showCancelForm ? (
+                          <button 
+                            onClick={() => setShowCancelForm(true)}
+                            className="w-full py-4 mt-2 bg-white/5 text-zinc-400 rounded-xl font-display font-black text-[10px] uppercase tracking-widest hover:bg-red-500/20 hover:text-red-400 transition-all flex items-center justify-center gap-2"
+                          >
+                            <XCircle size={14} /> Cancel Ticket
+                          </button>
+                        ) : (
+                          <form onSubmit={submitCancelTicket} className="w-full mt-4 p-4 bg-black/50 border border-white/10 rounded-xl flex flex-col gap-3">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 text-left block">Reason for Cancellation</label>
+                            <textarea 
+                              required
+                              value={cancelReason}
+                              onChange={(e) => setCancelReason(e.target.value)}
+                              placeholder="Why are you unable to attend?"
+                              className="w-full bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-red-500 transition-colors resize-none"
+                              rows={2}
+                            />
+                            <div className="flex gap-2 mt-2">
+                              <button 
+                                type="button"
+                                onClick={() => setShowCancelForm(false)}
+                                className="flex-1 py-3 bg-white/5 text-zinc-400 rounded-lg font-display font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all"
+                              >
+                                Keep Ticket
+                              </button>
+                              <button 
+                                type="submit"
+                                disabled={isCancelling}
+                                className="flex-1 py-3 bg-red-500/20 text-red-400 rounded-lg font-display font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+                              >
+                                {isCancelling ? 'Cancelling...' : 'Confirm'}
+                              </button>
+                            </div>
+                          </form>
+                        )}
                       </>
                     )}
                   </motion.div>
