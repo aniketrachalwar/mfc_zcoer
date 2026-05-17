@@ -12,7 +12,8 @@ import {
   ShoppingBag, 
   Bell, 
   LogOut,
-  ShieldAlert
+  ShieldAlert,
+  Star
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -52,6 +53,7 @@ const AdminLayout = () => {
   if (!user) return <Navigate to="/" />;
 
   const isAdmin = profile?.role === 'admin' || profile?.role === 'president' || profile?.role === 'core_team';
+  const isStrictAdmin = profile?.role === 'admin';
 
   if (!isAdmin) return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
@@ -67,12 +69,18 @@ const AdminLayout = () => {
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { name: 'Members', path: '/admin/members', icon: Users },
+    { name: 'Team', path: '/admin/team', icon: Star },
     { name: 'Contributions', path: '/admin/contributions', icon: Award },
     { name: 'Events', path: '/admin/events', icon: Calendar },
     { name: 'Projects', path: '/admin/projects', icon: Briefcase },
     { name: 'Merchandise', path: '/admin/merch', icon: ShoppingBag },
     { name: 'Notifications', path: '/admin/notifications', icon: Bell },
   ];
+
+  const visibleNavItems = navItems.filter(item => {
+    if ((item.name === 'Members' || item.name === 'Team') && !isStrictAdmin) return false;
+    return true;
+  });
 
   return (
     <div className="pt-32 pb-20 px-4 min-h-screen">
@@ -86,7 +94,7 @@ const AdminLayout = () => {
               <p className="text-sm font-bold text-white">Admin Portal</p>
             </div>
             
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const isActive = location.pathname === item.path || (location.pathname.startsWith(item.path) && item.path !== '/admin');
               return (
                 <Link
@@ -108,7 +116,15 @@ const AdminLayout = () => {
           {/* Main Content Area */}
           <div className="flex-1 bg-zinc-900/40 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-xl relative overflow-hidden min-h-[600px]">
             <div className="absolute top-0 right-0 w-96 h-96 bg-firefox-orange/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-            <Outlet />
+            {(location.pathname === '/admin/members' || location.pathname === '/admin/team') && !isStrictAdmin ? (
+              <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
+                <ShieldAlert size={48} className="text-red-500 mb-4" />
+                <h2 className="text-2xl font-display font-black uppercase text-white mb-2">Access Restricted</h2>
+                <p className="text-zinc-400">Only administrators can manage this section.</p>
+              </div>
+            ) : (
+              <Outlet />
+            )}
           </div>
           
         </div>

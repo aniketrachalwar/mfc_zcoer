@@ -152,6 +152,7 @@ const MembersManager = () => {
                         className="bg-zinc-900 border border-white/10 rounded-lg px-3 py-1 text-xs text-white focus:outline-none focus:border-firefox-orange"
                       >
                         <option value="member">Member</option>
+                        <option value="volunteer">Volunteer</option>
                         <option value="core_team">Core Team</option>
                         <option value="president">President</option>
                         <option value="admin">Admin</option>

@@ -23,6 +23,7 @@ import EventsManager from './components/admin/EventsManager';
 import ProjectsManager from './components/admin/ProjectsManager';
 import MerchandiseManager from './components/admin/MerchandiseManager';
 import NotificationsManager from './components/admin/NotificationsManager';
+import TeamManager from './components/admin/TeamManager';
 import { motion, useScroll, useSpring, AnimatePresence } from 'motion/react';
 import { useAuth } from './lib/AuthContext';
 import { LayoutDashboard, Rocket, X } from 'lucide-react';
@@ -144,10 +145,10 @@ export default function App() {
             <Route path="projects" element={<ProjectsManager />} />
             <Route path="merch" element={<MerchandiseManager />} />
             <Route path="notifications" element={<NotificationsManager />} />
+            <Route path="team" element={<TeamManager />} />
           </Route>
         </Routes>
       </Layout>
     </Router>
   );
 }
-
