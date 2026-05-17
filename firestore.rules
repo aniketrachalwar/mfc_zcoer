@@ -13,6 +13,14 @@ service cloud.firestore {
       return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
+    function canManageContent() {
+      return isAdmin() ||
+        (
+          isSignedIn() &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'president', 'core_team']
+        );
+    }
+
     match /projects/{projectId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -35,6 +43,24 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if true;
       allow write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /blogs/{blogId} {
+      allow read: if resource.data.status == 'approved' ||
+        (isSignedIn() && resource.data.authorId == request.auth.uid) ||
+        canManageContent();
+      allow create: if isSignedIn() &&
+        request.resource.data.authorId == request.auth.uid &&
+        (request.resource.data.status == 'pending' || canManageContent());
+      allow update: if canManageContent() ||
+        (
+          isSignedIn() &&
+          resource.data.authorId == request.auth.uid &&
+          request.resource.data.authorId == request.auth.uid &&
+          request.resource.data.status == 'pending'
+        );
+      allow delete: if canManageContent() ||
+        (isSignedIn() && resource.data.authorId == request.auth.uid);
     }
   }
 }

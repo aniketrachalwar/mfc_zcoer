@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Clock, PenTool, Edit3 } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { db } from '../../lib/firebase';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Blog } from '../../types/blog';
 import { useAuth } from '../../lib/AuthContext';
 
@@ -18,11 +18,12 @@ const BlogsPage = () => {
       try {
         const q = query(
           collection(db, 'blogs'), 
-          where('status', '==', 'approved'),
-          orderBy('createdAt', 'desc')
+          where('status', '==', 'approved')
         );
         const snapshot = await getDocs(q);
-        const fetchedBlogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Blog));
+        const fetchedBlogs = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() } as Blog))
+          .sort((a, b) => b.createdAt - a.createdAt);
         setBlogs(fetchedBlogs);
       } catch (err) {
         console.error("Failed to fetch blogs:", err);

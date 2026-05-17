@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Clock, ArrowRight, PenTool } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../lib/firebase';
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Blog } from '../types/blog';
 import { useAuth } from '../lib/AuthContext';
 
@@ -18,12 +18,13 @@ const Blogs = () => {
       try {
         const q = query(
           collection(db, 'blogs'), 
-          where('status', '==', 'approved'),
-          orderBy('createdAt', 'desc'),
-          limit(3)
+          where('status', '==', 'approved')
         );
         const snapshot = await getDocs(q);
-        const fetchedBlogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Blog));
+        const fetchedBlogs = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() } as Blog))
+          .sort((a, b) => b.createdAt - a.createdAt)
+          .slice(0, 1);
         
         if (fetchedBlogs.length > 0) {
           setBlogs(fetchedBlogs);
@@ -40,34 +41,6 @@ const Blogs = () => {
               date: "Oct 24, 2024",
               readTime: "6 min read",
               img: "https://images.unsplash.com/photo-1558486012-817176f44ec0?auto=format&fit=crop&q=80&w=800",
-              status: 'approved',
-              createdAt: Date.now(),
-              content: ''
-            },
-            {
-              id: '2',
-              title: "Design Systems in 2024",
-              excerpt: "Building MFC ZCOER's first unified design system. From Figma to functional CSS.",
-              tags: ["Design", "UI/UX"],
-              authorName: "Rahul Bansal",
-              authorId: 'mock',
-              date: "Nov 02, 2024",
-              readTime: "8 min read",
-              img: "https://images.unsplash.com/photo-1586717791821-3f44a563dc4c?auto=format&fit=crop&q=80&w=800",
-              status: 'approved',
-              createdAt: Date.now(),
-              content: ''
-            },
-            {
-              id: '3',
-              title: "Community Scaling",
-              excerpt: "How we managed to grow from 50 to 450 active members in just one semester through accountability.",
-              tags: ["Ops", "Growth"],
-              authorName: "Siddharth K.",
-              authorId: 'mock',
-              date: "Nov 15, 2024",
-              readTime: "5 min read",
-              img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800",
               status: 'approved',
               createdAt: Date.now(),
               content: ''
@@ -100,7 +73,10 @@ const Blogs = () => {
                 <PenTool size={14} /> Write an Insight
               </button>
             )}
-            <button className="group flex items-center gap-3 text-xs font-black uppercase tracking-widest text-zinc-950 hover:text-firefox-orange transition-colors">
+            <button
+              onClick={() => navigate('/blogs')}
+              className="group flex items-center gap-3 text-xs font-black uppercase tracking-widest text-zinc-950 hover:text-firefox-orange transition-colors"
+            >
               Read All Articles <div className="w-8 h-8 rounded-full border border-zinc-200 flex items-center justify-center group-hover:bg-zinc-950 group-hover:text-white transition-all"><ArrowRight size={14} /></div>
             </button>
           </div>
@@ -111,7 +87,7 @@ const Blogs = () => {
             <div className="w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="grid md:grid-cols-3 gap-10">
+          <div className="grid max-w-3xl gap-10">
             {blogs.map((blog, i) => (
               <motion.div
                 key={blog.id || i}
@@ -120,6 +96,7 @@ const Blogs = () => {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
                 className="group cursor-pointer"
+                onClick={() => blog.authorId !== 'mock' && navigate(`/blog/${blog.id}`)}
               >
                 <div className="aspect-[16/10] overflow-hidden rounded-[2rem] mb-8 border border-zinc-200 transition-all group-hover:shadow-2xl group-hover:shadow-black/5">
                   <img src={blog.img} alt={blog.title} className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" />

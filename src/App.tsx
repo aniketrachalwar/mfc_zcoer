@@ -25,6 +25,8 @@ import MerchandiseManager from './components/admin/MerchandiseManager';
 import NotificationsManager from './components/admin/NotificationsManager';
 import TeamManager from './components/admin/TeamManager';
 import BlogsManager from './components/admin/BlogsManager';
+import BlogsPage from './components/blogs/BlogsPage';
+import BlogDetails from './components/blogs/BlogDetails';
 import WriteBlog from './components/blogs/WriteBlog';
 import { motion, useScroll, useSpring, AnimatePresence } from 'motion/react';
 import { useAuth } from './lib/AuthContext';
@@ -137,7 +139,10 @@ export default function App() {
           <Route path="/event/:id" element={<EventDetails />} />
           <Route path="/verify" element={<VerifyProfile />} />
           <Route path="/verify/:username" element={<VerifyProfile />} />
+          <Route path="/blogs" element={<BlogsPage />} />
+          <Route path="/blog/:id" element={<BlogDetails />} />
           <Route path="/write-blog" element={<WriteBlog />} />
+          <Route path="/edit-blog/:id" element={<WriteBlog />} />
           
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>

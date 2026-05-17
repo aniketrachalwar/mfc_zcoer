@@ -9,10 +9,12 @@ import {
   signInWithEmailAndPassword,
   deleteUser
 } from 'firebase/auth';
-import { auth } from './firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from './firebase';
 
 interface AuthContextType {
   user: User | null;
+  userProfile: Record<string, any> | null;
   loading: boolean;
   error: string | null;
   login: () => Promise<void>;
@@ -21,6 +23,8 @@ interface AuthContextType {
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
+  setError: (msg: string | null) => void;
+  setSuccess: (msg: string | null) => void;
   clearError: () => void;
   success: string | null;
   clearSuccess: () => void;
@@ -31,14 +35,30 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+
+      if (!currentUser) {
+        setUserProfile(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const profileSnap = await getDoc(doc(db, 'users', currentUser.uid));
+        setUserProfile(profileSnap.exists() ? { id: profileSnap.id, ...profileSnap.data() } : null);
+      } catch (err) {
+        console.error('Failed to load user profile:', err);
+        setUserProfile(null);
+      } finally {
+        setLoading(false);
+      }
     });
     return unsubscribe;
   }, []);
@@ -145,9 +165,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={{ 
-      user, loading, error, success, 
+      user, userProfile, loading, error, success, 
       login, loginWithGoogle, signupWithEmail, loginWithEmail, logout, deleteAccount,
-      clearError, clearSuccess, setSuccessMessage 
+      setError, setSuccess, clearError, clearSuccess, setSuccessMessage 
     }}>
       {children}
     </AuthContext.Provider>
