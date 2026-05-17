@@ -13,7 +13,8 @@ import {
   Bell, 
   LogOut,
   ShieldAlert,
-  Star
+  Star,
+  FileText
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -73,6 +74,7 @@ const AdminLayout = () => {
     { name: 'Contributions', path: '/admin/contributions', icon: Award },
     { name: 'Events', path: '/admin/events', icon: Calendar },
     { name: 'Projects', path: '/admin/projects', icon: Briefcase },
+    { name: 'Blogs', path: '/admin/blogs', icon: FileText },
     { name: 'Merchandise', path: '/admin/merch', icon: ShoppingBag },
     { name: 'Notifications', path: '/admin/notifications', icon: Bell },
   ];

@@ -29,6 +29,7 @@ const Navbar = () => {
     { name: 'Leaderboard', href: '/#leaderboard', type: 'anchor' },
     { name: 'Projects', href: '/#projects', type: 'anchor' },
     { name: 'Meet The Team', href: '/#teams', type: 'anchor' },
+    { name: 'Latest Insights', href: '/#blog', type: 'anchor' },
     { name: 'Community', href: '/community', type: 'link' },
   ];
 

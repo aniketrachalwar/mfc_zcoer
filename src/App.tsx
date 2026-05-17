@@ -24,6 +24,8 @@ import ProjectsManager from './components/admin/ProjectsManager';
 import MerchandiseManager from './components/admin/MerchandiseManager';
 import NotificationsManager from './components/admin/NotificationsManager';
 import TeamManager from './components/admin/TeamManager';
+import BlogsManager from './components/admin/BlogsManager';
+import WriteBlog from './components/blogs/WriteBlog';
 import { motion, useScroll, useSpring, AnimatePresence } from 'motion/react';
 import { useAuth } from './lib/AuthContext';
 import { LayoutDashboard, Rocket, X } from 'lucide-react';
@@ -135,6 +137,7 @@ export default function App() {
           <Route path="/event/:id" element={<EventDetails />} />
           <Route path="/verify" element={<VerifyProfile />} />
           <Route path="/verify/:username" element={<VerifyProfile />} />
+          <Route path="/write-blog" element={<WriteBlog />} />
           
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>
@@ -146,6 +149,7 @@ export default function App() {
             <Route path="merch" element={<MerchandiseManager />} />
             <Route path="notifications" element={<NotificationsManager />} />
             <Route path="team" element={<TeamManager />} />
+            <Route path="blogs" element={<BlogsManager />} />
           </Route>
         </Routes>
       </Layout>
