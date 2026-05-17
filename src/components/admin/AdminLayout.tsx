@@ -61,9 +61,9 @@ const AdminLayout = () => {
       <ShieldAlert size={64} className="text-red-500 mb-6" />
       <h1 className="text-4xl font-display font-black uppercase text-white mb-4">Access Denied</h1>
       <p className="text-zinc-400 max-w-md mb-8">You do not have the required permissions to view this page.</p>
-      <Link to="/" className="px-8 py-3 bg-firefox-orange text-white rounded-full font-display font-black text-[10px] uppercase tracking-widest">
+      <a href="/" className="px-8 py-3 bg-firefox-orange text-white rounded-full font-display font-black text-[10px] uppercase tracking-widest">
         Return Home
-      </Link>
+      </a>
     </div>
   );
 

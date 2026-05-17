@@ -1,110 +1,216 @@
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ExternalLink, Github, ArrowUpRight } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, ArrowUpRight, Briefcase, Github, Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { useAuth } from '../lib/AuthContext';
+import { Project } from '../types/project';
+
+const fallbackProjects: Project[] = [
+  {
+    id: 'foxfire-dashboard',
+    title: 'FoxFire Dashboard',
+    desc: 'Real-time contribution engine for 400+ members. Built with React and optimized for low-latency updates.',
+    details: 'A member operations dashboard for tracking participation, points, and contribution activity across the club.',
+    tech: ['React', 'Firebase', 'WebSockets'],
+    img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200',
+    status: 'active',
+    createdAt: 3,
+  },
+  {
+    id: 'artemis-auth',
+    title: 'Artemis Auth',
+    desc: 'Open-source authentication library specifically designed for campus-scale applications.',
+    details: 'A reusable auth layer for student projects that need role-aware access, OAuth sign-in, and secure session handling.',
+    tech: ['Node.js', 'OAuth2', 'Redis'],
+    img: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=1200',
+    status: 'active',
+    createdAt: 2,
+  },
+  {
+    id: 'zeal-map',
+    title: 'Zeal Map 2.0',
+    desc: 'Interactive campus navigation system with real-time room availability and event markers.',
+    details: 'A visual campus map built for events, workshops, and visitor navigation inside ZCOER.',
+    tech: ['Next.js', 'Mapbox', 'Three.js'],
+    img: 'https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?auto=format&fit=crop&q=80&w=1200',
+    status: 'active',
+    createdAt: 1,
+  },
+];
 
 const Projects = () => {
+  const [projects, setProjects] = useState<Project[]>([]);
   const [activeProject, setActiveProject] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const { userProfile } = useAuth();
 
-  const projects = [
-    {
-      id: "01",
-      title: "FoxFire Dashboard",
-      desc: "Real-time contribution engine for 400+ members. Built with React and optimized for low-latency updates.",
-      tech: ["React", "Firebase", "WebSockets"],
-      img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200"
-    },
-    {
-      id: "02",
-      title: "Artemis Auth",
-      desc: "Open-source authentication library specifically designed for campus-scale applications.",
-      tech: ["Node.js", "OAuth2", "Redis"],
-      img: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=1200"
-    },
-    {
-      id: "03",
-      title: "Zeal Map 2.0",
-      desc: "Interactive campus navigation system with real-time room availability and event markers.",
-      tech: ["Next.js", "Mapbox", "Three.js"],
-      img: "https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?auto=format&fit=crop&q=80&w=1200"
-    }
-  ];
+  const canManageProjects = ['admin', 'president', 'core_team'].includes(userProfile?.role);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, 'projects'));
+        const fetchedProjects = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() } as Project))
+          .filter(project => project.status === 'active')
+          .sort((a, b) => b.createdAt - a.createdAt);
+
+        setProjects(fetchedProjects.length > 0 ? fetchedProjects : fallbackProjects);
+      } catch (err) {
+        console.error('Failed to fetch projects:', err);
+        setProjects(fallbackProjects);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  const active = useMemo(() => projects[activeProject] || projects[0], [projects, activeProject]);
 
   return (
-    <section id="projects" className="section-padding bg-zinc-950 text-white overflow-hidden">
+    <main className="min-h-screen bg-zinc-950 text-white pt-32 pb-20 px-4 overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-12">
+        <div className="mb-10">
+          <Link to="/" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group">
+            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Back to Home</span>
+          </Link>
+        </div>
+
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10 mb-16">
           <div className="max-w-2xl">
-            <span className="text-firefox-orange font-mono text-sm tracking-[0.3em] uppercase mb-4 block font-bold">Showcase</span>
-            <h2 className="text-5xl md:text-8xl font-display font-black tracking-tighter leading-[0.9]">
-              Featured <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-400 to-zinc-600">Products.</span>
-            </h2>
+            <span className="text-firefox-orange font-mono text-sm tracking-[0.3em] uppercase mb-4 block font-bold">Project Lab</span>
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-display font-black tracking-tighter leading-[0.95]">
+              Open Source <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-300 to-zinc-600">Projects.</span>
+            </h1>
           </div>
-          <p className="text-zinc-500 max-w-sm text-lg font-medium">
-             Selected work that demonstrates our commitment to the open web and technical excellence.
-          </p>
+          <div className="max-w-sm space-y-5">
+            <p className="text-zinc-500 text-base md:text-lg font-medium">
+              Selected work from MFC ZCOER members, built for the open web and real-world campus needs.
+            </p>
+            {canManageProjects && (
+              <Link
+                to="/admin/projects"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-firefox-orange text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-colors"
+              >
+                <Plus size={16} />
+                Add Project
+              </Link>
+            )}
+          </div>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-12 items-start">
-          <div className="lg:col-span-4 space-y-4">
-            {projects.map((project, i) => (
-              <motion.div
-                key={project.id}
-                onMouseEnter={() => setActiveProject(i)}
-                className={`p-8 rounded-3xl cursor-pointer transition-all border ${activeProject === i ? 'bg-white/5 border-white/20' : 'border-transparent hover:bg-white/[0.02]'}`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <span className="text-xs font-mono text-zinc-500 mb-2 block">{project.id}</span>
-                    <h3 className={`text-2xl font-bold transition-colors ${activeProject === i ? 'text-white' : 'text-zinc-500'}`}>{project.title}</h3>
+        {loading ? (
+          <div className="flex justify-center py-24">
+            <div className="w-10 h-10 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : projects.length === 0 ? (
+          <div className="bg-white/5 border border-white/10 rounded-[2rem] p-12 text-center flex flex-col items-center">
+            <Briefcase className="text-zinc-600 mb-4" size={44} />
+            <h2 className="text-2xl font-display font-black text-white mb-3">No Projects Yet</h2>
+            <p className="text-zinc-400 max-w-md">Projects added by admins and core team members will appear here.</p>
+          </div>
+        ) : (
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+            <div className="lg:col-span-4 space-y-4">
+              {projects.map((project, i) => (
+                <motion.button
+                  key={project.id}
+                  type="button"
+                  onClick={() => setActiveProject(i)}
+                  onMouseEnter={() => setActiveProject(i)}
+                  className={`w-full text-left p-6 md:p-8 rounded-3xl cursor-pointer transition-all border ${
+                    activeProject === i ? 'bg-white/5 border-white/20' : 'border-transparent hover:bg-white/[0.02]'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <span className="text-xs font-mono text-zinc-500 mb-2 block">{String(i + 1).padStart(2, '0')}</span>
+                      <h2 className={`text-xl md:text-2xl font-bold transition-colors ${activeProject === i ? 'text-white' : 'text-zinc-500'}`}>
+                        {project.title}
+                      </h2>
+                    </div>
+                    <ArrowUpRight size={20} className={activeProject === i ? 'text-firefox-orange' : 'text-zinc-700'} />
                   </div>
-                  <ArrowUpRight size={20} className={activeProject === i ? 'text-firefox-orange' : 'text-zinc-700'} />
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.button>
+              ))}
+            </div>
 
-          <div className="lg:col-span-8 relative aspect-video rounded-[2.5rem] overflow-hidden group">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeProject}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.5 }}
-                className="absolute inset-0"
-              >
-                <img 
-                  src={projects[activeProject].img} 
-                  alt={projects[activeProject].title}
-                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-12">
-                   <p className="text-lg text-zinc-300 max-w-xl mb-6 font-medium">{projects[activeProject].desc}</p>
-                   <div className="flex gap-4">
-                      <motion.button 
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-6 py-3 bg-white text-black rounded-xl font-bold text-sm tracking-widest uppercase hover:bg-firefox-orange hover:text-white transition-colors"
-                      >
-                        View Demo
-                      </motion.button>
-                      <motion.button 
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-6 py-3 bg-white/10 text-white rounded-xl font-bold text-sm tracking-widest uppercase backdrop-blur-md hover:bg-white/20 transition-colors"
-                      >
-                        GitHub
-                      </motion.button>
-                   </div>
+            {active && (
+              <div className="lg:col-span-8">
+                <div className="relative aspect-[16/10] md:aspect-video rounded-[2rem] md:rounded-[2.5rem] overflow-hidden group bg-zinc-900 border border-white/10">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={active.id}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.5 }}
+                      className="absolute inset-0"
+                    >
+                      <img
+                        src={active.img}
+                        alt={active.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/55 to-transparent" />
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
-              </motion.div>
-            </AnimatePresence>
+
+                <motion.div
+                  key={`${active.id}-details`}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-8 bg-white/[0.03] border border-white/10 rounded-[2rem] p-6 md:p-8"
+                >
+                  <div className="flex flex-wrap gap-2 mb-5">
+                    {active.tech.map(item => (
+                      <span key={item} className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-zinc-300 uppercase tracking-widest">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                  <h2 className="text-3xl md:text-5xl font-display font-black tracking-tight mb-4">{active.title}</h2>
+                  <p className="text-zinc-300 text-base md:text-lg leading-relaxed mb-5">{active.desc}</p>
+                  {active.details && (
+                    <p className="text-zinc-500 text-sm md:text-base leading-7 mb-8 whitespace-pre-wrap">{active.details}</p>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {active.demoUrl && (
+                      <a
+                        href={active.demoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-black rounded-xl font-bold text-sm tracking-widest uppercase hover:bg-firefox-orange hover:text-white transition-colors"
+                      >
+                        View Demo <ArrowUpRight size={16} />
+                      </a>
+                    )}
+                    {active.githubUrl && (
+                      <a
+                        href={active.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/10 text-white rounded-xl font-bold text-sm tracking-widest uppercase backdrop-blur-md hover:bg-white/20 transition-colors"
+                      >
+                        <Github size={16} /> GitHub
+                      </a>
+                    )}
+                  </div>
+                </motion.div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </div>
-    </section>
+    </main>
   );
 };
 

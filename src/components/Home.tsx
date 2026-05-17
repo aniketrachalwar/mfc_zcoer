@@ -2,7 +2,6 @@ import Hero from './Hero';
 import UpcomingEvent from './UpcomingEvent';
 import About from './About';
 import Leaderboard from './Leaderboard';
-import Projects from './Projects';
 import System from './System';
 import Blogs from './Blogs';
 import Team from './Team';
@@ -15,7 +14,6 @@ const Home = () => {
       <UpcomingEvent />
       <About />
       <Leaderboard />
-      <Projects />
       <System />
       <Blogs />
       <Team />

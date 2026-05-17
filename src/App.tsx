@@ -8,6 +8,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
 import Footer from './components/Footer';
+import Projects from './components/Projects';
 import CommunityPage from './components/community/CommunityPage';
 import Dashboard from './components/community/Dashboard';
 import PublicProfile from './components/community/PublicProfile';
@@ -131,6 +132,7 @@ export default function App() {
       <Layout scaleX={scaleX}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/projects" element={<Projects />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<MemberProfilePage />} />
