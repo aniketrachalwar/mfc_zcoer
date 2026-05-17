@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { Calendar, MapPin, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Events = () => {
   const events = [
@@ -31,10 +32,15 @@ const Events = () => {
             <span className="text-firefox-orange font-bold uppercase tracking-widest text-xs">Activities</span>
             <h2 className="text-4xl md:text-6xl font-display font-bold mt-4 tracking-tight">Events & <span className="text-gradient">Community</span></h2>
           </div>
-          <p className="text-gray-400 max-w-md md:text-right">
-            We don't do events for attendance. We do events for output. 
-            Every event has a clear learning outcome.
-          </p>
+          <div className="flex flex-col items-start md:items-end gap-4">
+            <p className="text-gray-400 max-w-md md:text-right">
+              We don't do events for attendance. We do events for output. 
+              Every event has a clear learning outcome.
+            </p>
+            <Link to="/events" className="flex items-center gap-2 text-firefox-orange font-bold uppercase tracking-widest text-sm hover:text-white transition-colors">
+              Browse All Sessions <ArrowRight size={16} />
+            </Link>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">

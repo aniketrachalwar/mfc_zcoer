@@ -4,7 +4,10 @@ import {
   onAuthStateChanged, 
   signInWithPopup, 
   GoogleAuthProvider, 
-  signOut 
+  signOut,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  deleteUser
 } from 'firebase/auth';
 import { auth } from './firebase';
 
@@ -17,6 +20,7 @@ interface AuthContextType {
   signupWithEmail: (email: string, pass: string) => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   clearError: () => void;
   success: string | null;
   clearSuccess: () => void;
@@ -77,7 +81,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signupWithEmail = async (email: string, pass: string) => {
     setError(null);
     try {
-      const { createUserWithEmailAndPassword } = await import('firebase/auth');
       await createUserWithEmailAndPassword(auth, email, pass);
       setSuccess("Account created successfully!");
     } catch (err: any) {
@@ -85,6 +88,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setError("An account with this email already exists. Please log in.");
       } else if (err.code === 'auth/weak-password') {
         setError("Password is too weak. Please use at least 6 characters.");
+      } else if (err.code === 'auth/operation-not-allowed') {
+        setError("Email/password accounts are not enabled. Please contact support or enable it in Firebase console.");
       } else {
         setError("Failed to create account: " + err.message);
       }
@@ -96,7 +101,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithEmail = async (email: string, pass: string) => {
     setError(null);
     try {
-      const { signInWithEmailAndPassword } = await import('firebase/auth');
       await signInWithEmailAndPassword(auth, email, pass);
       setSuccess("Successfully logged in!");
     } catch (err: any) {
@@ -118,6 +122,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const deleteAccount = async () => {
+    if (!auth.currentUser) return;
+    try {
+      await deleteUser(auth.currentUser);
+      setUser(null);
+      setSuccess("Account deleted successfully.");
+    } catch (err: any) {
+      if (err.code === 'auth/requires-recent-login') {
+        setError("Please log out and log back in to delete your account.");
+      } else {
+        setError("Failed to delete account: " + err.message);
+      }
+      console.error("Account deletion failed:", err);
+      throw err;
+    }
+  };
+
   const clearError = () => setError(null);
   const clearSuccess = () => setSuccess(null);
   const setSuccessMessage = (msg: string) => setSuccess(msg);
@@ -125,7 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{ 
       user, loading, error, success, 
-      login, loginWithGoogle, signupWithEmail, loginWithEmail, logout, 
+      login, loginWithGoogle, signupWithEmail, loginWithEmail, logout, deleteAccount,
       clearError, clearSuccess, setSuccessMessage 
     }}>
       {children}

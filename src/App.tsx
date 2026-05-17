@@ -13,6 +13,7 @@ import Dashboard from './components/community/Dashboard';
 import PublicProfile from './components/community/PublicProfile';
 import VerifyProfile from './components/community/VerifyProfile';
 import EventDetails from './components/events/EventDetails';
+import EventsPage from './components/events/EventsPage';
 import { MemberProfilePage } from './components/progression';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './components/admin/AdminDashboard';
@@ -129,6 +130,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<MemberProfilePage />} />
           <Route path="/profile/:username" element={<PublicProfile />} />
+          <Route path="/events" element={<EventsPage />} />
           <Route path="/event/:id" element={<EventDetails />} />
           <Route path="/verify" element={<VerifyProfile />} />
           <Route path="/verify/:username" element={<VerifyProfile />} />

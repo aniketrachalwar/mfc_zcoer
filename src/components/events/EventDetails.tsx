@@ -17,6 +17,8 @@ const EventDetails = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [attending, setAttending] = useState(false);
   const [ticketId, setTicketId] = useState<string | null>(null);
+  const [customCertificate, setCustomCertificate] = useState("");
+  const [userFullName, setUserFullName] = useState("");
   const [showCancelForm, setShowCancelForm] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
@@ -74,6 +76,7 @@ const EventDetails = () => {
           if (tktSnap.exists() && !tktSnap.data().cancelled) {
             setAttending(true);
             setTicketId(tktSnap.id);
+            setCustomCertificate(tktSnap.data().customCertificate || "");
             if (tktSnap.data().verified) {
               setIsVerified(true);
             }
@@ -81,8 +84,16 @@ const EventDetails = () => {
               setFeedbackSubmitted(true);
             }
           }
+          
+          // Fetch user full name for certificate
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists() && userDoc.data().fullName) {
+             setUserFullName(userDoc.data().fullName);
+          } else {
+             setUserFullName(user.displayName || 'Participant');
+          }
         } catch (err) {
-          console.error("Error fetching ticket:", err);
+          console.error("Error fetching ticket/user:", err);
         }
       }
       
@@ -249,7 +260,7 @@ const EventDetails = () => {
       const dataUrl = await toPng(certElement, { cacheBust: true, backgroundColor: '#09090b', width: 800, height: 600 });
       certElement.style.display = 'none'; // hide again
       const link = document.createElement('a');
-      link.download = `Certificate-${event.title.replace(/\\s+/g, '_')}.png`;
+      link.download = `Certificate-${event.title.replace(/\s+/g, '_')}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
@@ -259,6 +270,23 @@ const EventDetails = () => {
 
   const isPast = new Date(event.date).getTime() < new Date().getTime();
   const seatsLeft = (event.totalSeats || 30) - registeredCount;
+
+  let displayCertType = event.certificateType || 'Participation';
+  let subText = "has successfully participated in the event";
+  
+  if (customCertificate) {
+    if (["1st Position", "2nd Position", "3rd Position", "Winner"].includes(customCertificate)) {
+      displayCertType = "Excellence";
+      subText = `has secured ${customCertificate} in the event`;
+    } else {
+      displayCertType = customCertificate;
+      subText = "has successfully completed the event";
+    }
+  } else if (displayCertType === 'Completion') {
+    subText = "has successfully completed the event";
+  } else if (displayCertType === 'Excellence') {
+    subText = "has demonstrated excellence in the event";
+  }
 
   return (
     <div className="pt-32 pb-20 px-4 min-h-screen relative overflow-hidden">
@@ -365,12 +393,12 @@ const EventDetails = () => {
                 {isPast ? (
                   attending ? (
                     <div className="space-y-4">
-                      {isVerified && (
+                      {isVerified && event.certificateType !== 'None' && (
                         <button 
                           onClick={handleDownloadCertificate}
                           className="w-full py-4 bg-white/10 border border-white/20 text-white rounded-2xl font-display font-black text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all flex items-center justify-center gap-2"
                         >
-                          <Download size={16} /> Download Certificate
+                          <Download size={16} /> Download {displayCertType} Certificate
                         </button>
                       )}
                       
@@ -547,11 +575,11 @@ const EventDetails = () => {
       {/* Hidden Certificate Element */}
       <div id="certificate-card" style={{ display: 'none', width: '800px', height: '600px' }} className="flex-col items-center justify-center bg-[#09090b] text-white p-12 border-[16px] border-firefox-orange relative overflow-hidden text-center z-[-100]">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-        <h1 className="text-6xl font-display font-black uppercase text-firefox-orange mb-4 tracking-widest relative z-10">Certificate of Participation</h1>
+        <h1 className="text-6xl font-display font-black uppercase text-firefox-orange mb-4 tracking-widest relative z-10">Certificate of {displayCertType}</h1>
         <p className="text-xl text-zinc-400 mb-8 uppercase tracking-[0.2em] relative z-10">This certifies that</p>
-        <h2 className="text-5xl font-bold mb-8 text-white relative z-10">{user?.displayName || 'Participant'}</h2>
+        <h2 className="text-5xl font-bold mb-8 text-white relative z-10 font-serif italic border-b border-white/20 pb-2 px-12 inline-block">{userFullName || 'Participant'}</h2>
         <p className="text-xl text-zinc-400 mb-8 max-w-2xl leading-relaxed relative z-10">
-          has successfully participated in the event <br/>
+          {subText} <br/>
           <span className="font-bold text-white text-3xl uppercase">{event.title}</span> <br/>
           organized by the Mozilla Firefox Club ZCOER.
         </p>

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { User, AtSign, FileText, Camera, Link as LinkIcon, GraduationCap, Github, Linkedin, Instagram, Twitter, Save, Sparkles } from 'lucide-react';
-import { doc, setDoc, collection, query, where, getDocs, updateDoc, increment } from 'firebase/firestore';
+import { doc, setDoc, collection, query, where, getDocs, updateDoc, increment, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { useAuth } from '../../lib/AuthContext';
 import confetti from 'canvas-confetti';
 
 interface ProfileFormProps {
@@ -15,6 +16,16 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
   const [loading, setLoading] = useState(false);
   const data = initialData || {};
   const isNewUser = data.points === undefined;
+  
+  const { deleteAccount } = useAuth();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const isGoogleAuth = user?.providerData?.some((p: any) => p.providerId === 'google.com');
+  const creationTime = user?.metadata?.creationTime ? new Date(user.metadata.creationTime).getTime() : 0;
+  const isWithinOneMinute = (Date.now() - creationTime) <= 60000;
+  const showReferralBox = isNewUser && isGoogleAuth && isWithinOneMinute;
+
   const [referralInput, setReferralInput] = useState('');
   const [formData, setFormData] = useState({
     fullName: data.fullName || user.displayName || '',
@@ -48,13 +59,19 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
       let awardedPoints = data.points || 0;
       let newReferralCode = data.referralCode;
 
+      if (!newReferralCode) {
+        const baseName = formData.username || 'MFCZ';
+        const prefix = baseName.length >= 4 ? baseName.substring(0, 4).toUpperCase() : baseName.padEnd(4, 'X').toUpperCase();
+        newReferralCode = `${prefix}${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+
       if (isNewUser) {
         awardedPoints += 25; // new user bonus
-        newReferralCode = `${formData.username.substring(0, 4).toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}`;
         
         // Handle Referral
-        if (referralInput.trim()) {
-           const refQuery = query(collection(db, 'users'), where('referralCode', '==', referralInput.trim()));
+        const codeToUse = referralInput.trim() || sessionStorage.getItem('pendingReferral');
+        if (codeToUse) {
+           const refQuery = query(collection(db, 'users'), where('referralCode', '==', codeToUse));
            const refSnap = await getDocs(refQuery);
            if (!refSnap.empty) {
               const referrerDoc = refSnap.docs[0];
@@ -63,6 +80,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
               });
               awardedPoints += 10;
            }
+           sessionStorage.removeItem('pendingReferral');
         }
       }
 
@@ -115,7 +133,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-12">
-      {isNewUser ? (
+      {showReferralBox && (
         <div className="bg-firefox-orange/10 border border-firefox-orange/20 rounded-[2rem] p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-firefox-orange/20 blur-[100px] rounded-full mix-blend-screen pointer-events-none" />
           <h3 className="text-xl font-display font-black uppercase text-firefox-orange mb-2">Got a Referral Code?</h3>
@@ -128,12 +146,16 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
             className="w-full max-w-sm bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors font-mono tracking-widest text-white uppercase"
           />
         </div>
-      ) : (
+      )}
+      
+      {!isNewUser && (
         <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
              <h4 className="text-zinc-500 font-black uppercase text-[10px] tracking-widest mb-2">Your Referral Code</h4>
              <div className="bg-black/50 py-3 px-6 rounded-xl border border-white/5 font-mono text-xl text-firefox-orange tracking-widest font-black inline-block">
-                {data.referralCode || 'N/A'}
+                {data.referralCode ? data.referralCode : (
+                  <span className="text-sm text-zinc-500">Save profile to generate</span>
+                )}
              </div>
              <p className="text-[10px] text-zinc-500 mt-3 font-medium">Share this code with friends! When they join, they get +10 pts and you get +20 pts.</p>
           </div>
@@ -364,6 +386,50 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
             <Save size={18} />
           </span>
         </motion.button>
+      </div>
+
+      <div className="mt-16 pt-8 flex flex-col items-center">
+        {!showDeleteConfirm ? (
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="text-[10px] text-zinc-600 hover:text-red-500 transition-colors uppercase tracking-widest font-bold"
+          >
+            Delete Account
+          </button>
+        ) : (
+          <div className="flex flex-col items-center bg-red-500/10 border border-red-500/20 p-4 rounded-xl max-w-sm w-full text-center">
+            <p className="text-red-400 text-[10px] font-bold mb-3 uppercase tracking-wider">Are you sure? This action cannot be undone.</p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-bold transition-colors uppercase tracking-wider"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsDeleting(true);
+                  try {
+                    await deleteDoc(doc(db, 'users', user.uid));
+                    await deleteAccount();
+                  } catch (err) {
+                    console.error(err);
+                    setIsDeleting(false);
+                    setShowDeleteConfirm(false);
+                  }
+                }}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-2 uppercase tracking-wider"
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Confirm Delete"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </form>
   );

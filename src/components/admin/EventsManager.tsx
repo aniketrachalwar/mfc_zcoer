@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Edit2, Trash2, X, Image as ImageIcon, Download } from 'lucide-react';
+import { Calendar, Plus, Edit2, Trash2, X, Image as ImageIcon, Download, User } from 'lucide-react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
@@ -9,6 +9,9 @@ const EventsManager = () => {
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [managingEventId, setManagingEventId] = useState<string | null>(null);
+  const [attendees, setAttendees] = useState<any[]>([]);
+  const [loadingAttendees, setLoadingAttendees] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -19,7 +22,8 @@ const EventsManager = () => {
     date: '',
     location: '',
     prizes: '',
-    totalSeats: 30
+    totalSeats: 30,
+    certificateType: 'Participation'
   });
 
   const fetchEvents = async () => {
@@ -49,11 +53,12 @@ const EventsManager = () => {
         date: event.date || '',
         location: event.location || '',
         prizes: event.prizes || '',
-        totalSeats: event.totalSeats || 30
+        totalSeats: event.totalSeats || 30,
+        certificateType: event.certificateType || 'Participation'
       });
       setEditingId(event.id);
     } else {
-      setFormData({ title: '', type: 'Hackathon', desc: '', img: '', date: '', location: '', prizes: '', totalSeats: 30 });
+      setFormData({ title: '', type: 'Hackathon', desc: '', img: '', date: '', location: '', prizes: '', totalSeats: 30, certificateType: 'Participation' });
       setEditingId(null);
     }
     setIsFormOpen(true);
@@ -159,6 +164,49 @@ const EventsManager = () => {
     } catch (err) {
       console.error("Error downloading attendees:", err);
       alert("Failed to download attendees.");
+    }
+  };
+
+  const openAttendeesManager = async (eventId: string) => {
+    setManagingEventId(eventId);
+    setLoadingAttendees(true);
+    try {
+      const q = query(collection(db, 'tickets'), where('eventId', '==', eventId), where('verified', '==', true));
+      const querySnapshot = await getDocs(q);
+      const list = [];
+      for (const tktDoc of querySnapshot.docs) {
+        const data = tktDoc.data();
+        let name = "Unknown";
+        try {
+          const userSnap = await getDocs(query(collection(db, 'users'), where('uid', '==', data.userId)));
+          if (!userSnap.empty) {
+            name = userSnap.docs[0].data().fullName || "Unknown";
+          } else {
+             const uDoc = await getDocs(query(collection(db, 'users'), where('__name__', '==', data.userId)));
+             if (!uDoc.empty) {
+                name = uDoc.docs[0].data().fullName || "Unknown";
+             }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+        list.push({ id: tktDoc.id, name, customCertificate: data.customCertificate || '', ...data });
+      }
+      setAttendees(list);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load attendees.");
+    } finally {
+      setLoadingAttendees(false);
+    }
+  };
+
+  const updateCustomCertificate = async (ticketId: string, customCert: string) => {
+    try {
+      await updateDoc(doc(db, 'tickets', ticketId), { customCertificate: customCert });
+      setAttendees(prev => prev.map(a => a.id === ticketId ? { ...a, customCertificate: customCert } : a));
+    } catch (err) {
+      console.error("Failed to update certificate", err);
     }
   };
 
@@ -277,6 +325,13 @@ const EventsManager = () => {
                   </div>
                 )}
                 <div className="absolute top-4 right-4 flex gap-2">
+                  <button 
+                    onClick={() => openAttendeesManager(event.id)}
+                    title="Manage Attendees"
+                    className="w-8 h-8 rounded-full bg-black/50 backdrop-blur text-blue-400 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-colors"
+                  >
+                    <User size={14} />
+                  </button>
                   <button 
                     onClick={() => downloadCancelled(event.id, event.title)}
                     title="Download Cancelled CSV"
@@ -412,16 +467,33 @@ const EventsManager = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Cover Image URL</label>
-                  <input 
-                    type="url" 
-                    name="img"
-                    value={formData.img}
-                    onChange={handleChange}
-                    placeholder="https://..."
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Cover Image URL</label>
+                    <input 
+                      type="url" 
+                      name="img"
+                      value={formData.img}
+                      onChange={handleChange}
+                      placeholder="https://..."
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Certificate Type</label>
+                    <select 
+                      name="certificateType"
+                      value={formData.certificateType}
+                      onChange={handleChange}
+                      className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                    >
+                      <option value="None">None</option>
+                      <option value="Participation">Participation</option>
+                      <option value="Completion">Completion</option>
+                      <option value="Excellence">Excellence</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -457,6 +529,66 @@ const EventsManager = () => {
                   {editingId ? 'Save Changes' : 'Create Event'}
                 </button>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Attendees Manager Modal */}
+      <AnimatePresence>
+        {managingEventId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setManagingEventId(null)} />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-zinc-950 border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative z-10 shadow-2xl"
+            >
+              <div className="p-6 border-b border-white/10 flex justify-between items-center">
+                <h2 className="text-xl font-display font-black uppercase text-white">Manage Attendees</h2>
+                <button onClick={() => setManagingEventId(null)} className="text-zinc-500 hover:text-white transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto flex-1">
+                {loadingAttendees ? (
+                  <div className="flex justify-center py-12">
+                    <div className="w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : attendees.length === 0 ? (
+                  <p className="text-center text-zinc-500 py-12">No verified attendees yet.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {attendees.map(attendee => (
+                      <div key={attendee.id} className="flex items-center justify-between bg-white/5 border border-white/10 p-4 rounded-xl">
+                        <div>
+                          <p className="text-white font-bold">{attendee.name}</p>
+                          <p className="text-zinc-500 text-xs">{attendee.userId}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="flex flex-col">
+                            <label className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">Custom Certificate</label>
+                            <select 
+                              value={attendee.customCertificate || ''}
+                              onChange={(e) => updateCustomCertificate(attendee.id, e.target.value)}
+                              className="bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-firefox-orange outline-none"
+                            >
+                              <option value="">Default (Event Type)</option>
+                              <option value="1st Position">1st Position</option>
+                              <option value="2nd Position">2nd Position</option>
+                              <option value="3rd Position">3rd Position</option>
+                              <option value="Winner">Winner</option>
+                              <option value="Excellence">Excellence</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </motion.div>
           </div>
         )}
