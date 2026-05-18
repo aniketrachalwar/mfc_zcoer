@@ -7,39 +7,6 @@ import { db } from '../lib/firebase';
 import { useAuth } from '../lib/AuthContext';
 import { Project } from '../types/project';
 
-const fallbackProjects: Project[] = [
-  {
-    id: 'foxfire-dashboard',
-    title: 'FoxFire Dashboard',
-    desc: 'Real-time contribution engine for 400+ members. Built with React and optimized for low-latency updates.',
-    details: 'A member operations dashboard for tracking participation, points, and contribution activity across the club.',
-    tech: ['React', 'Firebase', 'WebSockets'],
-    img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200',
-    status: 'active',
-    createdAt: 3,
-  },
-  {
-    id: 'artemis-auth',
-    title: 'Artemis Auth',
-    desc: 'Open-source authentication library specifically designed for campus-scale applications.',
-    details: 'A reusable auth layer for student projects that need role-aware access, OAuth sign-in, and secure session handling.',
-    tech: ['Node.js', 'OAuth2', 'Redis'],
-    img: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=1200',
-    status: 'active',
-    createdAt: 2,
-  },
-  {
-    id: 'zeal-map',
-    title: 'Zeal Map 2.0',
-    desc: 'Interactive campus navigation system with real-time room availability and event markers.',
-    details: 'A visual campus map built for events, workshops, and visitor navigation inside ZCOER.',
-    tech: ['Next.js', 'Mapbox', 'Three.js'],
-    img: 'https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?auto=format&fit=crop&q=80&w=1200',
-    status: 'active',
-    createdAt: 1,
-  },
-];
-
 const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProject, setActiveProject] = useState(0);
@@ -57,10 +24,10 @@ const Projects = () => {
           .filter(project => project.status === 'active')
           .sort((a, b) => b.createdAt - a.createdAt);
 
-        setProjects(fetchedProjects.length > 0 ? fetchedProjects : fallbackProjects);
+        setProjects(fetchedProjects);
       } catch (err) {
         console.error('Failed to fetch projects:', err);
-        setProjects(fallbackProjects);
+        setProjects([]);
       } finally {
         setLoading(false);
       }
