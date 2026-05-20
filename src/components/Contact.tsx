@@ -34,7 +34,7 @@ const Contact = () => {
   };
 
   return (
-    <section id="newsletter" className="section-padding bg-white relative overflow-hidden">
+    <section id="contact" className="section-padding bg-white relative overflow-hidden">
       {/* Decorative Blur */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-firefox-orange/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
 

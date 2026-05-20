@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Trophy, MapPin, ExternalLink, Github, Linkedin, Instagram, Twitter } from 'lucide-react';
+import { Search, Trophy, MapPin, ExternalLink, Github, Linkedin, Instagram, Twitter, Sparkles } from 'lucide-react';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Link } from 'react-router-dom';
@@ -23,6 +23,7 @@ interface Profile {
     instagram?: string;
     twitter?: string;
   };
+  isFoundingMember?: boolean;
 }
 
 const CommunityPage = () => {
@@ -152,8 +153,13 @@ const CommunityPage = () => {
                         className="w-full h-full rounded-full object-cover border-2 border-zinc-800 relative z-10"
                       />
                     </div>
-                    <div className="text-right">
-                      <span className="text-[10px] font-black tracking-widest text-firefox-orange bg-firefox-orange/10 px-3 py-1 rounded-full uppercase">
+                    <div className="text-right flex flex-col items-end gap-2">
+                      {profile.isFoundingMember && (
+                        <span className="text-[9px] font-black tracking-widest text-yellow-500 bg-yellow-500/10 border border-yellow-500/20 px-2 py-1 rounded-full uppercase inline-flex items-center gap-1">
+                          <Sparkles size={10} /> Founding
+                        </span>
+                      )}
+                      <span className="text-[10px] font-black tracking-widest text-firefox-orange bg-firefox-orange/10 border border-firefox-orange/20 px-3 py-1 rounded-full uppercase">
                         {profile.memberId}
                       </span>
                     </div>

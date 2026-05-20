@@ -144,7 +144,9 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
         updatedAt: new Date().toISOString(),
         points: awardedPoints || 0,
         referralCode: newReferralCode || '',
-        profileCompletedRewarded: completedRewarded || false
+        profileCompletedRewarded: completedRewarded || false,
+        membershipStatus: data.membershipStatus || 'public',
+        isFoundingMember: data.isFoundingMember || false
       };
 
       // Strip any undefined values to prevent Firebase errors
@@ -183,7 +185,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
             placeholder="e.g. JOHN1234"
             value={referralInput}
             onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
-            className="w-full max-w-sm bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors font-mono tracking-widest text-white uppercase"
+            className="w-full max-w-sm bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors font-mono tracking-widest text-white uppercase"
           />
         </div>
       )}
@@ -248,7 +250,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
             type="url"
             value={formData.photoURL}
             onChange={(e) => setFormData({...formData, photoURL: e.target.value})}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors"
             placeholder="https://..."
           />
         </div>
@@ -272,7 +274,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
                   type="text"
                   value={formData.fullName}
                   onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors"
                 />
               </div>
             </div>
@@ -286,7 +288,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({...formData, username: e.target.value.toLowerCase().replace(/\s/g, '')})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors"
                 />
               </div>
             </div>
@@ -298,7 +300,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
                 <textarea 
                   value={formData.bio}
                   onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors min-h-[100px]"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors min-h-[100px]"
                 />
               </div>
             </div>
@@ -320,7 +322,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
                 placeholder="e.g. IT, Computer Science, AI&DS"
                 value={formData.department}
                 onChange={(e) => setFormData({...formData, department: e.target.value})}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors"
               />
             </div>
 
@@ -329,7 +331,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
               <select 
                 value={formData.year}
                 onChange={(e) => setFormData({...formData, year: e.target.value})}
-                className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors selection:bg-firefox-orange"
+                className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors selection:bg-firefox-orange"
               >
                 <option value="First">First</option>
                 <option value="Second">Second</option>
@@ -345,7 +347,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
                  placeholder="e.g. Rust, WebVM, Firefox Nightly, MDN"
                  value={formData.favMozTech}
                  onChange={(e) => setFormData({...formData, favMozTech: e.target.value})}
-                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors"
+                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors"
                />
             </div>
           </div>
@@ -364,7 +366,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
                  placeholder="React, CSS, Python, Figma"
                  value={formData.skills}
                  onChange={(e) => setFormData({...formData, skills: e.target.value})}
-                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors"
+                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors"
                />
              </div>
              <div>
@@ -374,7 +376,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
                  placeholder="Web Dev, AI, Open Source"
                  value={formData.domains}
                  onChange={(e) => setFormData({...formData, domains: e.target.value})}
-                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors"
+                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors"
                />
              </div>
              <div>
@@ -385,7 +387,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
                    type="url"
                    value={formData.portfolio}
                    onChange={(e) => setFormData({...formData, portfolio: e.target.value})}
-                   className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors"
+                   className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors"
                  />
                </div>
              </div>
@@ -404,7 +406,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
                   placeholder="username"
                   value={formData.socialLinks.github}
                   onChange={(e) => setFormData({...formData, socialLinks: {...formData.socialLinks, github: e.target.value}})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors"
                 />
               </div>
             </div>
@@ -417,7 +419,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
                   placeholder="profile-url"
                   value={formData.socialLinks.linkedin}
                   onChange={(e) => setFormData({...formData, socialLinks: {...formData.socialLinks, linkedin: e.target.value}})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm focus:border-firefox-orange outline-none transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors"
                 />
               </div>
             </div>

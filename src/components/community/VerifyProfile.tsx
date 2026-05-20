@@ -286,7 +286,7 @@ const VerifyProfile = () => {
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="max-w-md w-full bg-zinc-900 border border-firefox-orange/30 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(255,92,0,0.1)] relative overflow-hidden"
+          className="max-w-md w-full bg-zinc-900 border border-firefox-orange/30 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_50px_rgba(255,92,0,0.1)] relative overflow-y-auto overflow-x-hidden max-h-[90vh]"
         >
           <div className="absolute inset-0 bg-gradient-to-b from-firefox-orange/10 to-transparent pointer-events-none" />
           
@@ -303,7 +303,7 @@ const VerifyProfile = () => {
                 required
                 value={attendanceData.zprn}
                 onChange={(e) => setAttendanceData({...attendanceData, zprn: e.target.value})}
-                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors"
                 placeholder="e.g. ZCOER/2026/001"
               />
             </div>
@@ -314,7 +314,7 @@ const VerifyProfile = () => {
                 required
                 value={attendanceData.department}
                 onChange={(e) => setAttendanceData({...attendanceData, department: e.target.value})}
-                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors"
                 placeholder="e.g. Computer Engineering"
               />
             </div>
@@ -326,7 +326,7 @@ const VerifyProfile = () => {
                   required
                   value={attendanceData.division}
                   onChange={(e) => setAttendanceData({...attendanceData, division: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors"
                   placeholder="e.g. A"
                 />
               </div>
@@ -337,7 +337,7 @@ const VerifyProfile = () => {
                   required
                   value={attendanceData.rollNo}
                   onChange={(e) => setAttendanceData({...attendanceData, rollNo: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors"
                   placeholder="e.g. 42"
                 />
               </div>
@@ -366,7 +366,7 @@ const VerifyProfile = () => {
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="max-w-md w-full bg-zinc-900 border border-blue-500/30 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(59,130,246,0.1)] relative overflow-hidden text-center"
+          className="max-w-md w-full bg-zinc-900 border border-blue-500/30 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_50px_rgba(59,130,246,0.1)] relative overflow-y-auto overflow-x-hidden max-h-[90vh] text-center"
         >
           <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent pointer-events-none" />
           
@@ -430,7 +430,7 @@ const VerifyProfile = () => {
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="max-w-md w-full bg-zinc-900 border border-[#22c55e]/30 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(34,197,94,0.1)] relative overflow-hidden text-center"
+          className="max-w-md w-full bg-zinc-900 border border-[#22c55e]/30 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_50px_rgba(34,197,94,0.1)] relative overflow-y-auto overflow-x-hidden max-h-[90vh] text-center"
         >
           <div className="absolute inset-0 bg-gradient-to-b from-[#22c55e]/10 to-transparent pointer-events-none" />
           
@@ -487,7 +487,7 @@ const VerifyProfile = () => {
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="max-w-md w-full bg-zinc-900 border border-white/10 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden"
+        className="max-w-md w-full bg-zinc-900 border border-white/10 rounded-[2rem] p-6 sm:p-8 shadow-2xl relative overflow-y-auto overflow-x-hidden max-h-[90vh]"
       >
         <div className="absolute top-0 right-0 w-32 h-32 bg-firefox-orange/10 blur-[80px] rounded-full pointer-events-none" />
         
@@ -535,7 +535,7 @@ const VerifyProfile = () => {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Type ID..."
-                className="w-full bg-black/50 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-firefox-orange transition-colors"
+                className="w-full bg-black/50 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-[16px] text-white placeholder:text-zinc-600 focus:outline-none focus:border-firefox-orange transition-colors"
                 autoFocus
               />
             </div>

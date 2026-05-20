@@ -173,7 +173,7 @@ const ProjectsManager = () => {
                 required
                 value={formData.title}
                 onChange={event => setFormData({ ...formData, title: event.target.value })}
-                className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors"
                 placeholder="FoxFire Dashboard"
               />
             </label>
@@ -183,7 +183,7 @@ const ProjectsManager = () => {
               <select
                 value={formData.status}
                 onChange={event => setFormData({ ...formData, status: event.target.value as Project['status'] })}
-                className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors"
               >
                 <option value="active">Active</option>
                 <option value="draft">Draft</option>
@@ -198,7 +198,7 @@ const ProjectsManager = () => {
               rows={2}
               value={formData.desc}
               onChange={event => setFormData({ ...formData, desc: event.target.value })}
-              className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
+              className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
               placeholder="One-line summary shown on the projects page."
             />
           </label>
@@ -209,7 +209,7 @@ const ProjectsManager = () => {
               rows={5}
               value={formData.details}
               onChange={event => setFormData({ ...formData, details: event.target.value })}
-              className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
+              className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
               placeholder="Problem statement, features, team context, goals, or implementation notes."
             />
           </label>
@@ -221,7 +221,7 @@ const ProjectsManager = () => {
                 type="text"
                 value={formData.tech}
                 onChange={event => setFormData({ ...formData, tech: event.target.value })}
-                className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors"
                 placeholder="React, Firebase, Tailwind"
               />
             </label>
@@ -232,7 +232,7 @@ const ProjectsManager = () => {
                 type="url"
                 value={formData.img}
                 onChange={event => setFormData({ ...formData, img: event.target.value })}
-                className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors"
                 placeholder="https://..."
               />
             </label>
@@ -245,7 +245,7 @@ const ProjectsManager = () => {
                 type="url"
                 value={formData.demoUrl}
                 onChange={event => setFormData({ ...formData, demoUrl: event.target.value })}
-                className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors"
                 placeholder="https://demo.example.com"
               />
             </label>
@@ -256,7 +256,7 @@ const ProjectsManager = () => {
                 type="url"
                 value={formData.githubUrl}
                 onChange={event => setFormData({ ...formData, githubUrl: event.target.value })}
-                className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors"
                 placeholder="https://github.com/org/repo"
               />
             </label>

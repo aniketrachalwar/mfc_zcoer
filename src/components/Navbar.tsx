@@ -69,6 +69,17 @@ const Navbar = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   const Bracket = ({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }) => {
     const styles = {
       tl: 'top-0 left-0 border-t border-l',
@@ -127,18 +138,7 @@ const Navbar = () => {
               </>
             );
 
-            if (link.type === 'anchor') {
-              return (
-                <motion.a
-                  key={link.name}
-                  href={link.href}
-                  whileHover={{ y: -2 }}
-                  className={`relative px-6 py-3 text-[11px] font-display font-black uppercase tracking-[0.2em] transition-all duration-300 ${isActive ? 'text-[#FF5C00]' : 'text-zinc-400 hover:text-white hover:drop-shadow-[0_0_10px_rgba(255,106,0,0.3)]'}`}
-                >
-                  {content}
-                </motion.a>
-              );
-            }
+
 
             return (
               <motion.div key={link.name} whileHover={{ y: -2 }}>
@@ -242,90 +242,86 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Backdrop and Drawer */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            className="fixed inset-0 top-0 left-0 w-dvw h-dvh bg-[#050505] z-[100] flex flex-col p-5 sm:p-8 pt-28 sm:pt-32 overflow-y-auto overflow-x-hidden"
-          >
-            <div className="flex flex-col gap-5 sm:gap-8">
-              {navLinks.map((link, i) => {
-                const isAnchorActive = link.type === 'anchor' && activeHash === link.href.replace('/', '');
-                const isLinkActive = link.type === 'link' && location.pathname === link.href;
-                const isActive = isAnchorActive || isLinkActive;
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-md z-[90] xl:hidden"
+            />
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+              className="fixed top-0 right-0 w-[85vw] max-w-md h-dvh bg-[#080808] border-l border-white/10 z-[100] flex flex-col p-6 sm:p-8 pt-24 overflow-y-auto xl:hidden shadow-2xl"
+            >
+              <div className="flex flex-col gap-6 sm:gap-8">
+                {navLinks.map((link, i) => {
+                  const isAnchorActive = link.type === 'anchor' && activeHash === link.href.replace('/', '');
+                  const isLinkActive = link.type === 'link' && location.pathname === link.href;
+                  const isActive = isAnchorActive || isLinkActive;
 
-                if (link.type === 'anchor') {
+
+
                   return (
-                    <motion.a
+                    <motion.div
                       key={link.name}
-                      href={link.href}
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.1 }}
-                      onClick={() => setIsOpen(false)}
-                      className={`text-2xl sm:text-4xl leading-tight font-display font-black uppercase tracking-tight transition-colors flex items-center justify-between gap-4 group break-words ${isActive ? 'text-[#FF5C00]' : 'text-white hover:text-[#FF5C00]'}`}
+                      transition={{ delay: i * 0.05 }}
                     >
-                      {link.name}
-                      <ChevronRight className={`shrink-0 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
-                    </motion.a>
+                      <Link
+                        to={link.href}
+                        onClick={() => setIsOpen(false)}
+                        className={`text-2xl sm:text-3xl leading-tight font-display font-black uppercase tracking-tight transition-colors flex items-center justify-between gap-4 group break-words min-h-[44px] ${isActive ? 'text-[#FF5C00]' : 'text-white hover:text-[#FF5C00]'}`}
+                      >
+                        {link.name}
+                        <ChevronRight size={24} className={`shrink-0 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+                      </Link>
+                    </motion.div>
                   );
-                }
-
-                return (
+                })}
+                {!user ? (
+                  <motion.button
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    onClick={handleJoinClick}
+                    className="mt-4 sm:mt-8 w-full py-5 bg-[#ff6a00] text-white font-display font-black uppercase tracking-[0.2em] rounded-xl shadow-[0_0_20px_rgba(255,106,0,0.3)] min-h-[44px]"
+                  >
+                    Join Community
+                  </motion.button>
+                ) : (
                   <motion.div
-                    key={link.name}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
+                     initial={{ opacity: 0, y: 10 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     transition={{ delay: 0.4 }}
                   >
                     <Link
-                      to={link.href}
+                      to="/dashboard"
                       onClick={() => setIsOpen(false)}
-                      className={`text-2xl sm:text-4xl leading-tight font-display font-black uppercase tracking-tight transition-colors flex items-center justify-between gap-4 group break-words ${isActive ? 'text-[#FF5C00]' : 'text-white hover:text-[#FF5C00]'}`}
+                      className="mt-4 sm:mt-8 w-full py-5 bg-white/5 border border-white/10 text-white font-display font-black uppercase tracking-[0.2em] rounded-xl flex items-center justify-center gap-3 hover:bg-white/10 transition-colors min-h-[44px]"
                     >
-                      {link.name}
-                      <ChevronRight className={`shrink-0 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+                      <LayoutDashboard size={20} />
+                      Dashboard
                     </Link>
                   </motion.div>
-                );
-              })}
-              {!user ? (
-                <motion.button
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8 }}
-                  onClick={handleJoinClick}
-                  className="mt-6 sm:mt-12 w-full py-5 sm:py-6 bg-[#ff6a00] text-white font-display font-black uppercase tracking-[0.22em] sm:tracking-[0.4em]"
-                >
-                  Join Community
-                </motion.button>
-              ) : (
-                <motion.div
-                   initial={{ opacity: 0 }}
-                   animate={{ opacity: 1 }}
-                   transition={{ delay: 0.8 }}
-                >
-                  <Link
-                    to="/dashboard"
-                    onClick={() => setIsOpen(false)}
-                    className="mt-6 sm:mt-12 w-full py-5 sm:py-6 bg-white/5 border border-white/10 text-white font-display font-black uppercase tracking-[0.22em] sm:tracking-[0.4em] flex items-center justify-center gap-3"
-                  >
-                    <LayoutDashboard />
-                    Dashboard
-                  </Link>
-                </motion.div>
-              )}
-            </div>
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="absolute top-6 right-5 sm:top-8 sm:right-8 w-12 h-12 sm:w-16 sm:h-16 rounded-full border border-white/10 flex items-center justify-center text-white"
-            >
-              <X size={28} />
-            </button>
-          </motion.div>
+                )}
+              </div>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="absolute top-6 right-6 w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/30 transition-all min-h-[44px]"
+              >
+                <X size={24} />
+              </button>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 

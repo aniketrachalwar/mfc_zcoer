@@ -117,7 +117,7 @@ const PublicProfile = () => {
           >
             <div className="space-y-4">
               <h1 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tight leading-none">
-                Member of <br />
+                {profile.isFoundingMember ? 'Founding Member of' : 'Member of'} <br />
                 <span className="text-firefox-orange">MFC ZCOER</span>
               </h1>
               <p className="text-zinc-400 font-medium">
@@ -205,7 +205,9 @@ const PublicProfile = () => {
                 </div>
                 <div>
                    <h4 className="text-sm font-black uppercase tracking-widest text-white mb-1">Verify Authenticity</h4>
-                   <p className="text-xs text-zinc-500 uppercase tracking-wider font-bold">Member Since May 2024 • MFCZ Verified</p>
+                   <p className="text-xs text-zinc-500 uppercase tracking-wider font-bold">
+                     {profile.isFoundingMember ? 'Founding Member' : 'Official Member'} • MFCZ Verified
+                   </p>
                 </div>
               </div>
             </div>

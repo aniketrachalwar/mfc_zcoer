@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
 import Footer from './components/Footer';
@@ -26,12 +26,39 @@ import MerchandiseManager from './components/admin/MerchandiseManager';
 import NotificationsManager from './components/admin/NotificationsManager';
 import TeamManager from './components/admin/TeamManager';
 import BlogsManager from './components/admin/BlogsManager';
+import SettingsManager from './components/admin/SettingsManager';
+import ApplicationsManager from './components/admin/ApplicationsManager';
 import BlogsPage from './components/blogs/BlogsPage';
 import BlogDetails from './components/blogs/BlogDetails';
 import WriteBlog from './components/blogs/WriteBlog';
 import { motion, useScroll, useSpring, AnimatePresence } from 'motion/react';
 import { useAuth } from './lib/AuthContext';
 import { LayoutDashboard, Rocket, X } from 'lucide-react';
+
+// Scroll Handler to fix scroll on route change and hash navigation
+const ScrollHandler = () => {
+  const { pathname, hash } = useLocation();
+
+  React.useEffect(() => {
+    if (hash) {
+      const id = hash.replace('#', '');
+      let attempts = 0;
+      const interval = setInterval(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+          clearInterval(interval);
+        }
+        attempts++;
+        if (attempts > 10) clearInterval(interval); // give up after 1s
+      }, 100);
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, hash]);
+
+  return null;
+};
 
 // Shell container for common UI
 const Layout = ({ children, scaleX }: { children: React.ReactNode; scaleX: any }) => {
@@ -129,6 +156,7 @@ export default function App() {
 
   return (
     <Router>
+      <ScrollHandler />
       <Layout scaleX={scaleX}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -157,6 +185,8 @@ export default function App() {
             <Route path="notifications" element={<NotificationsManager />} />
             <Route path="team" element={<TeamManager />} />
             <Route path="blogs" element={<BlogsManager />} />
+            <Route path="settings" element={<SettingsManager />} />
+            <Route path="applications" element={<ApplicationsManager />} />
           </Route>
         </Routes>
       </Layout>

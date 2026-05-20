@@ -46,8 +46,8 @@ const TeamManager = () => {
     if (!selectedUserId || !teamRole || !cohort) return;
     
     try {
-      // Use userId as the document ID for team collection
-      await setDoc(doc(db, 'team', selectedUserId), {
+      const docId = `${selectedUserId}_${cohort}`;
+      await setDoc(doc(db, 'team', docId), {
         userId: selectedUserId,
         role: teamRole,
         cohort: cohort,
@@ -78,7 +78,7 @@ const TeamManager = () => {
   };
 
   const availableUsers = allUsers.filter(u => 
-    !teamMembers.some(tm => tm.userId === u.id) &&
+    !teamMembers.some(tm => tm.userId === u.id && tm.cohort === cohort) &&
     (u.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
      u.username?.toLowerCase().includes(searchTerm.toLowerCase()))
   );

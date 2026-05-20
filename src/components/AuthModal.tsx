@@ -80,7 +80,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-md bg-zinc-900/90 border border-white/10 p-8 rounded-[2rem] overflow-hidden backdrop-blur-xl shadow-2xl"
+            className="relative w-full max-w-md bg-zinc-900/90 border border-white/10 p-6 sm:p-8 rounded-[2rem] overflow-y-auto overflow-x-hidden max-h-[90vh] backdrop-blur-xl shadow-2xl"
           >
             {/* Background Aura */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-firefox-orange/10 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
@@ -116,7 +116,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                       placeholder="Email Address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-black/50 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors"
+                      className="w-full bg-black/50 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors"
                       required
                     />
                   </div>
@@ -129,7 +129,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                       placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-black/50 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors"
+                      className="w-full bg-black/50 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors"
                       required
                       minLength={6}
                     />
@@ -145,7 +145,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                         placeholder="Referral Code (Optional)"
                         value={referralCode}
                         onChange={(e) => setReferralCode(e.target.value)}
-                        className="w-full bg-black/50 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors uppercase"
+                        className="w-full bg-black/50 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors uppercase"
                       />
                     </div>
                   </div>

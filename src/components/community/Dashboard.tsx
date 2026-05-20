@@ -5,14 +5,15 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import ProfileForm from './ProfileForm';
 import ProfileCard from './ProfileCard';
-import { Settings, User as UserIcon, Layout, Share2, LogOut, ChevronRight, Sparkles, Shield } from 'lucide-react';
+import { Settings, User as UserIcon, Layout, Share2, LogOut, ChevronRight, Sparkles, Shield, Clock } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
+import MembershipApply from '../membership/MembershipApply';
 
 const Dashboard = () => {
   const { user, loading: authLoading, logout } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'profile' | 'visual'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'visual' | 'membership'>('profile');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -70,6 +71,25 @@ const Dashboard = () => {
     fetchProfile();
   }, [user]);
 
+  const membershipStatus = profile?.membershipStatus || 'public';
+  const isProfileComplete = Boolean(
+    profile?.fullName && profile?.username && profile?.department && profile?.year
+  );
+
+  const isAdminOrCore = profile?.role === 'admin' || profile?.role === 'president' || profile?.role === 'core_team';
+  const hasAccess = isAdminOrCore || (membershipStatus !== 'public' && membershipStatus !== 'pending');
+
+  // Force tab state based on access
+  useEffect(() => {
+    if (!loading && profile) {
+      if (!isProfileComplete) {
+        setActiveTab('profile');
+      } else if (!hasAccess) {
+        setActiveTab('membership');
+      }
+    }
+  }, [loading, profile, hasAccess, isProfileComplete]);
+
   if (authLoading) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
@@ -90,18 +110,18 @@ const Dashboard = () => {
         {/* Top Navigation / Breadcrumb */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16">
           <div>
-            <h1 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tight mb-2">Member <span className="text-firefox-orange">Dashboard</span></h1>
+            <h1 className="text-fluid-h2 font-display font-black uppercase tracking-tight mb-2">Member <span className="text-firefox-orange">Dashboard</span></h1>
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
-              <Link to="/" className="hover:text-white transition-colors">Home</Link>
+              <Link to="/" className="hover:text-white transition-colors min-h-[44px] flex items-center">Home</Link>
               <ChevronRight size={12} />
               <span className="text-firefox-orange">Command Center</span>
             </div>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto mt-6 md:mt-0">
             {profile && (profile.role === 'admin' || profile.role === 'president' || profile.role === 'core_team') && (
               <Link 
                 to="/admin"
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-firefox-orange/10 border border-firefox-orange/20 hover:bg-firefox-orange hover:text-white transition-all group text-firefox-orange"
+                className="flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] rounded-xl bg-firefox-orange/10 border border-firefox-orange/20 hover:bg-firefox-orange hover:text-white transition-all group text-firefox-orange"
               >
                 <Shield size={16} className="group-hover:text-white transition-colors" />
                 <span className="text-[10px] font-black uppercase tracking-widest group-hover:text-white transition-colors">Admin Portal</span>
@@ -110,7 +130,7 @@ const Dashboard = () => {
             {profile && (
               <Link 
                 to={`/profile/${profile.username}`}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-firefox-orange transition-all group"
+                className="flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] rounded-xl bg-white/5 border border-white/10 hover:border-firefox-orange transition-all group"
               >
                 <Share2 size={16} className="text-zinc-500 group-hover:text-firefox-orange" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-white">Public Profile</span>
@@ -118,7 +138,7 @@ const Dashboard = () => {
             )}
             <button 
               onClick={logout}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all group text-red-500"
+              className="flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all group text-red-500"
             >
               <LogOut size={16} />
               <span className="text-[10px] font-black uppercase tracking-widest">Logout</span>
@@ -146,22 +166,47 @@ const Dashboard = () => {
 
             <button 
               onClick={() => setActiveTab('visual')}
+              disabled={!hasAccess || !isProfileComplete}
               className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl border transition-all text-left ${
                 activeTab === 'visual' 
                 ? 'bg-firefox-orange border-firefox-orange text-white shadow-lg shadow-firefox-orange/20' 
-                : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10'
+                : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed'
               }`}
             >
               <Layout size={20} />
               <div className="flex flex-col">
-                <span className="text-[10px] font-black uppercase tracking-widest">Member Card</span>
-                <span className="text-[9px] font-bold opacity-60 uppercase">Visual Identity</span>
+                <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                  Member Card
+                  {!hasAccess && <Shield size={12} className="text-firefox-orange" />}
+                </span>
+                <span className="text-[9px] font-bold opacity-60 uppercase">
+                  {!hasAccess ? 'Locked' : 'Visual Identity'}
+                </span>
               </div>
             </button>
+
+            {!hasAccess && isProfileComplete && (
+              <button 
+                onClick={() => setActiveTab('membership')}
+                className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl border transition-all text-left ${
+                  activeTab === 'membership' 
+                  ? 'bg-firefox-orange border-firefox-orange text-white shadow-lg shadow-firefox-orange/20' 
+                  : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10'
+                }`}
+              >
+                <Sparkles size={20} />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black uppercase tracking-widest">Membership</span>
+                  <span className="text-[9px] font-bold opacity-60 uppercase">
+                    {membershipStatus === 'pending' ? 'Under Review' : 'Join Ecosystem'}
+                  </span>
+                </div>
+              </button>
+            )}
           </div>
 
           {/* Main Content */}
-          <div className="bg-zinc-900/40 border border-white/5 rounded-[2.5rem] p-8 md:p-12 backdrop-blur-xl relative overflow-hidden">
+          <div className="bg-zinc-900/40 border border-white/5 rounded-[2.5rem] p-6 md:p-12 backdrop-blur-xl relative overflow-hidden">
              {/* Background Aura */}
              <div className="absolute top-0 right-0 w-96 h-96 bg-firefox-orange/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
              
@@ -182,9 +227,43 @@ const Dashboard = () => {
                     initialData={profile} 
                     onSave={(data) => {
                       setProfile(data);
-                      setActiveTab('visual');
+                      const isDataAdminOrCore = data.role === 'admin' || data.role === 'president' || data.role === 'core_team';
+                      const dataHasAccess = isDataAdminOrCore || (data.membershipStatus !== 'public' && data.membershipStatus !== 'pending');
+                      if (!dataHasAccess) {
+                        setActiveTab('membership');
+                      } else {
+                        setActiveTab('visual');
+                      }
                     }} 
                    />
+                 </motion.div>
+               ) : activeTab === 'membership' ? (
+                 <motion.div
+                   key="membership"
+                   initial={{ opacity: 0, y: 20 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   exit={{ opacity: 0, y: -20 }}
+                 >
+                   {membershipStatus === 'pending' ? (
+                     <div className="text-center py-20">
+                       <div className="w-24 h-24 bg-firefox-orange/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-firefox-orange/20">
+                         <Clock className="text-firefox-orange animate-pulse" size={48} />
+                       </div>
+                       <h2 className="text-3xl font-display font-black uppercase text-white mb-4">Application <span className="text-firefox-orange">Under Review</span></h2>
+                       <p className="text-zinc-400 max-w-md mx-auto mb-8">
+                         Your membership application and payment are currently being verified by the core team. This usually takes 24-48 hours.
+                       </p>
+                       <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 rounded-xl border border-white/10">
+                         <div className="w-2 h-2 rounded-full bg-yellow-500 animate-ping" />
+                         <span className="text-xs font-bold uppercase tracking-widest text-zinc-300">Status: Pending Verification</span>
+                       </div>
+                     </div>
+                   ) : (
+                     <MembershipApply 
+                       profile={profile} 
+                       onComplete={() => setProfile({ ...profile, membershipStatus: 'pending' })} 
+                     />
+                   )}
                  </motion.div>
                ) : (
                  <motion.div

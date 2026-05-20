@@ -60,7 +60,7 @@
 }
 
 .section-padding {
-  @apply py-24 md:py-40 px-6;
+  @apply py-12 md:py-24 px-4 sm:px-6;
 }
 
 @keyframes ticker {
@@ -72,3 +72,18 @@
   animation: ticker 30s linear infinite;
 }
 
+/* Fluid Typography Utilities */
+.text-fluid-h1 {
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  line-height: 1.1;
+}
+
+.text-fluid-h2 {
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1.2;
+}
+
+.text-fluid-h3 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  line-height: 1.3;
+}

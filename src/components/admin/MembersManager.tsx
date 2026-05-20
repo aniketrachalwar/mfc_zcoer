@@ -37,10 +37,19 @@ const MembersManager = () => {
 
   const handleStatusChange = async (userId: string, newStatus: string) => {
     try {
-      await updateDoc(doc(db, 'users', userId), { status: newStatus });
-      setMembers(members.map(m => m.id === userId ? { ...m, status: newStatus } : m));
+      await updateDoc(doc(db, 'users', userId), { membershipStatus: newStatus });
+      setMembers(members.map(m => m.id === userId ? { ...m, membershipStatus: newStatus } : m));
     } catch (error) {
       console.error("Error updating status:", error);
+    }
+  };
+
+  const handleFoundingChange = async (userId: string, isFounding: boolean) => {
+    try {
+      await updateDoc(doc(db, 'users', userId), { isFoundingMember: isFounding });
+      setMembers(members.map(m => m.id === userId ? { ...m, isFoundingMember: isFounding } : m));
+    } catch (error) {
+      console.error("Error updating founding member status:", error);
     }
   };
 
@@ -92,7 +101,7 @@ const MembersManager = () => {
             placeholder="Search members..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+            className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors"
           />
         </div>
       </div>
@@ -105,7 +114,8 @@ const MembersManager = () => {
                 <th className="p-4">Member</th>
                 <th className="p-4">Role</th>
                 <th className="p-4">Points</th>
-                <th className="p-4">Status</th>
+                <th className="p-4">Membership</th>
+                <th className="p-4 text-center">Founding</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -149,7 +159,7 @@ const MembersManager = () => {
                       <select 
                         value={member.role || 'member'}
                         onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                        className="bg-zinc-900 border border-white/10 rounded-lg px-3 py-1 text-xs text-white focus:outline-none focus:border-firefox-orange"
+                        className="bg-zinc-900 border border-white/10 rounded-lg px-3 py-1 text-[16px] text-white focus:outline-none focus:border-firefox-orange"
                       >
                         <option value="member">Member</option>
                         <option value="volunteer">Volunteer</option>
@@ -170,18 +180,33 @@ const MembersManager = () => {
                     </td>
                     <td className="p-4">
                       <select 
-                        value={member.status || 'active'}
+                        value={member.membershipStatus || 'public'}
                         onChange={(e) => handleStatusChange(member.id, e.target.value)}
-                        className={`bg-zinc-900 border rounded-lg px-3 py-1 text-xs focus:outline-none focus:border-firefox-orange ${
-                          member.status === 'active' ? 'border-green-500/50 text-green-400' : 
-                          member.status === 'pending' ? 'border-yellow-500/50 text-yellow-400' : 
-                          'border-red-500/50 text-red-400'
+                        className={`bg-zinc-900 border rounded-lg px-3 py-1 text-[16px] focus:outline-none focus:border-firefox-orange ${
+                          member.membershipStatus === 'active' ? 'border-green-500/50 text-green-400' : 
+                          member.membershipStatus === 'pending' ? 'border-yellow-500/50 text-yellow-400' : 
+                          member.membershipStatus === 'suspended' ? 'border-red-500/50 text-red-400' :
+                          member.membershipStatus === 'alumni' ? 'border-purple-500/50 text-purple-400' :
+                          'border-zinc-500/50 text-zinc-400'
                         }`}
                       >
-                        <option value="active">Active</option>
+                        <option value="public">Public</option>
                         <option value="pending">Pending</option>
-                        <option value="inactive">Inactive</option>
+                        <option value="active">Active</option>
+                        <option value="suspended">Suspended</option>
+                        <option value="alumni">Alumni</option>
                       </select>
+                    </td>
+                    <td className="p-4 text-center">
+                      <label className="relative inline-flex items-center cursor-pointer justify-center">
+                        <input 
+                          type="checkbox" 
+                          className="sr-only peer"
+                          checked={member.isFoundingMember || false}
+                          onChange={(e) => handleFoundingChange(member.id, e.target.checked)}
+                        />
+                        <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
+                      </label>
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

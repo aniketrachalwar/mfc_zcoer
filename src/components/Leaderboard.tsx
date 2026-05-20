@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Trophy, Medal, Star, Award } from 'lucide-react';
+import { Trophy, Medal, Star, Award, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Leaderboard = () => {
@@ -100,7 +100,14 @@ const Leaderboard = () => {
                           }`}>
                             {leader.fullName}
                           </h3>
-                          <p className="text-zinc-500 text-[10px] md:text-xs font-black tracking-[0.2em] uppercase">@{leader.username}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-zinc-500 text-[10px] md:text-xs font-black tracking-[0.2em] uppercase">@{leader.username}</p>
+                            {leader.isFoundingMember && (
+                              <span className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider flex items-center gap-1">
+                                <Sparkles size={8} /> Founding
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

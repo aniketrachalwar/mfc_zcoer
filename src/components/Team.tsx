@@ -68,7 +68,7 @@ const Team = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-5xl md:text-8xl font-display font-black tracking-[-0.05em] uppercase mb-8">
+            <h2 className="text-fluid-h1 font-display font-black tracking-[-0.05em] uppercase mb-4 md:mb-8">
               Meet The <span className="text-gradient">Team</span>
             </h2>
             <div className="flex flex-col items-center gap-8 mt-12">
@@ -129,7 +129,7 @@ const Team = () => {
             >
               {cohorts[selectedCohort]?.length > 0 ? (
                 <div className="flex flex-col items-center w-full">
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-20 w-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12 md:gap-y-20 w-full">
                     {cohorts[selectedCohort].slice(0, showAll ? undefined : 4).map((member, i) => (
                       <motion.div
                         key={member.id}
@@ -170,9 +170,9 @@ const Team = () => {
                               href={member.linkedin} target="_blank" rel="noreferrer"
                               onClick={(e) => e.stopPropagation()}
                               whileHover={{ y: -3 }}
-                              className="p-2 text-zinc-500 hover:text-white transition-colors"
+                              className="w-11 h-11 flex items-center justify-center text-zinc-500 hover:text-white transition-colors"
                             >
-                              <Linkedin size={16} />
+                              <Linkedin size={20} />
                             </motion.a>
                           )}
                           {member.github && member.github !== '#' && (
@@ -180,9 +180,9 @@ const Team = () => {
                               href={member.github} target="_blank" rel="noreferrer"
                               onClick={(e) => e.stopPropagation()}
                               whileHover={{ y: -3 }}
-                              className="p-2 text-zinc-500 hover:text-white transition-colors"
+                              className="w-11 h-11 flex items-center justify-center text-zinc-500 hover:text-white transition-colors"
                             >
-                              <Github size={16} />
+                              <Github size={20} />
                             </motion.a>
                           )}
                           {member.instagram && member.instagram !== '#' && (
@@ -190,17 +190,17 @@ const Team = () => {
                               href={member.instagram} target="_blank" rel="noreferrer"
                               onClick={(e) => e.stopPropagation()}
                               whileHover={{ y: -3 }}
-                              className="p-2 text-zinc-500 hover:text-white transition-colors"
+                              className="w-11 h-11 flex items-center justify-center text-zinc-500 hover:text-white transition-colors"
                             >
-                              <Instagram size={16} />
+                              <Instagram size={20} />
                             </motion.a>
                           )}
                           <Link 
                             to={`/profile/${member.username}`}
                             onClick={(e) => e.stopPropagation()}
-                            className="px-4 py-2 bg-white/5 border border-white/10 hover:border-firefox-orange/50 hover:bg-firefox-orange hover:text-white transition-all rounded-full font-display font-black text-[9px] uppercase tracking-widest text-zinc-400 flex items-center gap-2"
+                            className="px-4 py-2 min-h-[44px] bg-white/5 border border-white/10 hover:border-firefox-orange/50 hover:bg-firefox-orange hover:text-white transition-all rounded-full font-display font-black text-[9px] uppercase tracking-widest text-zinc-400 flex items-center gap-2"
                           >
-                            <User size={12} /> Profile
+                            <User size={14} /> Profile
                           </Link>
                         </div>
                       </motion.div>

@@ -151,7 +151,7 @@ const EventsPage = () => {
              <button 
                onClick={() => handleDownloadPDF(event, ticket)}
                disabled={isGenerating}
-               className="w-full mt-4 py-3 bg-firefox-orange/20 border border-firefox-orange/50 text-firefox-orange rounded-xl font-display font-black text-[10px] uppercase tracking-widest hover:bg-firefox-orange hover:text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+               className="w-full mt-4 py-3 min-h-[44px] bg-firefox-orange/20 border border-firefox-orange/50 text-firefox-orange rounded-xl font-display font-black text-[10px] uppercase tracking-widest hover:bg-firefox-orange hover:text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
              >
                {isGenerating && certData?.event.id === event.id ? (
                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -192,7 +192,7 @@ const EventsPage = () => {
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="mb-16">
           <span className="text-firefox-orange font-bold uppercase tracking-widest text-xs">Sessions</span>
-          <h1 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tight mt-2 mb-4">
+          <h1 className="text-fluid-h1 font-display font-black uppercase tracking-tight mt-2 mb-4">
             All <span className="text-firefox-orange">Events</span>
           </h1>
           <p className="text-zinc-400 max-w-2xl text-lg">

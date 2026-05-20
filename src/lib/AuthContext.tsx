@@ -52,7 +52,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       try {
         const profileSnap = await getDoc(doc(db, 'users', currentUser.uid));
-        setUserProfile(profileSnap.exists() ? { id: profileSnap.id, ...profileSnap.data() } : null);
+        if (profileSnap.exists()) {
+          const data = profileSnap.data();
+          setUserProfile({ 
+            id: profileSnap.id, 
+            membershipStatus: data.membershipStatus || 'public',
+            isFoundingMember: data.isFoundingMember || false,
+            ...data 
+          });
+        } else {
+          setUserProfile(null);
+        }
       } catch (err) {
         console.error('Failed to load user profile:', err);
         setUserProfile(null);

@@ -14,7 +14,9 @@ import {
   LogOut,
   ShieldAlert,
   Star,
-  FileText
+  FileText,
+  Settings as SettingsIcon,
+  CheckSquare
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -70,6 +72,7 @@ const AdminLayout = () => {
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { name: 'Members', path: '/admin/members', icon: Users },
+    { name: 'Applications', path: '/admin/applications', icon: CheckSquare },
     { name: 'Team', path: '/admin/team', icon: Star },
     { name: 'Contributions', path: '/admin/contributions', icon: Award },
     { name: 'Events', path: '/admin/events', icon: Calendar },
@@ -77,10 +80,11 @@ const AdminLayout = () => {
     { name: 'Blogs', path: '/admin/blogs', icon: FileText },
     { name: 'Merchandise', path: '/admin/merch', icon: ShoppingBag },
     { name: 'Notifications', path: '/admin/notifications', icon: Bell },
+    { name: 'Settings', path: '/admin/settings', icon: SettingsIcon },
   ];
 
   const visibleNavItems = navItems.filter(item => {
-    if ((item.name === 'Members' || item.name === 'Team') && !isStrictAdmin) return false;
+    if ((item.name === 'Members' || item.name === 'Team' || item.name === 'Applications' || item.name === 'Settings') && !isStrictAdmin) return false;
     return true;
   });
 

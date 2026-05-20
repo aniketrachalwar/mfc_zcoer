@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { motion } from 'motion/react';
-import { Download, Share2, Github, Linkedin, Instagram, Twitter, Globe, Award, Trophy } from 'lucide-react';
+import { Download, Share2, Github, Linkedin, Instagram, Twitter, Globe, Award, Trophy, Sparkles } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -17,6 +17,7 @@ interface ProfileCardProps {
     socialLinks?: any;
     favMozTech?: string;
     points?: number;
+    isFoundingMember?: boolean;
   };
   isPublic?: boolean;
 }
@@ -136,9 +137,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isPublic = false }) 
               <p className="text-firefox-orange/80 text-[10px] font-black uppercase tracking-[0.3em]">
                 @{profile.username}
               </p>
-              <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-firefox-orange/10 border border-firefox-orange/20 rounded-full">
-                <Trophy size={12} className="text-firefox-orange" />
-                <span className="text-firefox-orange font-black text-xs uppercase tracking-widest">{profile.points || 0} PTS</span>
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-firefox-orange/10 border border-firefox-orange/20 rounded-full">
+                  <Trophy size={12} className="text-firefox-orange" />
+                  <span className="text-firefox-orange font-black text-xs uppercase tracking-widest">{profile.points || 0} PTS</span>
+                </div>
+                {profile.isFoundingMember && (
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-full">
+                    <Sparkles size={12} className="text-yellow-500" />
+                    <span className="text-yellow-500 font-black text-xs uppercase tracking-widest">Founding Member</span>
+                  </div>
+                )}
               </div>
             </div>
 
