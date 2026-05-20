@@ -86,7 +86,7 @@ const Leaderboard = () => {
                         {index === 0 ? <Trophy size={24} /> : index === 1 ? <Medal size={24} /> : index === 2 ? <Award size={24} /> : `#${index + 1}`}
                       </div>
                       <div className="flex items-center gap-4">
-                        <img 
+                        <img loading="lazy" 
                           src={leader.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${leader.username}`} 
                           alt={leader.fullName} 
                           className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover border border-white/20"

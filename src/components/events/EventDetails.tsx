@@ -589,7 +589,7 @@ const EventDetails = () => {
 
             {/* Logo / Header */}
             <div className="flex items-center gap-6 mb-12 relative z-10 w-full justify-center">
-               <img src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png" className="w-32 h-32 drop-shadow-[0_0_25px_rgba(255,106,0,0.4)]" crossOrigin="anonymous" alt="Logo" />
+               <img loading="lazy" src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png" className="w-32 h-32 drop-shadow-[0_0_25px_rgba(255,106,0,0.4)]" crossOrigin="anonymous" alt="Logo" />
                <div className="text-left border-l-2 border-white/10 pl-6">
                  <h2 className="text-4xl font-display font-black text-white tracking-widest uppercase mb-1">Mozilla Firefox Club</h2>
                  <p className="text-firefox-orange tracking-[0.4em] uppercase text-lg font-bold">ZCOER Chapter</p>
@@ -631,7 +631,7 @@ const EventDetails = () => {
 
                <div className="flex flex-col items-center w-64">
                  <div className="h-12 w-full flex justify-center mb-3">
-                   <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Signature_of_John_Hancock.svg" className="w-40 opacity-40 filter invert" alt="Signature" crossOrigin="anonymous" style={{ objectFit: 'contain' }} />
+                   <img loading="lazy" src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Signature_of_John_Hancock.svg" className="w-40 opacity-40 filter invert" alt="Signature" crossOrigin="anonymous" style={{ objectFit: 'contain' }} />
                  </div>
                  <div className="w-full border-b-2 border-zinc-600 mb-4"></div>
                  <p className="text-zinc-500 uppercase tracking-[0.3em] text-sm font-bold">Club President</p>

@@ -388,7 +388,7 @@ const VerifyProfile = () => {
             )}
 
             <div className="w-20 h-20 rounded-full border-2 border-white/10 p-1 mb-4 overflow-hidden bg-black">
-              <img 
+              <img loading="lazy" 
                 src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`} 
                 alt={profile.fullName}
                 className="w-full h-full rounded-full object-cover" 
@@ -443,7 +443,7 @@ const VerifyProfile = () => {
             <p className="text-zinc-400 text-sm font-medium mb-8">This is an authentic MFC ZCOER member card.</p>
 
             <div className="w-24 h-24 rounded-full border-2 border-white/10 p-1 mb-4 overflow-hidden">
-              <img 
+              <img loading="lazy" 
                 src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`} 
                 alt={profile.fullName}
                 className="w-full h-full rounded-full object-cover" 

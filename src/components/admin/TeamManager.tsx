@@ -192,7 +192,7 @@ const TeamManager = () => {
                     <tr key={member.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <img 
+                          <img loading="lazy" 
                             src={user.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} 
                             alt={user.fullName}
                             className="w-10 h-10 rounded-full bg-zinc-800 object-cover border border-white/10"

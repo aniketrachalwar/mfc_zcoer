@@ -290,7 +290,7 @@ const ProjectsManager = () => {
           {projects.map(project => (
             <div key={project.id} className="bg-zinc-900 border border-white/10 rounded-2xl p-5 flex flex-col lg:flex-row gap-5">
               <div className="w-full lg:w-48 aspect-video rounded-xl overflow-hidden bg-zinc-950 shrink-0">
-                <img src={project.img} alt={project.title} className="w-full h-full object-cover" />
+                <img loading="lazy" src={project.img} alt={project.title} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-3 mb-2">

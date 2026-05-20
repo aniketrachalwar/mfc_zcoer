@@ -106,7 +106,7 @@ const BlogDetails = () => {
           </div>
 
           <div className="aspect-[16/9] overflow-hidden rounded-[2rem] border border-white/10 mb-10 bg-zinc-900">
-            <img src={blog.img} alt={blog.title} className="w-full h-full object-cover" />
+            <img loading="lazy" src={blog.img} alt={blog.title} className="w-full h-full object-cover" />
           </div>
 
           <p className="text-xl text-zinc-300 font-medium leading-relaxed mb-10">{blog.excerpt}</p>

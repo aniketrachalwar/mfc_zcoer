@@ -24,13 +24,15 @@ const Navbar = () => {
   };
 
   const navLinks = [
+    { name: 'Home', href: '/', type: 'link' },
     { name: 'About', href: '/#about', type: 'anchor' },
-    { name: 'Events', href: '/events', type: 'link' },
+    { name: 'Blogs', href: '/blogs', type: 'link' },
     { name: 'Leaderboard', href: '/#leaderboard', type: 'anchor' },
+    { name: 'Events', href: '/events', type: 'link' },
     { name: 'Projects', href: '/projects', type: 'link' },
-    { name: 'Meet The Team', href: '/#teams', type: 'anchor' },
-    { name: 'Latest Insights', href: '/blogs', type: 'link' },
+    { name: 'Team', href: '/#teams', type: 'anchor' },
     { name: 'Community', href: '/community', type: 'link' },
+    { name: 'Contact', href: '/#contact', type: 'anchor' },
   ];
 
   useEffect(() => {
@@ -89,7 +91,7 @@ const Navbar = () => {
             className="relative"
           >
             <div className="absolute inset-0 bg-firefox-orange/20 blur-xl rounded-full scale-150 animate-pulse" />
-            <img 
+            <img loading="lazy" 
               src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png" 
               alt="MFC Logo" 
               className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,106,0,0.5)]" 
@@ -178,7 +180,7 @@ const Navbar = () => {
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center gap-2 border border-white/10 px-4 py-2 rounded-full hover:bg-white/5 transition-colors"
               >
-                <img 
+                <img loading="lazy" 
                   src={user.photoURL || ''} 
                   alt="Avatar" 
                   className="w-6 h-6 rounded-full border border-white/20"

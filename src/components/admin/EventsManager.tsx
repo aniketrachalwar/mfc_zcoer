@@ -318,7 +318,7 @@ const EventsManager = () => {
             >
               <div className="h-40 bg-zinc-900 relative">
                 {event.img ? (
-                  <img src={event.img} alt={event.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                  <img loading="lazy" src={event.img} alt={event.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-zinc-700">
                     <ImageIcon size={32} />

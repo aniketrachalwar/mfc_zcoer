@@ -3,12 +3,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Github, Linkedin, Instagram, ChevronDown, User } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Team = () => {
   const [selectedCohort, setSelectedCohort] = useState('25-26');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const navigate = useNavigate();
   
   const [cohorts, setCohorts] = useState<Record<string, any[]>>({ '25-26': [], '26-27': [], '27-28': [] });
   const [loading, setLoading] = useState(true);
@@ -35,6 +36,7 @@ const Team = () => {
             newCohorts[tm.cohort].push({
               id: user.id,
               name: user.fullName || user.username || 'Unknown',
+              username: user.username || user.id,
               role: tm.role,
               img: user.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`,
               github: user.githubUrl || '#',
@@ -140,12 +142,13 @@ const Team = () => {
                           damping: 20,
                           delay: (i % 4) * 0.05 
                         }}
-                        className="flex flex-col items-center text-center group cursor-default"
+                        onClick={() => navigate(`/profile/${member.username}`)}
+                        className="flex flex-col items-center text-center group cursor-pointer"
                       >
                         <div className="relative w-40 h-40 md:w-48 md:h-48 mb-8">
                           <div className="absolute inset-x-0 inset-y-0 rounded-full border-[2px] border-firefox-orange scale-110 group-hover:scale-115 transition-all duration-500 shadow-[0_0_30px_rgba(255,92,0,0.3)] opacity-0 group-hover:opacity-100" />
                           <div className="w-full h-full rounded-full overflow-hidden relative z-10 border-2 border-zinc-950 group-hover:border-firefox-orange/50 transition-colors duration-500">
-                            <img src={member.img} alt={member.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                            <img loading="lazy" src={member.img} alt={member.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                           </div>
                         </div>
 
@@ -165,6 +168,7 @@ const Team = () => {
                           {member.linkedin && member.linkedin !== '#' && (
                             <motion.a 
                               href={member.linkedin} target="_blank" rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
                               whileHover={{ y: -3 }}
                               className="p-2 text-zinc-500 hover:text-white transition-colors"
                             >
@@ -174,6 +178,7 @@ const Team = () => {
                           {member.github && member.github !== '#' && (
                             <motion.a 
                               href={member.github} target="_blank" rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
                               whileHover={{ y: -3 }}
                               className="p-2 text-zinc-500 hover:text-white transition-colors"
                             >
@@ -183,6 +188,7 @@ const Team = () => {
                           {member.instagram && member.instagram !== '#' && (
                             <motion.a 
                               href={member.instagram} target="_blank" rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
                               whileHover={{ y: -3 }}
                               className="p-2 text-zinc-500 hover:text-white transition-colors"
                             >
@@ -190,7 +196,8 @@ const Team = () => {
                             </motion.a>
                           )}
                           <Link 
-                            to={`/community/${member.id}`}
+                            to={`/profile/${member.username}`}
+                            onClick={(e) => e.stopPropagation()}
                             className="px-4 py-2 bg-white/5 border border-white/10 hover:border-firefox-orange/50 hover:bg-firefox-orange hover:text-white transition-all rounded-full font-display font-black text-[9px] uppercase tracking-widest text-zinc-400 flex items-center gap-2"
                           >
                             <User size={12} /> Profile

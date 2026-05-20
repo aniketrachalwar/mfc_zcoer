@@ -146,7 +146,7 @@ const CommunityPage = () => {
                   <div className="relative flex items-start justify-between mb-8">
                     <div className="relative w-20 h-20">
                       <div className="absolute inset-0 bg-firefox-orange rounded-full blur-xl opacity-20 scale-150 animate-pulse" />
-                      <img 
+                      <img loading="lazy" 
                         src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`} 
                         alt={profile.fullName}
                         className="w-full h-full rounded-full object-cover border-2 border-zinc-800 relative z-10"

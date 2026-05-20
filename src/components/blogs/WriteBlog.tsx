@@ -211,7 +211,7 @@ const WriteBlog = () => {
             </div>
             {formData.img && (
               <div className="mt-4 aspect-video rounded-2xl overflow-hidden border border-zinc-800 relative max-w-sm">
-                <img src={formData.img} alt="Preview" className="w-full h-full object-cover" />
+                <img loading="lazy" src={formData.img} alt="Preview" className="w-full h-full object-cover" />
               </div>
             )}
           </div>

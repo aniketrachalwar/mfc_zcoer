@@ -132,7 +132,7 @@ const MembersManager = () => {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-zinc-800 overflow-hidden border border-white/10">
                           {member.photoURL ? (
-                            <img src={member.photoURL} alt={member.fullName} className="w-full h-full object-cover" />
+                            <img loading="lazy" src={member.photoURL} alt={member.fullName} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-zinc-500 font-bold uppercase">
                               {member.fullName?.charAt(0) || '?'}

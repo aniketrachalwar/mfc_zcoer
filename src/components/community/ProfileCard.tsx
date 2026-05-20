@@ -108,7 +108,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isPublic = false }) 
             {/* Header */}
             <div className="flex justify-between items-start mb-8">
               <div className="w-12 h-12">
-                <img crossOrigin="anonymous" src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png" alt="MFC" className="w-full h-full object-contain" />
+                <img loading="lazy" crossOrigin="anonymous" src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png" alt="MFC" className="w-full h-full object-contain" />
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-black tracking-widest text-zinc-500 uppercase">Serial No.</p>
@@ -120,7 +120,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isPublic = false }) 
             <div className="relative w-28 h-28 mx-auto mb-6">
               <div className="absolute inset-0 bg-firefox-orange rounded-full blur-2xl opacity-30" />
               <div className="w-full h-full rounded-full border-2 border-white/20 p-1 relative z-10 overflow-hidden">
-                <img 
+                <img loading="lazy" 
                   crossOrigin="anonymous"
                   src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`} 
                   alt={profile.fullName}

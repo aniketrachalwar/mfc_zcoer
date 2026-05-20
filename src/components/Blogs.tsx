@@ -62,7 +62,7 @@ const Blogs = () => {
         <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
           <div>
             <span className="text-zinc-400 font-bold text-xs uppercase tracking-[0.3em]">Our Stories</span>
-            <h2 className="text-4xl md:text-6xl font-display font-black mt-6 tracking-tighter text-zinc-950">Latest <span className="text-gradient">Insights</span></h2>
+            <h2 className="text-4xl md:text-6xl font-display font-black mt-6 tracking-tighter text-zinc-950">Latest <span className="text-gradient">Blogs</span></h2>
           </div>
           <div className="flex gap-4">
             {user && (
@@ -70,7 +70,7 @@ const Blogs = () => {
                 onClick={() => navigate('/write-blog')}
                 className="group flex items-center gap-3 px-6 py-3 bg-zinc-900 text-white rounded-full text-xs font-black uppercase tracking-widest hover:bg-firefox-orange transition-colors"
               >
-                <PenTool size={14} /> Write an Insight
+                <PenTool size={14} /> Write a Blog
               </button>
             )}
             <button
@@ -99,7 +99,7 @@ const Blogs = () => {
                 onClick={() => blog.authorId !== 'mock' && navigate(`/blog/${blog.id}`)}
               >
                 <div className="aspect-[16/10] overflow-hidden rounded-[2rem] mb-8 border border-zinc-200 transition-all group-hover:shadow-2xl group-hover:shadow-black/5">
-                  <img src={blog.img} alt={blog.title} className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" />
+                  <img loading="lazy" src={blog.img} alt={blog.title} className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" />
                 </div>
                 <div className="flex gap-2 mb-6">
                   {blog.tags.map(t => (

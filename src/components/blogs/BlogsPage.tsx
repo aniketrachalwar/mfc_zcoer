@@ -86,7 +86,7 @@ const BlogsPage = () => {
                     onClick={() => navigate(`/blog/${blog.id}`)}
                   >
                     <div className="absolute inset-0">
-                      <img src={blog.img} alt={blog.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      <img loading="lazy" src={blog.img} alt={blog.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent" />
                     </div>
                     
@@ -146,7 +146,7 @@ const BlogsPage = () => {
                       onClick={() => navigate(`/blog/${blog.id}`)}
                     >
                       <div className="aspect-[16/10] overflow-hidden relative">
-                        <img src={blog.img} alt={blog.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        <img loading="lazy" src={blog.img} alt={blog.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                         <div className="absolute top-4 right-4">
                           {user && user.uid === blog.authorId && (
                             <button

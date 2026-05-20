@@ -72,7 +72,7 @@ const BlogsManager = () => {
             >
               <div className="flex items-center gap-6 flex-1">
                 <div className="w-24 h-16 rounded-lg overflow-hidden shrink-0 border border-zinc-800">
-                  <img src={blog.img} alt="Cover" className="w-full h-full object-cover" />
+                  <img loading="lazy" src={blog.img} alt="Cover" className="w-full h-full object-cover" />
                 </div>
                 <div>
                   <div className="flex items-center gap-3 mb-1">
