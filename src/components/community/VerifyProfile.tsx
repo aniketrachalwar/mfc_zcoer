@@ -1,5 +1,5 @@
 import { useState, useEffect, FormEvent } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { collection, query, where, getDocs, limit, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -243,9 +243,9 @@ const VerifyProfile = () => {
         <Lock className="text-zinc-600 mb-6" size={64} />
         <h1 className="text-3xl font-display font-black uppercase text-white mb-4">Scanner Locked</h1>
         <p className="text-zinc-400 mb-8 max-w-md">You do not have permission to access the verification scanner. This feature is restricted to Volunteers and Core Team members.</p>
-        <a href="/" className="px-8 py-3 bg-firefox-orange text-white rounded-full font-display font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all">
+        <Link to="/" className="px-8 py-3 bg-firefox-orange text-white rounded-full font-display font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all">
           Return Home
-        </a>
+        </Link>
       </div>
     );
   }

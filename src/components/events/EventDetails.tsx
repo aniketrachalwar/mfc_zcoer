@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Calendar, MapPin, Trophy, ArrowLeft, CheckCircle2, Clock, Download, XCircle } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, setDoc, updateDoc, increment, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
@@ -152,9 +152,9 @@ const EventDetails = () => {
       <div className="pt-32 pb-20 px-4 min-h-screen text-center flex flex-col items-center justify-center">
         <h1 className="text-4xl font-display font-black uppercase text-white mb-4">Event Not Found</h1>
         <p className="text-zinc-400 mb-8">The event you are looking for does not exist or has been removed.</p>
-        <a href="/" className="px-8 py-3 bg-firefox-orange text-white rounded-full font-display font-black text-[10px] uppercase tracking-widest">
+        <Link to="/" className="px-8 py-3 bg-firefox-orange text-white rounded-full font-display font-black text-[10px] uppercase tracking-widest">
           Return Home
-        </a>
+        </Link>
       </div>
     );
   }
@@ -297,10 +297,10 @@ const EventDetails = () => {
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-firefox-orange/10 blur-[150px] rounded-full pointer-events-none" />
       
       <div className="max-w-6xl mx-auto relative z-10">
-        <a href="/" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-12 group">
+        <Link to="/" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-12 group">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           <span className="text-[10px] font-black uppercase tracking-widest">Back to Home</span>
-        </a>
+        </Link>
 
         <div className="grid lg:grid-cols-2 gap-16 items-start">
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }}>

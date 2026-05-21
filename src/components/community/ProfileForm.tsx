@@ -67,7 +67,11 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
     const fileName = `profiles/${user.uid}_${Date.now()}.${fileExt}`;
     const storageRef = ref(storage, fileName);
 
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    const metadata = {
+      contentType: file.type,
+    };
+
+    const uploadTask = uploadBytesResumable(storageRef, file, metadata);
 
     uploadTask.on('state_changed', 
       (snapshot) => {
@@ -75,14 +79,20 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
         setUploadProgress(progress);
       }, 
       (error) => {
-        console.error("Upload error:", error);
+        console.error("Upload error details:", error.code, error.message);
         setUploadingImage(false);
-        alert("Failed to upload image. Please try again.");
+        alert(`Failed to upload image: ${error.message}`);
       }, 
       async () => {
-        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-        setFormData(prev => ({ ...prev, photoURL: downloadURL }));
-        setUploadingImage(false);
+        try {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          setFormData(prev => ({ ...prev, photoURL: downloadURL }));
+        } catch (downloadError) {
+          console.error("Failed to get download URL:", downloadError);
+          alert("Image uploaded but failed to get link. Please try again.");
+        } finally {
+          setUploadingImage(false);
+        }
       }
     );
   };

@@ -1,0 +1,159 @@
+import { useEffect, useState } from 'react';
+import { motion } from 'motion/react';
+import { Sparkles, ArrowRight, Target, Calendar, Rocket, Bell } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+
+export default function DashboardOverview({ profile }: { profile: any }) {
+  const [config, setConfig] = useState<any>(null);
+  
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const docRef = doc(db, 'config', 'dashboardSettings');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setConfig(docSnap.data());
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard config:', err);
+      }
+    };
+    fetchConfig();
+  }, []);
+
+  // Calculate profile completion percentage
+  const calculateProgress = () => {
+    let completed = 0;
+    const totalFields = 6;
+    if (profile?.fullName) completed++;
+    if (profile?.username) completed++;
+    if (profile?.bio) completed++;
+    if (profile?.department) completed++;
+    if (profile?.year) completed++;
+    if (profile?.githubProfile) completed++;
+    return Math.round((completed / totalFields) * 100);
+  };
+
+  const progress = calculateProgress();
+
+  const widgets = config?.widgets || [
+    { id: 'stats', enabled: true },
+    { id: 'quick_actions', enabled: true },
+    { id: 'recent_events', enabled: true }
+  ];
+
+  const renderWidget = (id: string) => {
+    switch (id) {
+      case 'stats':
+        return (
+          <div key="stats" className="bg-zinc-900 border border-white/10 rounded-3xl p-6 flex flex-col justify-between group hover:border-firefox-orange/30 transition-colors h-full">
+            <div>
+              <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-firefox-orange mb-4">
+                <Target size={20} />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Profile Setup</h3>
+              <p className="text-zinc-400 text-sm mb-6">Complete your profile to unlock all community features and appear on the leaderboard.</p>
+            </div>
+            
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Progress</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-firefox-orange">{progress}%</span>
+              </div>
+              <div className="w-full h-2 bg-black/50 rounded-full overflow-hidden border border-white/5">
+                <div 
+                  className="h-full bg-firefox-orange rounded-full transition-all duration-1000"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      case 'quick_actions':
+        return (
+          <div key="quick_actions" className="bg-zinc-900 border border-white/10 rounded-3xl p-6 group hover:border-firefox-orange/30 transition-colors h-full">
+            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-firefox-orange mb-4">
+              <Rocket size={20} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-4">Next Actions</h3>
+            
+            <div className="space-y-3">
+              <Link to="/events" className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
+                <span className="text-sm font-medium text-zinc-300">Browse Events</span>
+                <ArrowRight size={14} className="text-zinc-500" />
+              </Link>
+              <Link to="/projects" className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
+                <span className="text-sm font-medium text-zinc-300">Explore Projects</span>
+                <ArrowRight size={14} className="text-zinc-500" />
+              </Link>
+              <Link to="/write-blog" className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
+                <span className="text-sm font-medium text-zinc-300">Write an Insight</span>
+                <ArrowRight size={14} className="text-zinc-500" />
+              </Link>
+            </div>
+          </div>
+        );
+      case 'recent_events':
+        return (
+          <div key="recent_events" className="bg-zinc-900 border border-white/10 rounded-3xl p-6 md:col-span-2 lg:col-span-1 group hover:border-firefox-orange/30 transition-colors h-full">
+            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-firefox-orange mb-4">
+              <Calendar size={20} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-4">Upcoming</h3>
+            
+            <div className="flex flex-col items-center justify-center h-40 text-center border-2 border-dashed border-white/5 rounded-2xl bg-black/20">
+              <p className="text-sm font-medium text-zinc-500 mb-2">Check the events page for the latest updates.</p>
+              <Link to="/events" className="text-xs font-black uppercase tracking-widest text-firefox-orange hover:text-white transition-colors">
+                View Events
+              </Link>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const activeAnnouncements = config?.announcements?.filter((a: any) => a.active) || [];
+
+  return (
+    <div className="space-y-8">
+      {/* Welcome Banner */}
+      <div className="bg-gradient-to-br from-firefox-orange/10 to-transparent border border-firefox-orange/20 rounded-3xl p-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-firefox-orange/10 blur-[80px] rounded-full pointer-events-none" />
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div>
+            <h2 className="text-3xl font-display font-black text-white uppercase tracking-tight mb-2">
+              Welcome back, <span className="text-firefox-orange">{profile?.fullName?.split(' ')[0] || 'Builder'}</span>
+            </h2>
+            <p className="text-zinc-400 font-medium">Your hub for community access, resources, and events.</p>
+          </div>
+          <div className="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/5">
+            <Sparkles className="text-yellow-500" size={24} />
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Total Points</p>
+              <p className="text-2xl font-display font-black text-white">{profile?.points || 0}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {activeAnnouncements.length > 0 && (
+        <div className="space-y-3">
+          {activeAnnouncements.map((ann: any) => (
+            <div key={ann.id} className="bg-firefox-orange/10 border border-firefox-orange/30 p-4 rounded-2xl flex items-start gap-4">
+              <Bell className="text-firefox-orange shrink-0 mt-0.5" size={18} />
+              <p className="text-sm font-medium text-white">{ann.text}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {widgets.filter((w: any) => w.enabled).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)).map((w: any) => renderWidget(w.id))}
+      </div>
+    </div>
+  );
+}

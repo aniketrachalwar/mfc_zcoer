@@ -6,6 +6,7 @@ import { ArrowLeft, Clock, Edit3 } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
 import { Blog } from '../../types/blog';
+import { Helmet } from 'react-helmet-async';
 
 const BlogDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,60 +64,83 @@ const BlogDetails = () => {
   }
 
   return (
-    <article className="min-h-screen pt-32 pb-20 px-4 bg-zinc-950">
-      <div className="max-w-4xl mx-auto">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-8 text-[10px] font-black uppercase tracking-widest"
-        >
-          <ArrowLeft size={14} /> Back
-        </button>
+    <>
+      <Helmet>
+        <title>{blog.title} | Mozilla Firefox Club ZCOER</title>
+        <meta name="description" content={blog.excerpt} />
+        <meta property="og:title" content={blog.title} />
+        <meta property="og:description" content={blog.excerpt} />
+        <meta property="og:image" content={blog.img} />
+        <meta property="og:type" content="article" />
+      </Helmet>
+      
+      <article className="min-h-screen pt-32 pb-20 px-4 bg-zinc-950">
+        <div className="max-w-4xl mx-auto">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-8 text-[10px] font-black uppercase tracking-widest min-h-[44px]"
+          >
+            <ArrowLeft size={14} /> Back
+          </button>
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="flex flex-wrap gap-2 mb-6">
-            {blog.tags.map(tag => (
-              <span key={tag} className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[10px] font-bold text-zinc-300 uppercase tracking-widest">
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          <h1 className="text-4xl md:text-6xl font-display font-black tracking-tighter text-white mb-6">
-            {blog.title}
-          </h1>
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-y border-white/10 py-5 mb-10">
-            <div>
-              <p className="text-xs font-black text-white uppercase tracking-widest">{blog.authorName}</p>
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">{blog.date}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                <Clock size={12} /> {blog.readTime}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+            <header>
+              <div className="flex flex-wrap gap-2 mb-6">
+                {blog.tags.map(tag => (
+                  <span key={tag} className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[10px] font-bold text-zinc-300 uppercase tracking-widest">
+                    {tag}
+                  </span>
+                ))}
               </div>
-              {user?.uid === blog.authorId && (
-                <button
-                  onClick={() => navigate(`/edit-blog/${blog.id}`)}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-firefox-orange text-white rounded-full transition-colors text-[10px] font-black uppercase tracking-widest"
-                >
-                  <Edit3 size={14} /> Edit
-                </button>
-              )}
+
+              <h1 className="text-4xl md:text-6xl font-display font-black tracking-tighter text-white mb-6">
+                {blog.title}
+              </h1>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-y border-white/10 py-5 mb-10">
+                <div>
+                  <p className="text-xs font-black text-white uppercase tracking-widest">{blog.authorName}</p>
+                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">{blog.date}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                    <Clock size={12} /> {blog.readTime}
+                  </div>
+                  {user?.uid === blog.authorId && (
+                    <button
+                      onClick={() => navigate(`/edit-blog/${blog.id}`)}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-firefox-orange text-white rounded-full transition-colors text-[10px] font-black uppercase tracking-widest min-h-[44px]"
+                    >
+                      <Edit3 size={14} /> Edit
+                    </button>
+                  )}
+                </div>
+              </div>
+            </header>
+
+            <div className="aspect-[16/9] overflow-hidden rounded-[2rem] border border-white/10 mb-10 bg-zinc-900">
+              <img loading="lazy" src={blog.img} alt={blog.title} className="w-full h-full object-cover" />
             </div>
-          </div>
 
-          <div className="aspect-[16/9] overflow-hidden rounded-[2rem] border border-white/10 mb-10 bg-zinc-900">
-            <img loading="lazy" src={blog.img} alt={blog.title} className="w-full h-full object-cover" />
-          </div>
+            {/* AdSense Placeholder: Top Banner */}
+            <aside id="adsense-top-banner" className="w-full min-h-[90px] mb-10 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-zinc-600 text-xs uppercase tracking-widest font-black">
+              Advertisement
+            </aside>
 
-          <p className="text-xl text-zinc-300 font-medium leading-relaxed mb-10">{blog.excerpt}</p>
+            <p className="text-xl text-zinc-300 font-medium leading-relaxed mb-10">{blog.excerpt}</p>
 
-          <div className="prose prose-invert prose-zinc max-w-none">
-            <p className="whitespace-pre-wrap text-zinc-300 leading-8">{blog.content}</p>
-          </div>
-        </motion.div>
-      </div>
-    </article>
+            <div className="prose prose-invert prose-zinc max-w-none">
+              <p className="whitespace-pre-wrap text-zinc-300 leading-8">{blog.content}</p>
+            </div>
+
+            {/* AdSense Placeholder: Bottom Banner */}
+            <aside id="adsense-bottom-banner" className="w-full min-h-[250px] mt-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-zinc-600 text-xs uppercase tracking-widest font-black">
+              Advertisement
+            </aside>
+          </motion.div>
+        </div>
+      </article>
+    </>
   );
 };
 

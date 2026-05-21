@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc, deleteDoc, query, limit, startAfter } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Search, Edit2, Trash2, Shield, Check, X } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -9,12 +9,32 @@ const MembersManager = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const fetchMembers = async () => {
-    setLoading(true);
+  const [lastVisible, setLastVisible] = useState<any>(null);
+  const [hasMore, setHasMore] = useState(true);
+
+  const fetchMembers = async (isLoadMore = false) => {
+    if (!isLoadMore) setLoading(true);
     try {
-      const usersSnap = await getDocs(collection(db, 'users'));
+      let q = query(collection(db, 'users'), limit(20));
+      if (isLoadMore && lastVisible) {
+        q = query(collection(db, 'users'), startAfter(lastVisible), limit(20));
+      }
+      const usersSnap = await getDocs(q);
+      
+      const lastVisibleDoc = usersSnap.docs[usersSnap.docs.length - 1];
+      setLastVisible(lastVisibleDoc);
+      
+      if (usersSnap.docs.length < 20) {
+        setHasMore(false);
+      }
+      
       const usersList = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setMembers(usersList);
+      
+      if (isLoadMore) {
+        setMembers(prev => [...prev, ...usersList]);
+      } else {
+        setMembers(usersList);
+      }
     } catch (error) {
       console.error("Error fetching members:", error);
     } finally {
@@ -74,6 +94,19 @@ const MembersManager = () => {
         setMembers(members.filter(m => m.id !== userId));
       } catch (error) {
         console.error("Error deleting member:", error);
+      }
+    }
+  };
+
+  const handleEditProfile = async (userId: string, currentName: string) => {
+    const newName = window.prompt("Enter new full name for this member:", currentName);
+    if (newName && newName !== currentName) {
+      try {
+        await updateDoc(doc(db, 'users', userId), { fullName: newName });
+        setMembers(members.map(m => m.id === userId ? { ...m, fullName: newName } : m));
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        alert("Failed to update profile.");
       }
     }
   };
@@ -211,6 +244,13 @@ const MembersManager = () => {
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
+                          onClick={() => handleEditProfile(member.id, member.fullName || '')}
+                          className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                          title="Edit Profile"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button 
                           onClick={() => handleDeleteMember(member.id)}
                           className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors"
                           title="Remove Member"
@@ -225,6 +265,17 @@ const MembersManager = () => {
             </tbody>
           </table>
         </div>
+        
+        {hasMore && !searchTerm && (
+          <div className="p-4 border-t border-white/10 text-center bg-zinc-900/50">
+            <button 
+              onClick={() => fetchMembers(true)}
+              className="px-6 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-full text-xs font-bold uppercase tracking-widest transition-colors"
+            >
+              Load More
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

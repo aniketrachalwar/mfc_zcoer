@@ -16,7 +16,9 @@ import {
   Star,
   FileText,
   Settings as SettingsIcon,
-  CheckSquare
+  CheckSquare,
+  MonitorSmartphone,
+  Globe
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -63,9 +65,9 @@ const AdminLayout = () => {
       <ShieldAlert size={64} className="text-red-500 mb-6" />
       <h1 className="text-4xl font-display font-black uppercase text-white mb-4">Access Denied</h1>
       <p className="text-zinc-400 max-w-md mb-8">You do not have the required permissions to view this page.</p>
-      <a href="/" className="px-8 py-3 bg-firefox-orange text-white rounded-full font-display font-black text-[10px] uppercase tracking-widest">
+      <Link to="/" className="px-8 py-3 bg-firefox-orange text-white rounded-full font-display font-black text-[10px] uppercase tracking-widest">
         Return Home
-      </a>
+      </Link>
     </div>
   );
 
@@ -80,11 +82,13 @@ const AdminLayout = () => {
     { name: 'Blogs', path: '/admin/blogs', icon: FileText },
     { name: 'Merchandise', path: '/admin/merch', icon: ShoppingBag },
     { name: 'Notifications', path: '/admin/notifications', icon: Bell },
+    { name: 'Dashboard Config', path: '/admin/dashboard-config', icon: MonitorSmartphone },
+    { name: 'Website Config', path: '/admin/website-config', icon: Globe },
     { name: 'Settings', path: '/admin/settings', icon: SettingsIcon },
   ];
 
   const visibleNavItems = navItems.filter(item => {
-    if ((item.name === 'Members' || item.name === 'Team' || item.name === 'Applications' || item.name === 'Settings') && !isStrictAdmin) return false;
+    if ((item.name === 'Members' || item.name === 'Team' || item.name === 'Applications' || item.name === 'Settings' || item.name === 'Dashboard Config' || item.name === 'Website Config') && !isStrictAdmin) return false;
     return true;
   });
 

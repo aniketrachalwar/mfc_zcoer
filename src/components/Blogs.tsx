@@ -89,17 +89,13 @@ const Blogs = () => {
         ) : (
           <div className="grid max-w-3xl gap-10">
             {blogs.map((blog, i) => (
-              <motion.div
+              <div
                 key={blog.id || i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="group cursor-pointer"
+                className="group cursor-pointer transition-all duration-300 hover:-translate-y-1"
                 onClick={() => blog.authorId !== 'mock' && navigate(`/blog/${blog.id}`)}
               >
                 <div className="aspect-[16/10] overflow-hidden rounded-[2rem] mb-8 border border-zinc-200 transition-all group-hover:shadow-2xl group-hover:shadow-black/5">
-                  <img loading="lazy" src={blog.img} alt={blog.title} className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" />
+                  <img loading="lazy" src={blog.img} alt={blog.title} className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105" />
                 </div>
                 <div className="flex gap-2 mb-6">
                   {blog.tags.map(t => (
@@ -123,7 +119,7 @@ const Blogs = () => {
                     <Clock size={12} /> {blog.readTime}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         )}

@@ -40,9 +40,24 @@ service cloud.firestore {
       allow read: if isSignedIn() && request.auth.uid == adminId;
     }
 
+    match /config/{configId} {
+      allow read: if true;
+      allow write: if canManageContent();
+    }
+
+    match /tickets/{ticketId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow write: if canManageContent();
+    }
+
     match /users/{userId} {
       allow read: if true;
-      allow write: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if (isSignedIn() && request.auth.uid == userId && 
+                       (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'membershipStatus', 'isFoundingMember']) || 
+                        request.resource.data.membershipStatus == 'pending')) || 
+                       canManageContent();
+      allow delete: if canManageContent();
     }
 
     match /blogs/{blogId} {

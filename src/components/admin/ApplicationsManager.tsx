@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { CheckSquare, CheckCircle, XCircle, Loader2, Search } from 'lucide-react';
+import { CheckSquare, CheckCircle, XCircle, Loader2, Search, Zap, Hand } from 'lucide-react';
 import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
@@ -34,8 +34,8 @@ export default function ApplicationsManager() {
     if (!window.confirm(`Approve membership for ${app.userName}?`)) return;
     setProcessingId(app.id);
     try {
-      await updateDoc(doc(db, 'payments', app.id), { status: 'verified' });
-      await updateDoc(doc(db, 'users', app.userId), { membershipStatus: 'active' });
+      await updateDoc(doc(db, 'payments', app.id), { status: 'verified', paymentStatus: 'verified' });
+      await updateDoc(doc(db, 'users', app.userId), { membershipStatus: 'verified' });
       setSuccessMessage('Membership approved!');
       fetchApplications();
     } catch (err) {
@@ -50,7 +50,7 @@ export default function ApplicationsManager() {
     if (!window.confirm(`Reject membership for ${app.userName}?`)) return;
     setProcessingId(app.id);
     try {
-      await updateDoc(doc(db, 'payments', app.id), { status: 'failed' });
+      await updateDoc(doc(db, 'payments', app.id), { status: 'failed', paymentStatus: 'failed' });
       await updateDoc(doc(db, 'users', app.userId), { membershipStatus: 'public' });
       setSuccessMessage('Membership rejected.');
       fetchApplications();
@@ -64,7 +64,8 @@ export default function ApplicationsManager() {
 
   const filteredApps = applications.filter(app => 
     app.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    app.transactionId?.toLowerCase().includes(searchTerm.toLowerCase())
+    app.transactionId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    app.razorpayPaymentId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -76,7 +77,7 @@ export default function ApplicationsManager() {
           </div>
           <div>
             <h2 className="text-2xl font-display font-black uppercase text-white tracking-tight">Membership <span className="text-firefox-orange">Applications</span></h2>
-            <p className="text-zinc-400 text-sm">Verify payments and approve members.</p>
+            <p className="text-zinc-400 text-sm">Verify manual payments and monitor automated Razorpay transactions.</p>
           </div>
         </div>
         
@@ -103,9 +104,9 @@ export default function ApplicationsManager() {
               <thead>
                 <tr className="bg-black/40 border-b border-white/5 text-[10px] uppercase tracking-widest text-zinc-500">
                   <th className="p-4 font-bold">User Info</th>
+                  <th className="p-4 font-bold">Gateway</th>
                   <th className="p-4 font-bold">Amount</th>
                   <th className="p-4 font-bold">Transaction ID</th>
-                  <th className="p-4 font-bold">Date</th>
                   <th className="p-4 font-bold">Status</th>
                   <th className="p-4 font-bold text-right">Actions</th>
                 </tr>
@@ -122,20 +123,44 @@ export default function ApplicationsManager() {
                         <div className="font-bold text-white">{app.userName}</div>
                         <div className="text-xs text-zinc-500">{app.userEmail}</div>
                       </td>
-                      <td className="p-4 font-mono text-firefox-orange">₹{app.amount}</td>
-                      <td className="p-4 font-mono text-zinc-300">{app.transactionId}</td>
-                      <td className="p-4 text-zinc-400">{new Date(app.timestamp).toLocaleDateString()}</td>
                       <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+                        {app.gateway === 'razorpay' ? (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                            <Zap size={12} /> Auto
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-zinc-800 text-zinc-300 border border-white/10 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                            <Hand size={12} /> Manual
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-4 font-mono text-firefox-orange">₹{app.amount}</td>
+                      <td className="p-4">
+                        <div className="font-mono text-zinc-300 text-xs">
+                          {app.gateway === 'razorpay' ? app.razorpayPaymentId : app.transactionId}
+                        </div>
+                        {app.gateway === 'manual' && app.paymentScreenshotUrl && (
+                           <a href={app.paymentScreenshotUrl} target="_blank" rel="noreferrer" className="text-[10px] text-firefox-orange hover:underline font-bold uppercase tracking-widest mt-1 inline-block">
+                             View Screenshot
+                           </a>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex w-max ${
                           app.status === 'verified' ? 'bg-green-500/20 text-green-400' :
                           app.status === 'failed' ? 'bg-red-500/20 text-red-400' :
                           'bg-yellow-500/20 text-yellow-500'
                         }`}>
                           {app.status}
                         </span>
+                        {app.gateway === 'razorpay' && app.webhookVerified && (
+                          <div className="text-[9px] text-zinc-500 uppercase tracking-widest mt-1">
+                            Webhook Sync ✓
+                          </div>
+                        )}
                       </td>
                       <td className="p-4 text-right space-x-2">
-                        {app.status === 'pending' && (
+                        {app.status === 'pending' && app.gateway === 'manual' ? (
                           <>
                             <button
                               onClick={() => handleApprove(app)}
@@ -152,6 +177,10 @@ export default function ApplicationsManager() {
                               <XCircle size={14} /> Reject
                             </button>
                           </>
+                        ) : (
+                           <span className="text-zinc-600 text-xs italic">
+                             {app.gateway === 'razorpay' ? 'Automated' : 'Resolved'}
+                           </span>
                         )}
                       </td>
                     </tr>

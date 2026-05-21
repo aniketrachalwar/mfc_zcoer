@@ -244,6 +244,13 @@ const PublicProfile = () => {
             )}
           </motion.div>
         </div>
+
+        {/* AdSense Placeholder */}
+        <div className="w-full max-w-4xl mx-auto h-24 bg-white/5 border border-white/10 rounded-xl mt-16 flex items-center justify-center relative overflow-hidden group">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50" />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 relative z-10 group-hover:text-firefox-orange transition-colors">Advertisement</span>
+          <div id="adsense-public-profile" className="absolute inset-0"></div>
+        </div>
       </div>
     </div>
   );

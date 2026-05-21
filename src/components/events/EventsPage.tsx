@@ -7,6 +7,7 @@ import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
 import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
+import AdSenseBlock from '../AdSenseBlock';
 
 const EventsPage = () => {
   const [events, setEvents] = useState<any[]>([]);
@@ -209,6 +210,8 @@ const EventsPage = () => {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {upcomingEvents.map(event => <EventCard key={event.id} event={event} />)}
             </div>
+            
+            <AdSenseBlock adSlot="events_upcoming_bottom" className="mt-16" />
           </div>
         )}
 
@@ -220,6 +223,8 @@ const EventsPage = () => {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 opacity-75 hover:opacity-100 transition-opacity">
               {pastEvents.map(event => <EventCard key={event.id} event={event} />)}
             </div>
+            
+            <AdSenseBlock adSlot="events_past_bottom" className="mt-16" />
           </div>
         )}
         

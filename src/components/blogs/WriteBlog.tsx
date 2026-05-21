@@ -65,9 +65,9 @@ const WriteBlog = () => {
     return (
       <div className="min-h-screen pt-32 pb-20 px-4 bg-zinc-950 flex flex-col items-center justify-center">
         <p className="text-zinc-400 mb-4">You need to log in to write or edit a blog.</p>
-        <a href="/" className="px-6 py-2 bg-firefox-orange text-white rounded-full font-bold uppercase tracking-widest text-[10px]">
-          Go Home
-        </a>
+        <Link to="/" className="px-6 py-2 bg-firefox-orange text-white rounded-full font-bold uppercase tracking-widest text-[10px]">
+          Return Home
+        </Link>
       </div>
     );
   }

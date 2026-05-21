@@ -5,7 +5,8 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import ProfileForm from './ProfileForm';
 import ProfileCard from './ProfileCard';
-import { Settings, User as UserIcon, Layout, Share2, LogOut, ChevronRight, Sparkles, Shield, Clock } from 'lucide-react';
+import DashboardOverview from './DashboardOverview';
+import { Settings, User as UserIcon, Layout, Share2, LogOut, ChevronRight, Sparkles, Shield, Clock, LayoutDashboard } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 import MembershipApply from '../membership/MembershipApply';
 
@@ -13,7 +14,7 @@ const Dashboard = () => {
   const { user, loading: authLoading, logout } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'profile' | 'visual' | 'membership'>('profile');
+  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'visual' | 'membership'>('overview');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -84,7 +85,7 @@ const Dashboard = () => {
     if (!loading && profile) {
       if (!isProfileComplete) {
         setActiveTab('profile');
-      } else if (!hasAccess) {
+      } else if (!hasAccess && activeTab !== 'profile') {
         setActiveTab('membership');
       }
     }
@@ -150,6 +151,22 @@ const Dashboard = () => {
           {/* Sidebar */}
           <div className="space-y-4">
             <button 
+              onClick={() => setActiveTab('overview')}
+              disabled={!isProfileComplete}
+              className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl border transition-all text-left ${
+                activeTab === 'overview' 
+                ? 'bg-firefox-orange border-firefox-orange text-white shadow-lg shadow-firefox-orange/20' 
+                : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed'
+              }`}
+            >
+              <LayoutDashboard size={20} />
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-widest">Overview</span>
+                <span className="text-[9px] font-bold opacity-60 uppercase">Dashboard Home</span>
+              </div>
+            </button>
+
+            <button 
               onClick={() => setActiveTab('profile')}
               className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl border transition-all text-left ${
                 activeTab === 'profile' 
@@ -211,7 +228,16 @@ const Dashboard = () => {
              <div className="absolute top-0 right-0 w-96 h-96 bg-firefox-orange/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
              
              <AnimatePresence mode="wait">
-               {activeTab === 'profile' ? (
+               {activeTab === 'overview' ? (
+                 <motion.div
+                   key="overview"
+                   initial={{ opacity: 0, y: 20 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   exit={{ opacity: 0, y: -20 }}
+                 >
+                   <DashboardOverview profile={profile} />
+                 </motion.div>
+               ) : activeTab === 'profile' ? (
                  <motion.div
                    key="profile"
                    initial={{ opacity: 0, y: 20 }}
@@ -232,7 +258,7 @@ const Dashboard = () => {
                       if (!dataHasAccess) {
                         setActiveTab('membership');
                       } else {
-                        setActiveTab('visual');
+                        setActiveTab('overview');
                       }
                     }} 
                    />

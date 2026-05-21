@@ -24,6 +24,8 @@ interface Profile {
     twitter?: string;
   };
   isFoundingMember?: boolean;
+  role?: string;
+  membershipStatus?: string;
 }
 
 const CommunityPage = () => {
@@ -43,6 +45,16 @@ const CommunityPage = () => {
         const q = query(collection(db, 'users'), orderBy('memberId', 'asc'), limit(50));
         const querySnapshot = await getDocs(q);
         const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Profile));
+        
+        // Sort active/premium members first
+        data.sort((a, b) => {
+          const aActive = a.membershipStatus === 'active' || ['admin', 'president', 'core_team'].includes(a.role || '');
+          const bActive = b.membershipStatus === 'active' || ['admin', 'president', 'core_team'].includes(b.role || '');
+          if (aActive && !bActive) return -1;
+          if (!aActive && bActive) return 1;
+          return 0;
+        });
+
         setProfiles(data);
       } catch (err) {
         console.error("Error fetching profiles:", err);
@@ -119,99 +131,87 @@ const CommunityPage = () => {
           </div>
         </div>
 
+        {/* AdSense Placeholder - Top */}
+        <div className="w-full max-w-4xl mx-auto h-24 bg-white/5 border border-white/10 rounded-xl mb-12 flex items-center justify-center relative overflow-hidden group">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50" />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 relative z-10 group-hover:text-firefox-orange transition-colors">Advertisement</span>
+          <div id="adsense-community-top" className="absolute inset-0"></div>
+        </div>
+
         {/* Member Grid */}
         <AnimatePresence mode="popLayout">
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-64 bg-white/5 border border-white/5 rounded-3xl animate-pulse" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {[...Array(10)].map((_, i) => (
+                <div key={i} className="h-48 bg-white/5 border border-white/5 rounded-3xl animate-pulse" />
               ))}
             </div>
           ) : (
             <motion.div 
               layout
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
             >
               {filteredProfiles.map((profile, i) => (
-                <motion.div
-                  key={profile.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="group relative bg-zinc-900/40 border border-white/5 p-8 rounded-[2.5rem] hover:border-firefox-orange/30 transition-all duration-500 overflow-hidden"
-                >
-                  {/* Background Aura */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-firefox-orange/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                  
-                  <div className="relative flex items-start justify-between mb-8">
-                    <div className="relative w-20 h-20">
-                      <div className="absolute inset-0 bg-firefox-orange rounded-full blur-xl opacity-20 scale-150 animate-pulse" />
+                <React.Fragment key={profile.id}>
+                  {/* Inject Advertisement every 12 profiles */}
+                  {i > 0 && i % 12 === 0 && (
+                    <div className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-5 w-full h-20 bg-white/5 border border-white/10 rounded-2xl my-4 flex items-center justify-center relative overflow-hidden group">
+                      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50" />
+                      <span className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-600 relative z-10 group-hover:text-firefox-orange transition-colors">Advertisement</span>
+                      <div id={`adsense-community-mid-${i}`} className="absolute inset-0"></div>
+                    </div>
+                  )}
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="group relative bg-zinc-900/40 border border-white/5 p-4 sm:p-5 rounded-[1.5rem] hover:border-firefox-orange/30 transition-all duration-500 overflow-hidden flex flex-col items-center text-center"
+                  >
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-firefox-orange/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                    
+                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 mb-3">
+                      {(profile.membershipStatus === 'active' || ['admin', 'president', 'core_team'].includes(profile.role || '')) && (
+                        <div className="absolute inset-0 bg-firefox-orange rounded-full blur-xl opacity-20 scale-125 animate-pulse" />
+                      )}
                       <img loading="lazy" 
                         src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`} 
                         alt={profile.fullName}
                         className="w-full h-full rounded-full object-cover border-2 border-zinc-800 relative z-10"
                       />
-                    </div>
-                    <div className="text-right flex flex-col items-end gap-2">
                       {profile.isFoundingMember && (
-                        <span className="text-[9px] font-black tracking-widest text-yellow-500 bg-yellow-500/10 border border-yellow-500/20 px-2 py-1 rounded-full uppercase inline-flex items-center gap-1">
-                          <Sparkles size={10} /> Founding
-                        </span>
+                        <div className="absolute -top-1 -right-1 z-20 bg-yellow-500 text-black p-1 rounded-full border border-black shadow-lg">
+                          <Sparkles size={10} />
+                        </div>
                       )}
-                      <span className="text-[10px] font-black tracking-widest text-firefox-orange bg-firefox-orange/10 border border-firefox-orange/20 px-3 py-1 rounded-full uppercase">
-                        {profile.memberId}
-                      </span>
                     </div>
-                  </div>
 
-                  <div className="space-y-4 mb-8">
-                    <h3 className="text-2xl font-display font-black uppercase text-white group-hover:text-firefox-orange transition-colors">
+                    <h3 className="text-[13px] sm:text-sm font-display font-black uppercase text-white group-hover:text-firefox-orange transition-colors line-clamp-1 w-full">
                       {profile.fullName}
                     </h3>
-                    <p className="text-zinc-500 text-sm line-clamp-2 min-h-[2.5rem]">
-                      {profile.bio || "No bio yet."}
-                    </p>
-                    <div className="flex flex-wrap gap-2 text-[10px] uppercase tracking-wider font-bold">
+                    
+                    <span className="text-[8px] sm:text-[9px] font-black tracking-widest text-firefox-orange uppercase mt-1 mb-3 bg-firefox-orange/10 px-2 py-0.5 rounded-full border border-firefox-orange/20">
+                      {profile.memberId}
+                    </span>
+
+                    <div className="flex flex-wrap justify-center gap-1 text-[8px] uppercase tracking-wider font-bold mb-4">
                       {profile.department && (
-                        <span className="text-zinc-400 bg-white/5 px-2 py-1 rounded border border-white/5">{profile.department}</span>
+                        <span className="text-zinc-400 bg-white/5 px-1.5 py-0.5 rounded border border-white/5 max-w-[80px] truncate">{profile.department}</span>
                       )}
                       {profile.year && (
-                        <span className="text-zinc-400 bg-white/5 px-2 py-1 rounded border border-white/5">{profile.year} Year</span>
+                        <span className="text-zinc-400 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">{profile.year} Yr</span>
                       )}
                     </div>
-                  </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-3">
-                      {profile.socialLinks?.github && (
-                        <a 
-                          href={profile.socialLinks.github.startsWith('http') ? profile.socialLinks.github : `https://github.com/${profile.socialLinks.github.replace('@', '')}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                        >
-                          <Github size={16} className="text-zinc-500 hover:text-white transition-colors cursor-pointer" />
-                        </a>
-                      )}
-                      {profile.socialLinks?.linkedin && (
-                        <a 
-                          href={profile.socialLinks.linkedin.startsWith('http') ? profile.socialLinks.linkedin : `https://linkedin.com/in/${profile.socialLinks.linkedin.replace(/^\//, '')}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                        >
-                          <Linkedin size={16} className="text-zinc-500 hover:text-white transition-colors cursor-pointer" />
-                        </a>
-                      )}
-                    </div>
                     <Link 
                       to={`/profile/${profile.username}`}
-                      className="inline-flex items-center gap-2 group/btn px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-firefox-orange transition-all duration-300"
+                      className="mt-auto w-full inline-flex items-center justify-center gap-2 group/btn px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-firefox-orange hover:border-firefox-orange hover:text-white transition-all duration-300 text-zinc-300"
                     >
-                      <span className="text-[10px] font-black uppercase tracking-widest">View Profile</span>
-                      <ExternalLink size={12} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                      <span className="text-[9px] font-black uppercase tracking-widest">Profile</span>
+                      <ExternalLink size={10} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                     </Link>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                </React.Fragment>
               ))}
             </motion.div>
           )}
@@ -222,6 +222,13 @@ const CommunityPage = () => {
             <h3 className="text-2xl text-zinc-500 font-display uppercase tracking-widest">No members found</h3>
           </div>
         )}
+
+        {/* AdSense Placeholder - Bottom */}
+        <div className="w-full max-w-4xl mx-auto h-24 bg-white/5 border border-white/10 rounded-xl mt-12 flex items-center justify-center relative overflow-hidden group">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50" />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 relative z-10 group-hover:text-firefox-orange transition-colors">Advertisement</span>
+          <div id="adsense-community-bottom" className="absolute inset-0"></div>
+        </div>
       </div>
     </div>
   );
