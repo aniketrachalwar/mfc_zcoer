@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, MapPin, Trophy, ArrowLeft, CheckCircle2, Clock, Download, XCircle } from 'lucide-react';
+import { Calendar, MapPin, Trophy, ArrowLeft, CheckCircle2, Clock, Download, XCircle, Ticket, Loader2 } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, setDoc, updateDoc, increment, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -34,6 +34,13 @@ const EventDetails = () => {
     division: '',
     rollNo: ''
   });
+
+  const [userTier, setUserTier] = useState('free');
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponError, setCouponError] = useState('');
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [transactionId, setTransactionId] = useState('');
 
   const { user } = useAuth();
 
@@ -87,10 +94,12 @@ const EventDetails = () => {
           
           // Fetch user full name for certificate
           const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists() && userDoc.data().fullName) {
-             setUserFullName(userDoc.data().fullName);
+          if (userDoc.exists()) {
+             setUserFullName(userDoc.data().fullName || user.displayName || 'Participant');
+             setUserTier(userDoc.data().membershipTier || 'free');
           } else {
              setUserFullName(user.displayName || 'Participant');
+             setUserTier('free');
           }
         } catch (err) {
           console.error("Error fetching ticket/user:", err);
@@ -159,6 +168,63 @@ const EventDetails = () => {
     );
   }
 
+  const getFinalAmount = () => {
+    if (!event || !event.price) return 0;
+    let baseAmount = Number(event.price);
+    
+    if (userTier === 'platinum') return 0;
+    if (userTier === 'silver') baseAmount = baseAmount * 0.5;
+    
+    if (appliedCoupon) {
+      if (appliedCoupon.type === 'percentage') {
+        baseAmount = baseAmount - (baseAmount * (appliedCoupon.value / 100));
+      } else {
+        baseAmount = Math.max(0, baseAmount - appliedCoupon.value);
+      }
+    }
+    return Math.floor(baseAmount);
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setValidatingCoupon(true);
+    setCouponError('');
+    setAppliedCoupon(null);
+
+    try {
+      const q = query(
+        collection(db, 'coupons'), 
+        where('code', '==', couponCode.toUpperCase().trim()),
+        where('isActive', '==', true)
+      );
+      const snap = await getDocs(q);
+      
+      if (snap.empty) {
+        setCouponError('Invalid or expired coupon.');
+        return;
+      }
+
+      const coupon = snap.docs[0].data();
+      
+      if (coupon.usageLimit > 0 && coupon.usageCount >= coupon.usageLimit) {
+        setCouponError('Coupon usage limit reached.');
+        return;
+      }
+      
+      if (coupon.expiryDate && new Date(coupon.expiryDate).getTime() < Date.now()) {
+        setCouponError('Coupon has expired.');
+        return;
+      }
+
+      setAppliedCoupon({ id: snap.docs[0].id, ...coupon });
+    } catch (err) {
+      console.error(err);
+      setCouponError('Error validating coupon.');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
   const submitRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -171,6 +237,12 @@ const EventDetails = () => {
       setShowRegistrationForm(false);
       return;
     }
+    
+    const finalAmount = getFinalAmount();
+    if (finalAmount > 0 && !transactionId.trim()) {
+      alert("Please enter a valid Transaction ID.");
+      return;
+    }
 
     const newTicketId = `${user.uid}_${id}`;
     try {
@@ -180,6 +252,9 @@ const EventDetails = () => {
         verified: false,
         cancelled: false,
         timestamp: new Date().toISOString(),
+        amount: finalAmount,
+        transactionId: finalAmount > 0 ? transactionId.trim() : 'FREE_OR_WAIVED',
+        couponUsed: appliedCoupon ? appliedCoupon.code : null,
         ...registrationData
       }, { merge: true });
       setAttending(true);
@@ -486,6 +561,62 @@ const EventDetails = () => {
                             <input type="text" required value={registrationData.rollNo} onChange={e => setRegistrationData({...registrationData, rollNo: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors" placeholder="e.g. 42" />
                           </div>
                         </div>
+
+                        {(event.price > 0) && (
+                          <div className="bg-black/50 p-4 rounded-xl border border-white/5 space-y-4 mt-2">
+                             <div className="flex justify-between items-center text-sm">
+                                <span className="text-zinc-400">Base Price:</span>
+                                <span className="text-white font-bold">₹{event.price}</span>
+                             </div>
+                             {userTier !== 'free' && (
+                                <div className="flex justify-between items-center text-sm text-firefox-orange">
+                                  <span>{userTier.charAt(0).toUpperCase() + userTier.slice(1)} Discount:</span>
+                                  <span>-{userTier === 'platinum' ? '100%' : '50%'}</span>
+                                </div>
+                             )}
+                             {appliedCoupon && (
+                                <div className="flex justify-between items-center text-sm text-green-400">
+                                  <span>Coupon ({appliedCoupon.code}):</span>
+                                  <span>-{appliedCoupon.type === 'percentage' ? `${appliedCoupon.value}%` : `₹${appliedCoupon.value}`}</span>
+                                </div>
+                             )}
+                             <div className="flex justify-between items-center text-lg border-t border-white/10 pt-2">
+                                <span className="text-zinc-300 font-bold">Total:</span>
+                                <span className="text-white font-black">₹{getFinalAmount()}</span>
+                             </div>
+                             
+                             {getFinalAmount() > 0 && (
+                               <>
+                                 <div className="space-y-1">
+                                    <div className="flex gap-2">
+                                      <input 
+                                         type="text"
+                                         value={couponCode}
+                                         onChange={e => setCouponCode(e.target.value)}
+                                         disabled={!!appliedCoupon || validatingCoupon}
+                                         placeholder="Coupon Code"
+                                         className="flex-1 bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-white uppercase text-xs focus:border-firefox-orange outline-none disabled:opacity-50"
+                                      />
+                                      {appliedCoupon ? (
+                                         <button type="button" onClick={() => { setAppliedCoupon(null); setCouponCode(''); }} className="px-3 py-2 bg-red-500/20 text-red-400 rounded-lg font-bold text-[10px] uppercase tracking-widest hover:bg-red-500/30">Remove</button>
+                                      ) : (
+                                         <button type="button" onClick={handleApplyCoupon} disabled={!couponCode || validatingCoupon} className="px-3 py-2 bg-white/5 text-white rounded-lg font-bold text-[10px] uppercase tracking-widest hover:bg-white/10 disabled:opacity-50 flex items-center gap-1">
+                                            {validatingCoupon ? <Loader2 size={12} className="animate-spin" /> : <Ticket size={12} />} Apply
+                                         </button>
+                                      )}
+                                    </div>
+                                    {couponError && <p className="text-red-400 text-[10px]">{couponError}</p>}
+                                 </div>
+                                 <div className="pt-2">
+                                   <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 block">Transaction ID / UTR</label>
+                                   <input type="text" required value={transactionId} onChange={e => setTransactionId(e.target.value)} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors" placeholder="Enter UPI Transaction ID" />
+                                   <p className="text-[9px] text-zinc-500 mt-1">Pay exact amount to: mfc.zcoer@upi</p>
+                                 </div>
+                               </>
+                             )}
+                          </div>
+                        )}
+
                         <div className="flex gap-2 pt-4">
                           <button type="button" onClick={() => setShowRegistrationForm(false)} className="flex-1 py-3 bg-white/5 text-zinc-400 rounded-lg font-display font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">Cancel</button>
                           <button type="submit" className="flex-1 py-3 bg-firefox-orange text-white rounded-lg font-display font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-all">Get Ticket</button>

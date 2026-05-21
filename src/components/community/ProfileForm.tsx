@@ -20,10 +20,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
   
   const { deleteAccount } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  
+  const [isDeleting, setIsDeleting] = useState(false);  
   const isGoogleAuth = user?.providerData?.some((p: any) => p.providerId === 'google.com');
   const creationTime = user?.metadata?.creationTime ? new Date(user.metadata.creationTime).getTime() : 0;
   const isWithinOneMinute = (Date.now() - creationTime) <= 60000;
@@ -50,70 +47,6 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
     }
   });
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert("File size should be less than 5MB");
-      return;
-    }
-
-    setUploadingImage(true);
-    setUploadProgress(0);
-
-    const fileExt = file.name.split('.').pop();
-    const fileName = `profiles/${user.uid}_${Date.now()}.${fileExt}`;
-    const storageRef = ref(storage, fileName);
-
-    const metadata = {
-      contentType: file.type,
-    };
-
-    const uploadTask = uploadBytesResumable(storageRef, file, metadata);
-
-    uploadTask.on('state_changed', 
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setUploadProgress(progress);
-      }, 
-      (error) => {
-        console.error("Upload error details:", error.code, error.message);
-        setUploadingImage(false);
-        alert(`Failed to upload image: ${error.message}`);
-      }, 
-      async () => {
-        try {
-          // Add a small delay and retry logic for getDownloadURL
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          let downloadURL = '';
-          let lastError;
-          
-          for (let i = 0; i < 3; i++) {
-            try {
-              downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-              break;
-            } catch (err) {
-              lastError = err;
-              if (i < 2) await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-          }
-          
-          if (!downloadURL) throw lastError;
-
-          setFormData(prev => ({ ...prev, photoURL: downloadURL }));
-        } catch (downloadError) {
-          console.error("Failed to get download URL:", downloadError);
-          alert("Image uploaded but failed to get link. Please try again.");
-        } finally {
-          setUploadingImage(false);
-          setUploadProgress(100);
-          setTimeout(() => setUploadProgress(0), 1000);
-        }
-      }
-    );
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,26 +187,10 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
             ) : (
               <User size={48} className="text-zinc-700" />
             )}
-            <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-              <Camera size={24} className="text-white" />
-              <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-            </label>
           </div>
-          {uploadingImage && (
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-32">
-              <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                <motion.div 
-                  className="h-full bg-firefox-orange"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-              <p className="text-center text-[10px] text-zinc-400 mt-1 uppercase font-bold">{Math.round(uploadProgress)}%</p>
-            </div>
-          )}
         </div>
         <div className="w-full max-w-sm mt-4">
-          <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">Photo URL (Optional Fallback)</label>
+          <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">Photo URL</label>
           <input 
             type="url"
             value={formData.photoURL}

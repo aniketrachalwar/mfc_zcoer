@@ -23,7 +23,8 @@ const EventsManager = () => {
     location: '',
     prizes: '',
     totalSeats: 30,
-    certificateType: 'Participation'
+    certificateType: 'Participation',
+    price: 0
   });
 
   const fetchEvents = async () => {
@@ -54,11 +55,12 @@ const EventsManager = () => {
         location: event.location || '',
         prizes: event.prizes || '',
         totalSeats: event.totalSeats || 30,
-        certificateType: event.certificateType || 'Participation'
+        certificateType: event.certificateType || 'Participation',
+        price: event.price || 0
       });
       setEditingId(event.id);
     } else {
-      setFormData({ title: '', type: 'Hackathon', desc: '', img: '', date: '', location: '', prizes: '', totalSeats: 30, certificateType: 'Participation' });
+      setFormData({ title: '', type: 'Hackathon', desc: '', img: '', date: '', location: '', prizes: '', totalSeats: 30, certificateType: 'Participation', price: 0 });
       setEditingId(null);
     }
     setIsFormOpen(true);
@@ -520,6 +522,20 @@ const EventsManager = () => {
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Base Price (₹) - Enter 0 for Free Event</label>
+                  <input 
+                    type="number" 
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
+                    min="0"
+                    required
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                  />
+                  <p className="text-xs text-zinc-500 mt-1">Silver members get 50% off. Platinum members attend for free.</p>
                 </div>
 
                 <button 

@@ -25,8 +25,6 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
   
   // Payment States
   const [transactionId, setTransactionId] = useState('');
-  const [screenshot, setScreenshot] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
 
   const isFoundingMember = profile?.isFoundingMember || false;
@@ -115,57 +113,24 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
     e.preventDefault();
     if (!selectedTier) return;
     
-    if (!isFoundingMember) {
-      if (!transactionId.trim()) {
+      if (!isFoundingMember && !transactionId.trim()) {
         setError("Please enter a valid Transaction ID.");
         return;
       }
-      if (!screenshot) {
-        setError("Please upload a screenshot of your payment.");
-        return;
-      }
-    }
 
-    setSubmitting(true);
-    setError('');
+      setSubmitting(true);
+      setError('');
 
-    try {
-      if (!user) throw new Error("No authenticated user.");
+      try {
+        if (!user) throw new Error("No authenticated user.");
 
-      let paymentScreenshotUrl = '';
-
-      if (!isFoundingMember && screenshot) {
-        const fileRef = ref(storage, `payment_screenshots/${user.uid}/${Date.now()}_${screenshot.name}`);
-        const metadata = { contentType: screenshot.type };
-        const uploadTask = uploadBytesResumable(fileRef, screenshot, metadata);
-
-        paymentScreenshotUrl = await new Promise<string>((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              setUploadProgress(progress);
-            },
-            (error) => {
-              console.error("Upload failed:", error);
-              reject(new Error("Failed to upload screenshot."));
-            },
-            async () => {
-              const url = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve(url);
-            }
-          );
-        });
-      }
-
-      // Add payment record
-      await addDoc(collection(db, 'payments'), {
+        // Add payment record
+        await addDoc(collection(db, 'payments'), {
         gateway: 'manual',
         userId: user.uid,
         amount: getFinalAmount(),
         requestedTier: selectedTier,
         transactionId: isFoundingMember ? 'FOUNDING_WAIVED' : transactionId.trim(),
-        paymentScreenshotUrl,
         couponUsed: appliedCoupon ? appliedCoupon.code : null,
         status: 'pending', // backward compatibility
         paymentStatus: 'pending',
@@ -184,17 +149,6 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (file.size > 5 * 1024 * 1024) {
-        setError("Screenshot must be less than 5MB");
-        return;
-      }
-      setScreenshot(file);
-      setError('');
-    }
-  };
 
   if (loading) return (
     <div className="py-20 flex justify-center">
@@ -435,37 +389,6 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
                         />
                      </div>
 
-                     <div>
-                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">Payment Screenshot</label>
-                        <label className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/10 hover:border-firefox-orange/50 rounded-xl cursor-pointer bg-black/50 transition-colors overflow-hidden group">
-                        {screenshot ? (
-                           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
-                              <ImageIcon className="text-firefox-orange mb-2" size={24} />
-                              <p className="text-xs text-zinc-300 truncate max-w-[200px] font-medium">{screenshot.name}</p>
-                              <p className="text-[10px] text-firefox-orange font-bold mt-1 uppercase tracking-wider">Click to change</p>
-                           </div>
-                        ) : (
-                           <div className="flex flex-col items-center justify-center">
-                              <UploadCloud className="text-zinc-500 mb-2 group-hover:text-firefox-orange transition-colors" size={24} />
-                              <p className="text-xs text-zinc-400 font-medium">Upload Screenshot</p>
-                              <p className="text-[10px] text-zinc-600 mt-1 uppercase tracking-wider">JPG, PNG (Max 5MB)</p>
-                           </div>
-                        )}
-                        <input 
-                           type="file" 
-                           className="hidden" 
-                           accept="image/*"
-                           onChange={handleFileChange}
-                        />
-                        </label>
-                     </div>
-
-                     {uploadProgress > 0 && uploadProgress < 100 && (
-                        <div className="w-full bg-black/50 rounded-full h-2 mt-2 border border-white/5 overflow-hidden">
-                        <div className="bg-firefox-orange h-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
-                        </div>
-                     )}
-
                      {error && (
                         <p className="text-red-400 text-sm text-center bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</p>
                      )}
@@ -485,8 +408,8 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
                            disabled={submitting}
                            className="flex-1 py-4 bg-firefox-orange hover:bg-orange-600 text-white rounded-xl font-display font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all shadow-[0_0_20px_rgba(255,106,0,0.3)] disabled:opacity-50 disabled:hover:shadow-none"
                         >
-                           {submitting ? <Loader2 size={18} className="animate-spin" /> : <UploadCloud size={18} />}
-                           {submitting ? (uploadProgress > 0 && uploadProgress < 100 ? 'Uploading...' : 'Submitting...') : 'Submit Verification'}
+                           {submitting ? <Loader2 size={18} className="animate-spin" /> : <Shield size={18} />}
+                           {submitting ? 'Submitting...' : 'Submit Verification'}
                         </button>
                      </div>
                   </form>

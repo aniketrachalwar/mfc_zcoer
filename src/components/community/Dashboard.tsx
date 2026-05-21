@@ -7,14 +7,22 @@ import ProfileForm from './ProfileForm';
 import ProfileCard from './ProfileCard';
 import DashboardOverview from './DashboardOverview';
 import { Settings, User as UserIcon, Layout, Share2, LogOut, ChevronRight, Sparkles, Shield, Clock, LayoutDashboard } from 'lucide-react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import MembershipApply from '../membership/MembershipApply';
 
 const Dashboard = () => {
   const { user, loading: authLoading, logout } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'visual' | 'membership'>('overview');
+
+  useEffect(() => {
+    if (location.hash === '#membership') setActiveTab('membership');
+    else if (location.hash === '#profile') setActiveTab('profile');
+    else if (location.hash === '#visual') setActiveTab('visual');
+    else setActiveTab('overview');
+  }, [location.hash]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -257,13 +265,7 @@ const Dashboard = () => {
                     initialData={profile} 
                     onSave={(data) => {
                       setProfile(data);
-                      const isDataAdminOrCore = data.role === 'admin' || data.role === 'president' || data.role === 'core_team';
-                      const dataHasAccess = isDataAdminOrCore || (data.membershipStatus !== 'public' && data.membershipStatus !== 'pending');
-                      if (!dataHasAccess) {
-                        setActiveTab('membership');
-                      } else {
-                        setActiveTab('overview');
-                      }
+                      setActiveTab('overview');
                     }} 
                    />
                  </motion.div>

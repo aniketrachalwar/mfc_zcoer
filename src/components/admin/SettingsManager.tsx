@@ -6,7 +6,7 @@ import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
 
 export default function SettingsManager() {
-  const [fee, setFee] = useState<number>(99);
+  const [fees, setFees] = useState({ silver: 99, platinum: 199 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { setSuccessMessage, setError } = useAuth();
@@ -17,7 +17,11 @@ export default function SettingsManager() {
         const docRef = doc(db, 'settings', 'membership');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setFee(docSnap.data().currentFee || 99);
+          const data = docSnap.data();
+          setFees({
+            silver: data.silverFee || 99,
+            platinum: data.platinumFee || 199
+          });
         }
       } catch (err) {
         console.error("Error fetching settings", err);
@@ -33,7 +37,8 @@ export default function SettingsManager() {
     setSaving(true);
     try {
       await setDoc(doc(db, 'settings', 'membership'), {
-        currentFee: Number(fee),
+        silverFee: Number(fees.silver),
+        platinumFee: Number(fees.platinum),
         updatedAt: new Date().toISOString()
       }, { merge: true });
       setSuccessMessage('Settings updated successfully!');
@@ -72,21 +77,35 @@ export default function SettingsManager() {
             Membership Configuration
           </h3>
           <form onSubmit={handleSave} className="space-y-6">
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">
-                Annual Membership Fee (₹)
-              </label>
-              <input 
-                type="number" 
-                min="0"
-                value={fee}
-                onChange={(e) => setFee(Number(e.target.value))}
-                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors text-white font-mono"
-              />
-              <p className="text-xs text-zinc-500 mt-2">
-                This fee applies to all new public users. Founding members bypass this fee.
-              </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">
+                  Silver Tier Fee (₹)
+                </label>
+                <input 
+                  type="number" 
+                  min="0"
+                  value={fees.silver}
+                  onChange={(e) => setFees(prev => ({...prev, silver: Number(e.target.value)}))}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors text-white font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">
+                  Platinum Tier Fee (₹)
+                </label>
+                <input 
+                  type="number" 
+                  min="0"
+                  value={fees.platinum}
+                  onChange={(e) => setFees(prev => ({...prev, platinum: Number(e.target.value)}))}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors text-white font-mono"
+                />
+              </div>
             </div>
+            <p className="text-xs text-zinc-500 mt-2">
+              These fees apply to users upgrading to Silver and Platinum. Founding members bypass these fees.
+            </p>
 
             <button
               type="submit"
