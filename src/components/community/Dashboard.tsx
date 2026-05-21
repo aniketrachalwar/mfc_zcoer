@@ -50,15 +50,20 @@ const Dashboard = () => {
                  streakCount = 0; // reset streak for next 7 days
              }
 
-             await updateDoc(docRef, {
-                 lastLoginStr: todayStr,
-                 streakCount: streakCount,
-                 points: points
-             });
-             
-             profileData.lastLoginStr = todayStr;
-             profileData.streakCount = streakCount;
-             profileData.points = points;
+             try {
+               await updateDoc(docRef, {
+                   lastLoginStr: todayStr,
+                   streakCount: streakCount,
+                   points: points
+               });
+               
+               profileData.lastLoginStr = todayStr;
+               profileData.streakCount = streakCount;
+               profileData.points = points;
+             } catch (updateErr) {
+               console.error("Failed to update streak:", updateErr);
+               // Even if update fails, we should still allow the user to see their dashboard
+             }
           }
 
           setProfile(profileData);
@@ -78,18 +83,17 @@ const Dashboard = () => {
   );
 
   const isAdminOrCore = profile?.role === 'admin' || profile?.role === 'president' || profile?.role === 'core_team';
-  const hasAccess = isAdminOrCore || (membershipStatus !== 'public' && membershipStatus !== 'pending');
+  const hasAccess = isProfileComplete; // All users are automatically Free members
+  const isPending = profile?.membershipStatus === 'pending';
 
   // Force tab state based on access
   useEffect(() => {
-    if (!loading && profile) {
-      if (!isProfileComplete) {
+    if (!loading) {
+      if (!profile || !isProfileComplete) {
         setActiveTab('profile');
-      } else if (!hasAccess && activeTab !== 'profile') {
-        setActiveTab('membership');
       }
     }
-  }, [loading, profile, hasAccess, isProfileComplete]);
+  }, [loading, profile, isProfileComplete]);
 
   if (authLoading) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -202,7 +206,7 @@ const Dashboard = () => {
               </div>
             </button>
 
-            {!hasAccess && isProfileComplete && (
+            {isProfileComplete && profile?.membershipTier === 'free' && (
               <button 
                 onClick={() => setActiveTab('membership')}
                 className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl border transition-all text-left ${
@@ -211,11 +215,11 @@ const Dashboard = () => {
                   : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10'
                 }`}
               >
-                <Sparkles size={20} />
+                <Sparkles size={20} className={activeTab === 'membership' ? 'text-white' : 'text-firefox-orange'} />
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black uppercase tracking-widest">Membership</span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${activeTab === 'membership' ? 'text-white' : 'text-firefox-orange'}`}>Upgrade Tier</span>
                   <span className="text-[9px] font-bold opacity-60 uppercase">
-                    {membershipStatus === 'pending' ? 'Under Review' : 'Join Ecosystem'}
+                    {isPending ? 'Under Review' : 'Unlock Premium'}
                   </span>
                 </div>
               </button>
@@ -270,7 +274,7 @@ const Dashboard = () => {
                    animate={{ opacity: 1, y: 0 }}
                    exit={{ opacity: 0, y: -20 }}
                  >
-                   {membershipStatus === 'pending' ? (
+                   {isPending ? (
                      <div className="text-center py-20">
                        <div className="w-24 h-24 bg-firefox-orange/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-firefox-orange/20">
                          <Clock className="text-firefox-orange animate-pulse" size={48} />

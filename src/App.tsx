@@ -9,6 +9,8 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 import Navbar from './components/Navbar';
 import Home from './components/Home';
 import Footer from './components/Footer';
+import ErrorBoundary from './components/ErrorBoundary';
+import NotFound from './components/NotFound';
 
 // Lazy loaded components
 const Projects = React.lazy(() => import('./components/Projects'));
@@ -36,9 +38,10 @@ const WebsiteConfigManager = React.lazy(() => import('./components/admin/Website
 const BlogsPage = React.lazy(() => import('./components/blogs/BlogsPage'));
 const BlogDetails = React.lazy(() => import('./components/blogs/BlogDetails'));
 const WriteBlog = React.lazy(() => import('./components/blogs/WriteBlog'));
+const CouponManager = React.lazy(() => import('./components/admin/CouponManager'));
 
-// Leaderboard will be lazy loaded once created, leaving a placeholder here for now
-const LeaderboardPage = React.lazy(() => import('./components/leaderboard/LeaderboardPage').catch(() => ({ default: () => <div className="pt-32 text-center">Leaderboard Coming Soon</div> })));
+// Leaderboard will be lazy loaded
+const LeaderboardPage = React.lazy(() => import('./components/leaderboard/LeaderboardPage'));
 
 const PageLoader = () => (
   <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -217,42 +220,48 @@ export default function App() {
         <ScrollHandler />
         <RouteTracker />
         <Layout scaleX={scaleX}>
-          <React.Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/community" element={<CommunityPage />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<MemberProfilePage />} />
-              <Route path="/profile/:username" element={<PublicProfile />} />
-              <Route path="/events" element={<EventsPage />} />
-              <Route path="/event/:id" element={<EventDetails />} />
-              <Route path="/verify" element={<VerifyProfile />} />
-              <Route path="/verify/:username" element={<VerifyProfile />} />
-              <Route path="/blogs" element={<BlogsPage />} />
-              <Route path="/blog/:id" element={<BlogDetails />} />
-              <Route path="/write-blog" element={<WriteBlog />} />
-              <Route path="/edit-blog/:id" element={<WriteBlog />} />
-              <Route path="/leaderboard" element={<LeaderboardPage />} />
-              
-              {/* Admin Routes */}
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="members" element={<MembersManager />} />
-                <Route path="contributions" element={<ContributionsManager />} />
-                <Route path="events" element={<EventsManager />} />
-                <Route path="projects" element={<ProjectsManager />} />
-                <Route path="merch" element={<MerchandiseManager />} />
-                <Route path="notifications" element={<NotificationsManager />} />
-                <Route path="team" element={<TeamManager />} />
-                <Route path="blogs" element={<BlogsManager />} />
-                <Route path="settings" element={<SettingsManager />} />
-                <Route path="dashboard-config" element={<DashboardConfigManager />} />
-                <Route path="website-config" element={<WebsiteConfigManager />} />
-                <Route path="applications" element={<ApplicationsManager />} />
-              </Route>
-            </Routes>
-          </React.Suspense>
+          <ErrorBoundary>
+            <React.Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/community" element={<CommunityPage />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<MemberProfilePage />} />
+                <Route path="/profile/:username" element={<PublicProfile />} />
+                <Route path="/events" element={<EventsPage />} />
+                <Route path="/event/:id" element={<EventDetails />} />
+                <Route path="/verify" element={<VerifyProfile />} />
+                <Route path="/verify/:username" element={<VerifyProfile />} />
+                <Route path="/blogs" element={<BlogsPage />} />
+                <Route path="/blog/:id" element={<BlogDetails />} />
+                <Route path="/write-blog" element={<WriteBlog />} />
+                <Route path="/edit-blog/:id" element={<WriteBlog />} />
+                <Route path="/leaderboard" element={<LeaderboardPage />} />
+                
+                {/* Admin Routes */}
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="members" element={<MembersManager />} />
+                  <Route path="contributions" element={<ContributionsManager />} />
+                  <Route path="events" element={<EventsManager />} />
+                  <Route path="projects" element={<ProjectsManager />} />
+                  <Route path="merch" element={<MerchandiseManager />} />
+                  <Route path="notifications" element={<NotificationsManager />} />
+                  <Route path="team" element={<TeamManager />} />
+                  <Route path="blogs" element={<BlogsManager />} />
+                  <Route path="settings" element={<SettingsManager />} />
+                  <Route path="dashboard-config" element={<DashboardConfigManager />} />
+                  <Route path="website-config" element={<WebsiteConfigManager />} />
+                  <Route path="applications" element={<ApplicationsManager />} />
+                  <Route path="coupons" element={<CouponManager />} />
+                </Route>
+
+                {/* 404 Catch All Route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </React.Suspense>
+          </ErrorBoundary>
         </Layout>
       </Router>
     </HelmetProvider>

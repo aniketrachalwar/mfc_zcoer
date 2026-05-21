@@ -111,6 +111,17 @@ const MembersManager = () => {
     }
   };
 
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const handleTierChange = async (userId: string, newTier: string) => {
+    try {
+      await updateDoc(doc(db, 'users', userId), { membershipTier: newTier });
+      setMembers(members.map(m => m.id === userId ? { ...m, membershipTier: newTier } : m));
+    } catch (error) {
+      console.error("Error updating tier:", error);
+    }
+  };
+
   const filteredMembers = members.filter(m => 
     (m.fullName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (m.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
@@ -134,65 +145,85 @@ const MembersManager = () => {
             placeholder="Search members..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors"
+            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-[16px] text-white focus:outline-none focus:border-firefox-orange transition-colors"
           />
         </div>
       </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-white/10 text-xs font-black uppercase tracking-wider text-zinc-500">
-                <th className="p-4">Member</th>
-                <th className="p-4">Role</th>
-                <th className="p-4">Points</th>
-                <th className="p-4">Membership</th>
-                <th className="p-4 text-center">Founding</th>
-                <th className="p-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={4} className="p-8 text-center text-zinc-500">
-                    <div className="inline-block w-6 h-6 border-2 border-firefox-orange border-t-transparent rounded-full animate-spin" />
-                  </td>
-                </tr>
-              ) : filteredMembers.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="p-8 text-center text-zinc-500">No members found.</td>
-                </tr>
-              ) : (
-                filteredMembers.map((member) => (
-                  <motion.tr 
-                    key={member.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="border-b border-white/5 hover:bg-white/5 transition-colors group"
-                  >
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-zinc-800 overflow-hidden border border-white/10">
-                          {member.photoURL ? (
-                            <img loading="lazy" src={member.photoURL} alt={member.fullName} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-zinc-500 font-bold uppercase">
-                              {member.fullName?.charAt(0) || '?'}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-white">{member.fullName || 'Unknown'}</p>
-                          <p className="text-xs text-zinc-500">{member.email}</p>
-                        </div>
+      <div className="space-y-4">
+        {loading ? (
+          <div className="p-8 text-center text-zinc-500">
+            <div className="inline-block w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : filteredMembers.length === 0 ? (
+          <div className="p-8 text-center bg-white/5 border border-white/10 rounded-2xl text-zinc-500">
+            No members found.
+          </div>
+        ) : (
+          filteredMembers.map((member) => (
+            <motion.div 
+              key={member.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`bg-zinc-900 border rounded-2xl overflow-hidden transition-all ${
+                expandedId === member.id ? 'border-firefox-orange/50 shadow-[0_0_20px_rgba(255,106,0,0.1)]' : 'border-white/10 hover:border-white/20'
+              }`}
+            >
+              {/* Card Header (Always Visible) */}
+              <div 
+                className="p-4 md:p-6 cursor-pointer flex items-center justify-between gap-4"
+                onClick={() => setExpandedId(expandedId === member.id ? null : member.id)}
+              >
+                <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                  <div className="w-12 h-12 rounded-full bg-zinc-800 overflow-hidden border border-white/10 shrink-0">
+                    {member.photoURL ? (
+                      <img loading="lazy" src={member.photoURL} alt={member.fullName} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-zinc-500 font-bold uppercase">
+                        {member.fullName?.charAt(0) || '?'}
                       </div>
-                    </td>
-                    <td className="p-4">
+                    )}
+                  </div>
+                  <div className="truncate">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-bold text-white truncate text-sm md:text-base">{member.fullName || 'Unknown'}</h3>
+                      {member.isFoundingMember && (
+                        <span className="px-2 py-0.5 bg-yellow-500/10 text-yellow-500 text-[9px] font-black uppercase tracking-widest rounded-full border border-yellow-500/20 shrink-0">
+                          Founding
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-zinc-500 truncate">{member.email}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className={`hidden md:flex items-center gap-2 px-3 py-1 rounded-lg border text-xs font-bold uppercase tracking-widest ${
+                    member.membershipStatus === 'active' ? 'border-green-500/30 text-green-400 bg-green-500/10' : 
+                    member.membershipStatus === 'pending' ? 'border-yellow-500/30 text-yellow-400 bg-yellow-500/10' : 
+                    'border-zinc-500/30 text-zinc-400 bg-zinc-500/10'
+                  }`}>
+                    {member.membershipStatus || 'public'}
+                  </div>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform ${expandedId === member.id ? 'rotate-180 bg-white/10' : 'bg-white/5'}`}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-zinc-400">
+                      <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Body (Expanded Content) */}
+              {expandedId === member.id && (
+                <div className="px-4 pb-4 md:px-6 md:pb-6 border-t border-white/5 pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    {/* Role */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Role</label>
                       <select 
                         value={member.role || 'member'}
                         onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                        className="bg-zinc-900 border border-white/10 rounded-lg px-3 py-1 text-[16px] text-white focus:outline-none focus:border-firefox-orange"
+                        className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange"
                       >
                         <option value="member">Member</option>
                         <option value="volunteer">Volunteer</option>
@@ -200,28 +231,15 @@ const MembersManager = () => {
                         <option value="president">President</option>
                         <option value="admin">Admin</option>
                       </select>
-                    </td>
-                    <td className="p-4">
-                      <button 
-                        onClick={() => handlePointsChange(member.id, member.points || 0)}
-                        className="bg-zinc-900 border border-white/10 rounded-lg px-3 py-1 text-xs text-white hover:border-firefox-orange flex items-center gap-2 group/btn"
-                        title="Edit Points"
-                      >
-                        {member.points || 0} pts
-                        <Edit2 size={12} className="text-zinc-500 group-hover/btn:text-firefox-orange" />
-                      </button>
-                    </td>
-                    <td className="p-4">
+                    </div>
+
+                    {/* Status */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Status</label>
                       <select 
                         value={member.membershipStatus || 'public'}
                         onChange={(e) => handleStatusChange(member.id, e.target.value)}
-                        className={`bg-zinc-900 border rounded-lg px-3 py-1 text-[16px] focus:outline-none focus:border-firefox-orange ${
-                          member.membershipStatus === 'active' ? 'border-green-500/50 text-green-400' : 
-                          member.membershipStatus === 'pending' ? 'border-yellow-500/50 text-yellow-400' : 
-                          member.membershipStatus === 'suspended' ? 'border-red-500/50 text-red-400' :
-                          member.membershipStatus === 'alumni' ? 'border-purple-500/50 text-purple-400' :
-                          'border-zinc-500/50 text-zinc-400'
-                        }`}
+                        className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange"
                       >
                         <option value="public">Public</option>
                         <option value="pending">Pending</option>
@@ -229,48 +247,78 @@ const MembersManager = () => {
                         <option value="suspended">Suspended</option>
                         <option value="alumni">Alumni</option>
                       </select>
-                    </td>
-                    <td className="p-4 text-center">
-                      <label className="relative inline-flex items-center cursor-pointer justify-center">
+                    </div>
+
+                    {/* Tier */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Tier</label>
+                      <select 
+                        value={member.membershipTier || 'free'}
+                        onChange={(e) => handleTierChange(member.id, e.target.value)}
+                        className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange"
+                      >
+                        <option value="free">Free</option>
+                        <option value="silver">Silver</option>
+                        <option value="platinum">Platinum</option>
+                      </select>
+                    </div>
+
+                    {/* Points & Founding */}
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 block mb-2">Points</label>
+                        <button 
+                          onClick={() => handlePointsChange(member.id, member.points || 0)}
+                          className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white hover:border-firefox-orange flex items-center justify-between group"
+                        >
+                          <span>{member.points || 0} pts</span>
+                          <Edit2 size={14} className="text-zinc-500 group-hover:text-firefox-orange" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/5">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <div className="relative">
                         <input 
                           type="checkbox" 
                           className="sr-only peer"
                           checked={member.isFoundingMember || false}
                           onChange={(e) => handleFoundingChange(member.id, e.target.checked)}
                         />
-                        <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
-                      </label>
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={() => handleEditProfile(member.id, member.fullName || '')}
-                          className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                          title="Edit Profile"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteMember(member.id)}
-                          className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors"
-                          title="Remove Member"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="w-10 h-6 bg-white/10 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500 border border-white/5"></div>
                       </div>
-                    </td>
-                  </motion.tr>
-                ))
+                      <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Founding Member</span>
+                    </label>
+
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => handleEditProfile(member.id, member.fullName || '')}
+                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-zinc-300 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors"
+                      >
+                        <Edit2 size={14} /> Rename
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteMember(member.id)}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors"
+                      >
+                        <Trash2 size={14} /> Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
               )}
-            </tbody>
-          </table>
-        </div>
-        
+            </motion.div>
+          ))
+        )}
+
         {hasMore && !searchTerm && (
-          <div className="p-4 border-t border-white/10 text-center bg-zinc-900/50">
+          <div className="text-center pt-8">
             <button 
               onClick={() => fetchMembers(true)}
-              className="px-6 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-full text-xs font-bold uppercase tracking-widest transition-colors"
+              className="px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-full text-xs font-bold uppercase tracking-widest transition-colors"
             >
               Load More
             </button>

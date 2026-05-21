@@ -22,8 +22,8 @@ const Team = () => {
           getDocs(collection(db, 'team'))
         ]);
         
-        const usersList = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        const teamList = teamSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const usersList = usersSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+        const teamList = teamSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
         
         const newCohorts: Record<string, any[]> = { '25-26': [], '26-27': [], '27-28': [] };
         

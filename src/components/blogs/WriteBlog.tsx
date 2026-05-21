@@ -1,6 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { motion } from 'motion/react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext';
 import { db } from '../../lib/firebase';
 import { collection, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';

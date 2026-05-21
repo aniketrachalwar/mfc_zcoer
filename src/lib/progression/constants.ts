@@ -2,9 +2,9 @@
  * Badge Definitions and Progression Constants
  */
 
-import { Badge, MemberLevel as MemberLevelType, ContributionAction } from './types';
+import { Badge, MemberLevelConfig, ContributionAction, MemberLevel } from './types';
 
-export const MEMBER_LEVELS: Record<string, MemberLevelType> = {
+export const MEMBER_LEVELS: Record<MemberLevel, MemberLevelConfig> = {
   curious: {
     id: 'curious',
     name: 'Curious',

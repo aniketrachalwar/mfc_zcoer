@@ -5,6 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { ArrowLeft, Clock, Edit3 } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
+import AdSenseBlock from '../AdSenseBlock';
 import { Blog } from '../../types/blog';
 import { Helmet } from 'react-helmet-async';
 
@@ -123,9 +124,7 @@ const BlogDetails = () => {
             </div>
 
             {/* AdSense Placeholder: Top Banner */}
-            <aside id="adsense-top-banner" className="w-full min-h-[90px] mb-10 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-zinc-600 text-xs uppercase tracking-widest font-black">
-              Advertisement
-            </aside>
+            <AdSenseBlock adSlot="blog_details_top" className="mb-12" />
 
             <p className="text-xl text-zinc-300 font-medium leading-relaxed mb-10">{blog.excerpt}</p>
 
@@ -134,9 +133,7 @@ const BlogDetails = () => {
             </div>
 
             {/* AdSense Placeholder: Bottom Banner */}
-            <aside id="adsense-bottom-banner" className="w-full min-h-[250px] mt-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-zinc-600 text-xs uppercase tracking-widest font-black">
-              Advertisement
-            </aside>
+            <AdSenseBlock adSlot="blog_details_bottom" className="mt-16" />
           </motion.div>
         </div>
       </article>

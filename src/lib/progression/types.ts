@@ -107,7 +107,7 @@ export interface Contribution {
   };
 }
 
-export interface MemberLevel {
+export interface MemberLevelConfig {
   id: MemberLevel;
   name: string;
   minPoints: number;

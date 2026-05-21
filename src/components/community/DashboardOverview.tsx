@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, ArrowRight, Target, Calendar, Rocket, Bell } from 'lucide-react';
+import { Sparkles, ArrowRight, Target, Calendar, Rocket, Bell, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -88,10 +88,20 @@ export default function DashboardOverview({ profile }: { profile: any }) {
                 <span className="text-sm font-medium text-zinc-300">Explore Projects</span>
                 <ArrowRight size={14} className="text-zinc-500" />
               </Link>
-              <Link to="/write-blog" className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
-                <span className="text-sm font-medium text-zinc-300">Write an Insight</span>
-                <ArrowRight size={14} className="text-zinc-500" />
-              </Link>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 opacity-60 cursor-not-allowed">
+                <span className="text-sm font-medium text-zinc-300">Premium Resources</span>
+                <div className="flex items-center gap-2">
+                   <span className="text-[8px] font-black uppercase tracking-widest text-firefox-orange">Silver+</span>
+                   <Shield size={14} className="text-zinc-500" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 opacity-60 cursor-not-allowed">
+                <span className="text-sm font-medium text-zinc-300">Project Incubation</span>
+                <div className="flex items-center gap-2">
+                   <span className="text-[8px] font-black uppercase tracking-widest text-yellow-500">Platinum</span>
+                   <Shield size={14} className="text-zinc-500" />
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -130,11 +140,22 @@ export default function DashboardOverview({ profile }: { profile: any }) {
             </h2>
             <p className="text-zinc-400 font-medium">Your hub for community access, resources, and events.</p>
           </div>
-          <div className="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/5">
-            <Sparkles className="text-yellow-500" size={24} />
-            <div>
-              <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Total Points</p>
-              <p className="text-2xl font-display font-black text-white">{profile?.points || 0}</p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/5">
+              <Shield className="text-firefox-orange" size={24} />
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Current Tier</p>
+                <p className={`text-2xl font-display font-black capitalize ${profile?.membershipTier === 'platinum' ? 'text-yellow-500' : profile?.membershipTier === 'silver' ? 'text-zinc-300' : 'text-white'}`}>
+                  {profile?.membershipTier || 'Free'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/5">
+              <Sparkles className="text-yellow-500" size={24} />
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Total Points</p>
+                <p className="text-2xl font-display font-black text-white">{profile?.points || 0}</p>
+              </div>
             </div>
           </div>
         </div>

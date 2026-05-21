@@ -58,6 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: profileSnap.id, 
             membershipStatus: data.membershipStatus || 'public',
             isFoundingMember: data.isFoundingMember || false,
+            membershipTier: data.membershipTier || 'free',
+            subscriptionStart: data.subscriptionStart || null,
+            subscriptionEnd: data.subscriptionEnd || null,
+            paymentStatus: data.paymentStatus || 'none',
             ...data 
           });
         } else {

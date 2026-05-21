@@ -85,13 +85,31 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
       }, 
       async () => {
         try {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          // Add a small delay and retry logic for getDownloadURL
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          let downloadURL = '';
+          let lastError;
+          
+          for (let i = 0; i < 3; i++) {
+            try {
+              downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+              break;
+            } catch (err) {
+              lastError = err;
+              if (i < 2) await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
+          
+          if (!downloadURL) throw lastError;
+
           setFormData(prev => ({ ...prev, photoURL: downloadURL }));
         } catch (downloadError) {
           console.error("Failed to get download URL:", downloadError);
           alert("Image uploaded but failed to get link. Please try again.");
         } finally {
           setUploadingImage(false);
+          setUploadProgress(100);
+          setTimeout(() => setUploadProgress(0), 1000);
         }
       }
     );

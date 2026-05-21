@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X, Rocket, Zap, Users, Code, Info, LogOut, ChevronDown, ChevronRight, LayoutDashboard, User as UserIcon, ScanLine } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthModal from './AuthModal';
@@ -20,6 +20,20 @@ const Navbar = () => {
       navigate('/dashboard');
     } else {
       setIsAuthModalOpen(true);
+    }
+  };
+
+  const handleNavClick = (e: React.MouseEvent, link: any) => {
+    setIsOpen(false);
+    if (link.type === 'anchor' && location.pathname === '/') {
+      e.preventDefault();
+      const id = link.href.replace('/#', '');
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+        window.history.pushState(null, '', link.href);
+        setActiveHash(`#${id}`);
+      }
     }
   };
 
@@ -119,7 +133,7 @@ const Navbar = () => {
           {navLinks.map((link) => {
             const isAnchorActive = link.type === 'anchor' && activeHash === link.href.replace('/', '');
             const isLinkActive = link.type === 'link' && location.pathname === link.href;
-            const isActive = isAnchorActive || isLinkActive;
+            const isActive = isAnchorActive || (link.name === 'Home' ? isLinkActive && !activeHash && location.pathname === '/' : isLinkActive);
 
             const content = (
               <>
@@ -144,6 +158,7 @@ const Navbar = () => {
               <motion.div key={link.name} whileHover={{ y: -2 }}>
                 <Link
                   to={link.href}
+                  onClick={(e) => handleNavClick(e, link)}
                   className={`relative px-6 py-3 text-[11px] font-display font-black uppercase tracking-[0.2em] transition-all duration-300 ${isActive ? 'text-[#FF5C00]' : 'text-zinc-400 hover:text-white hover:drop-shadow-[0_0_10px_rgba(255,106,0,0.3)]'}`}
                 >
                   {content}
@@ -265,9 +280,7 @@ const Navbar = () => {
                 {navLinks.map((link, i) => {
                   const isAnchorActive = link.type === 'anchor' && activeHash === link.href.replace('/', '');
                   const isLinkActive = link.type === 'link' && location.pathname === link.href;
-                  const isActive = isAnchorActive || isLinkActive;
-
-
+                  const isActive = isAnchorActive || (link.name === 'Home' ? isLinkActive && !activeHash && location.pathname === '/' : isLinkActive);
 
                   return (
                     <motion.div
@@ -278,7 +291,7 @@ const Navbar = () => {
                     >
                       <Link
                         to={link.href}
-                        onClick={() => setIsOpen(false)}
+                        onClick={(e) => handleNavClick(e, link)}
                         className={`text-2xl sm:text-3xl leading-tight font-display font-black uppercase tracking-tight transition-colors flex items-center justify-between gap-4 group break-words min-h-[44px] ${isActive ? 'text-[#FF5C00]' : 'text-white hover:text-[#FF5C00]'}`}
                       >
                         {link.name}

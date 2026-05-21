@@ -123,19 +123,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isPublic = false }) 
               <div className="w-full h-full rounded-full border-2 border-white/20 p-1 relative z-10 overflow-hidden">
                 <img loading="lazy" 
                   crossOrigin="anonymous"
-                  src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`} 
-                  alt={profile.fullName}
-                  className="w-full h-full rounded-full object-cover" 
+                  src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username || 'unknown'}`} 
+                  alt={profile.fullName || 'Unknown User'}
+                  className="w-full h-full rounded-full object-cover aspect-square" 
                 />
               </div>
             </div>
 
             <div className="text-center mb-6">
-              <h3 className="text-2xl font-display font-black uppercase text-white tracking-tight mb-1">
-                {profile.fullName}
+              <h3 className="text-2xl font-display font-black uppercase text-white tracking-tight mb-1 line-clamp-1">
+                {profile.fullName || 'Unknown User'}
               </h3>
-              <p className="text-firefox-orange/80 text-[10px] font-black uppercase tracking-[0.3em]">
-                @{profile.username}
+              <p className="text-firefox-orange/80 text-[10px] font-black uppercase tracking-[0.3em] line-clamp-1">
+                @{profile.username || 'unknown'}
               </p>
               <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-firefox-orange/10 border border-firefox-orange/20 rounded-full">

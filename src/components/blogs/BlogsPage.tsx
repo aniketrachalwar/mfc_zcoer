@@ -7,6 +7,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Blog } from '../../types/blog';
 import { useAuth } from '../../lib/AuthContext';
 import { Helmet } from 'react-helmet-async';
+import AdSenseBlock from '../AdSenseBlock';
 
 const BlogsPage = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -71,9 +72,7 @@ const BlogsPage = () => {
           </header>
 
           {/* AdSense Placeholder: Top Banner */}
-          <aside id="adsense-blogs-top" className="w-full min-h-[90px] mb-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-zinc-600 text-xs uppercase tracking-widest font-black">
-            Advertisement
-          </aside>
+          <AdSenseBlock adSlot="blogs_top_banner" className="mb-12" />
 
           {/* Category Filter */}
           {!loading && blogs.length > 0 && (
@@ -170,11 +169,7 @@ const BlogsPage = () => {
               )}
 
               {/* AdSense Placeholder: Middle Feed */}
-              {otherBlogs.length > 0 && (
-                <aside id="adsense-blogs-middle" className="w-full min-h-[90px] bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-zinc-600 text-xs uppercase tracking-widest font-black my-12">
-                  Advertisement
-                </aside>
-              )}
+              <AdSenseBlock adSlot="blogs_middle_feed" className="my-8" />
 
               {/* Other Blogs */}
               {otherBlogs.length > 0 && (
@@ -233,11 +228,7 @@ const BlogsPage = () => {
           )}
 
           {/* AdSense Placeholder: Bottom Banner */}
-          {!loading && filteredBlogs.length > 0 && (
-            <aside id="adsense-blogs-bottom" className="w-full min-h-[90px] mt-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-zinc-600 text-xs uppercase tracking-widest font-black">
-              Advertisement
-            </aside>
-          )}
+          <AdSenseBlock adSlot="blogs_bottom_banner" className="mt-12" />
         </div>
       </main>
     </>

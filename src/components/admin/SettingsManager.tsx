@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Settings as SettingsIcon, Save, Loader2, Sparkles } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';

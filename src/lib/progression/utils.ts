@@ -8,7 +8,7 @@ import { MEMBER_LEVELS, BADGES, POINTS_FOR_ACTION } from './constants';
 /**
  * Calculate member level based on total points
  */
-export function calculateMemberLevel(totalPoints: number): keyof typeof MEMBER_LEVELS {
+export function calculateMemberLevel(totalPoints: number): import('./types').MemberLevel {
   if (totalPoints >= 1000) return 'legend';
   if (totalPoints >= 600) return 'core_member';
   if (totalPoints >= 300) return 'builder';

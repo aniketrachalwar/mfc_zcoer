@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { collection, query, where, getDocs, limit, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import ProfileCard from './ProfileCard';
+import AdSenseBlock from '../AdSenseBlock';
 import { Share2, ArrowLeft, Loader2, Twitter, Linkedin, MessageCircle, Send, Instagram, Facebook, Github, ExternalLink, Calendar, CheckCircle2, Award } from 'lucide-react';
 import { 
   TwitterShareButton, 
@@ -246,11 +247,7 @@ const PublicProfile = () => {
         </div>
 
         {/* AdSense Placeholder */}
-        <div className="w-full max-w-4xl mx-auto h-24 bg-white/5 border border-white/10 rounded-xl mt-16 flex items-center justify-center relative overflow-hidden group">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50" />
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 relative z-10 group-hover:text-firefox-orange transition-colors">Advertisement</span>
-          <div id="adsense-public-profile" className="absolute inset-0"></div>
-        </div>
+        <AdSenseBlock adSlot="public_profile_bottom" className="mt-16" />
       </div>
     </div>
   );

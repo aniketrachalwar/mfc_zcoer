@@ -1,27 +1,32 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Shield, Sparkles, CheckCircle2, ChevronRight, Rocket, Zap, BookOpen, Clock, Loader2, ArrowRight, UploadCloud, Image as ImageIcon, CreditCard } from 'lucide-react';
-import { doc, getDoc, updateDoc, addDoc, collection } from 'firebase/firestore';
+import { Shield, Sparkles, CheckCircle2, Crown, Rocket, Zap, BookOpen, Loader2, ArrowRight, UploadCloud, Image as ImageIcon, Ticket } from 'lucide-react';
+import { doc, getDoc, addDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
-import useRazorpay from 'react-razorpay';
+import { MembershipTier } from '../../types/membership';
 
 export default function MembershipApply({ profile, onComplete }: { profile: any, onComplete: () => void }) {
   const { user } = useAuth();
-  const [Razorpay] = useRazorpay();
   
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [fee, setFee] = useState<number | null>(null);
+  const [fees, setFees] = useState({ silver: 99, platinum: 199 });
+  
+  const [step, setStep] = useState(1);
+  const [selectedTier, setSelectedTier] = useState<MembershipTier | null>(null);
+  
+  // Coupon States
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponError, setCouponError] = useState('');
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
   
   // Payment States
-  const [paymentMode, setPaymentMode] = useState<'razorpay' | 'manual'>('razorpay');
   const [transactionId, setTransactionId] = useState('');
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  
-  const [step, setStep] = useState(1);
   const [error, setError] = useState('');
 
   const isFoundingMember = profile?.isFoundingMember || false;
@@ -31,13 +36,14 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
       try {
         const settingsSnap = await getDoc(doc(db, 'settings', 'membership'));
         if (settingsSnap.exists()) {
-          setFee(settingsSnap.data().currentFee || 99);
-        } else {
-          setFee(99); // Fallback
+          const data = settingsSnap.data();
+          setFees({
+            silver: data.silverFee || 99,
+            platinum: data.platinumFee || 199
+          });
         }
       } catch (err) {
         console.error("Error fetching settings:", err);
-        setFee(99);
       } finally {
         setLoading(false);
       }
@@ -45,85 +51,70 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
     fetchSettings();
   }, []);
 
-  const handleRazorpayPayment = useCallback(async () => {
-    if (!user) return;
-    setSubmitting(true);
-    setError('');
+  const getFinalAmount = () => {
+    if (isFoundingMember) return 0;
+    if (!selectedTier) return 0;
+    let baseAmount = selectedTier === 'platinum' ? fees.platinum : fees.silver;
+    
+    if (appliedCoupon) {
+      if (appliedCoupon.type === 'percentage') {
+        baseAmount = baseAmount - (baseAmount * (appliedCoupon.value / 100));
+      } else {
+        baseAmount = Math.max(0, baseAmount - appliedCoupon.value);
+      }
+    }
+    return Math.floor(baseAmount);
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim() || !selectedTier) return;
+    setValidatingCoupon(true);
+    setCouponError('');
+    setAppliedCoupon(null);
 
     try {
-      // 1. Create Order on Backend
-      const orderResponse = await fetch('/api/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.uid })
-      });
+      const q = query(
+        collection(db, 'coupons'), 
+        where('code', '==', couponCode.toUpperCase().trim()),
+        where('isActive', '==', true)
+      );
+      const snap = await getDocs(q);
       
-      const orderData = await orderResponse.json();
-      if (!orderResponse.ok) throw new Error(orderData.error || 'Failed to create order');
+      if (snap.empty) {
+        setCouponError('Invalid or expired coupon.');
+        return;
+      }
 
-      // 2. Open Razorpay Checkout
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || '', // Frontend public key fallback
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: "MFC ZCOER",
-        description: "Premium Ecosystem Membership",
-        image: "https://upload.wikimedia.org/wikipedia/commons/d/d2/Mozilla_logo.svg", // Replace with actual logo URL
-        order_id: orderData.id,
-        handler: async (response: any) => {
-          try {
-            // 3. Verify Payment Signature on Backend
-            const verifyRes = await fetch('/api/verify-payment', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                userId: user.uid,
-                userEmail: user.email,
-                userName: profile.fullName || user.displayName
-              })
-            });
-            
-            const verifyData = await verifyRes.json();
-            if (!verifyRes.ok) throw new Error(verifyData.error || 'Verification failed');
-
-            // Success! The backend has updated the DB.
-            onComplete();
-          } catch (err: any) {
-            console.error('Verification Error:', err);
-            setError(err.message || "Payment verification failed. If money was deducted, it will be refunded.");
-          } finally {
-            setSubmitting(false);
-          }
-        },
-        prefill: {
-          name: profile?.fullName || user.displayName || "",
-          email: user.email || "",
-        },
-        theme: {
-          color: "#ff6a00", // firefox-orange
-        },
-      };
-
-      const rzpay = new Razorpay(options);
+      const coupon = snap.docs[0].data();
       
-      rzpay.on('payment.failed', function (response: any){
-         setError(`Payment Failed: ${response.error.description}`);
-         setSubmitting(false);
-      });
+      if (coupon.usageLimit > 0 && coupon.usageCount >= coupon.usageLimit) {
+        setCouponError('Coupon usage limit reached.');
+        return;
+      }
+      
+      if (coupon.expiryDate && new Date(coupon.expiryDate).getTime() < Date.now()) {
+        setCouponError('Coupon has expired.');
+        return;
+      }
 
-      rzpay.open();
-    } catch (err: any) {
+      if (!coupon.tierRestrictions.includes(selectedTier)) {
+        setCouponError(`This coupon is not valid for ${selectedTier} tier.`);
+        return;
+      }
+
+      setAppliedCoupon({ id: snap.docs[0].id, ...coupon });
+    } catch (err) {
       console.error(err);
-      setError(err.message || "Failed to initiate payment gateway.");
-      setSubmitting(false);
+      setCouponError('Error validating coupon.');
+    } finally {
+      setValidatingCoupon(false);
     }
-  }, [Razorpay, user, profile, onComplete]);
+  };
 
   const handleManualApply = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedTier) return;
+    
     if (!isFoundingMember) {
       if (!transactionId.trim()) {
         setError("Please enter a valid Transaction ID.");
@@ -167,23 +158,23 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
         });
       }
 
+      // Add payment record
       await addDoc(collection(db, 'payments'), {
         gateway: 'manual',
         userId: user.uid,
-        amount: isFoundingMember ? 0 : fee,
+        amount: getFinalAmount(),
+        requestedTier: selectedTier,
         transactionId: isFoundingMember ? 'FOUNDING_WAIVED' : transactionId.trim(),
         paymentScreenshotUrl,
-        status: 'pending',
+        couponUsed: appliedCoupon ? appliedCoupon.code : null,
+        status: 'pending', // backward compatibility
         paymentStatus: 'pending',
         timestamp: new Date().toISOString(),
         userEmail: user.email,
         userName: profile.fullName || user.displayName,
       });
 
-      await updateDoc(doc(db, 'users', user.uid), {
-        membershipStatus: 'pending'
-      });
-
+      // We do NOT update membershipTier yet, wait for admin approval
       onComplete();
     } catch (err: any) {
       console.error(err);
@@ -205,13 +196,6 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
     }
   };
 
-  const benefits = [
-    { icon: Sparkles, title: 'Official Identity', desc: 'Get your verified MFC ZCOER member card and profile badge.' },
-    { icon: BookOpen, title: 'Exclusive Resources', desc: 'Access premium workshops, roadmaps, and codebase repositories.' },
-    { icon: Zap, title: 'Project Incubation', desc: 'Build and launch products with the core team and get mentored.' },
-    { icon: Shield, title: 'Leadership Roles', desc: 'Eligibility to run for core team positions and lead domains.' }
-  ];
-
   if (loading) return (
     <div className="py-20 flex justify-center">
       <div className="w-10 h-10 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
@@ -221,7 +205,7 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
   return (
     <div className="max-w-4xl mx-auto py-8">
       <AnimatePresence mode="wait">
-        {step === 1 ? (
+        {step === 1 && (
           <motion.div
             key="benefits"
             initial={{ opacity: 0, y: 20 }}
@@ -234,25 +218,11 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
                 <Rocket size={14} /> Ecosystem Access
               </div>
               <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tight text-white mb-4">
-                Unlock The <span className="text-firefox-orange">Full Potential</span>
+                Unlock The <span className="text-firefox-orange">Premium Portal</span>
               </h2>
               <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-                MFC ZCOER is more than a club; it's a student startup ecosystem. Official membership gives you the tools, network, and platform to build your future.
+                Your Free Tier gives you basic access. Upgrade to Silver or Platinum to unlock the full builder network, premium resources, and exclusive events.
               </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              {benefits.map((b, i) => (
-                <div key={i} className="p-6 bg-white/5 border border-white/10 rounded-2xl flex items-start gap-4 hover:border-firefox-orange/30 transition-colors">
-                  <div className="w-12 h-12 rounded-xl bg-firefox-orange/10 text-firefox-orange flex items-center justify-center shrink-0">
-                    <b.icon size={24} />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-lg mb-1">{b.title}</h3>
-                    <p className="text-zinc-400 text-sm">{b.desc}</p>
-                  </div>
-                </div>
-              ))}
             </div>
 
             <div className="flex justify-center">
@@ -260,11 +230,104 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
                 onClick={() => setStep(2)}
                 className="px-8 py-4 bg-firefox-orange hover:bg-orange-600 text-white rounded-full font-display font-black uppercase tracking-widest text-sm flex items-center gap-3 transition-all shadow-[0_0_20px_rgba(255,106,0,0.3)] hover:shadow-[0_0_30px_rgba(255,106,0,0.5)]"
               >
-                Join the Ecosystem <ArrowRight size={18} />
+                View Upgrade Plans <ArrowRight size={18} />
               </button>
             </div>
           </motion.div>
-        ) : (
+        )}
+
+        {step === 2 && (
+          <motion.div
+            key="tiers"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="max-w-3xl mx-auto"
+          >
+            <div className="text-center mb-10">
+              <h3 className="text-3xl font-display font-black uppercase text-white mb-2">Select Your Tier</h3>
+              <p className="text-zinc-400">Choose the membership that best fits your goals.</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Silver Tier */}
+              <div 
+                onClick={() => setSelectedTier('silver')}
+                className={`relative bg-zinc-900 border-2 rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:-translate-y-2 ${selectedTier === 'silver' ? 'border-zinc-400 shadow-[0_0_30px_rgba(161,161,170,0.2)]' : 'border-white/5 hover:border-white/20'}`}
+              >
+                {selectedTier === 'silver' && (
+                  <div className="absolute -top-3 -right-3 w-8 h-8 bg-zinc-400 rounded-full flex items-center justify-center text-zinc-900 shadow-lg">
+                    <CheckCircle2 size={18} className="fill-current" />
+                  </div>
+                )}
+                <div className="mb-6">
+                  <Shield size={32} className="text-zinc-400 mb-4" />
+                  <h4 className="text-2xl font-display font-black uppercase text-white mb-1">Silver</h4>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black text-zinc-400">₹{fees.silver}</span>
+                    <span className="text-zinc-500 text-sm font-bold uppercase">/year</span>
+                  </div>
+                </div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Official Member ID Card</li>
+                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Access to Member Directory</li>
+                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Standard Event Discounts</li>
+                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Access to Roadmaps & Resources</li>
+                </ul>
+              </div>
+
+              {/* Platinum Tier */}
+              <div 
+                onClick={() => setSelectedTier('platinum')}
+                className={`relative bg-zinc-900 border-2 rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:-translate-y-2 ${selectedTier === 'platinum' ? 'border-[#FF5C00] shadow-[0_0_30px_rgba(255,92,0,0.3)]' : 'border-white/5 hover:border-firefox-orange/50'}`}
+              >
+                <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#FF5C00] to-[#FFBD00]" />
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-[#FF5C00] to-[#FFBD00] text-black text-[9px] font-black uppercase tracking-widest rounded-full">
+                  Recommended
+                </div>
+                {selectedTier === 'platinum' && (
+                  <div className="absolute -top-3 -right-3 w-8 h-8 bg-[#FF5C00] rounded-full flex items-center justify-center text-white shadow-lg">
+                    <CheckCircle2 size={18} className="fill-current" />
+                  </div>
+                )}
+                
+                <div className="mb-6 mt-2">
+                  <Crown size={32} className="text-[#FFBD00] mb-4" />
+                  <h4 className="text-2xl font-display font-black uppercase text-white mb-1">Platinum</h4>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FF5C00] to-[#FFBD00]">₹{fees.platinum}</span>
+                    <span className="text-zinc-500 text-sm font-bold uppercase">/year</span>
+                  </div>
+                </div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-[#FF5C00] shrink-0 mt-0.5" /> Everything in Silver</li>
+                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-[#FF5C00] shrink-0 mt-0.5" /> Free Access to Premium Events</li>
+                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-[#FF5C00] shrink-0 mt-0.5" /> Eligible for Core Team/Leadership</li>
+                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-[#FF5C00] shrink-0 mt-0.5" /> Project Incubation & Mentorship</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-between">
+               <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="px-6 py-4 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors"
+                >
+                  Back
+               </button>
+               <button
+                  onClick={() => setStep(3)}
+                  disabled={!selectedTier}
+                  className="px-8 py-4 bg-firefox-orange text-white rounded-xl font-display font-black uppercase tracking-widest text-sm flex items-center gap-3 transition-all disabled:opacity-50 hover:bg-orange-600"
+               >
+                  Proceed to Payment <ArrowRight size={18} />
+               </button>
+            </div>
+          </motion.div>
+        )}
+
+        {step === 3 && (
           <motion.div
             key="payment"
             initial={{ opacity: 0, x: 20 }}
@@ -277,26 +340,37 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
               )}
               
               <div className="mb-10 text-center">
-                <h3 className="text-2xl font-display font-black uppercase text-white mb-2">Membership Checkout</h3>
-                <p className="text-zinc-400">Secure your spot in the builder network.</p>
+                <h3 className="text-2xl font-display font-black uppercase text-white mb-2">Complete Payment</h3>
+                <p className="text-zinc-400 capitalize">{selectedTier} Membership Application</p>
               </div>
 
               <div className="space-y-8">
+                {/* Order Summary */}
                 <div className="bg-black/50 border border-white/5 rounded-2xl p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-zinc-400 font-bold uppercase text-[10px] tracking-widest">Plan</span>
-                    <span className="text-white font-black uppercase tracking-wider text-sm">Annual Membership</span>
+                     <span className="text-zinc-400 font-bold uppercase text-[10px] tracking-widest">Base Amount</span>
+                     <span className="text-white font-black uppercase tracking-wider text-sm">₹{selectedTier === 'platinum' ? fees.platinum : fees.silver}</span>
                   </div>
-                  <div className="flex justify-between items-center pb-4 border-b border-white/10">
-                    <span className="text-zinc-400 font-bold uppercase text-[10px] tracking-widest">Amount</span>
+                  
+                  {appliedCoupon && (
+                     <div className="flex justify-between items-center mb-4 text-green-400">
+                        <span className="font-bold uppercase text-[10px] tracking-widest">Discount ({appliedCoupon.code})</span>
+                        <span className="font-black uppercase tracking-wider text-sm">
+                           -{appliedCoupon.type === 'percentage' ? `${appliedCoupon.value}%` : `₹${appliedCoupon.value}`}
+                        </span>
+                     </div>
+                  )}
+
+                  <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                    <span className="text-zinc-400 font-bold uppercase text-[10px] tracking-widest">Total Payable</span>
                     <div className="text-right">
                       {isFoundingMember ? (
                         <div className="flex items-center gap-2">
-                          <span className="text-zinc-600 line-through">₹{fee}</span>
+                          <span className="text-zinc-600 line-through">₹{getFinalAmount()}</span>
                           <span className="text-yellow-500 font-black text-2xl tracking-tight">₹0</span>
                         </div>
                       ) : (
-                        <span className="text-white font-black text-2xl tracking-tight">₹{fee}</span>
+                        <span className="text-white font-black text-2xl tracking-tight">₹{getFinalAmount()}</span>
                       )}
                     </div>
                   </div>
@@ -312,122 +386,133 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
                   )}
                 </div>
 
+                {/* Coupon Section */}
                 {!isFoundingMember && (
-                  <div className="space-y-4">
-                    <div className="flex gap-2 p-1 bg-black/50 rounded-xl border border-white/5">
-                      <button 
-                        onClick={() => { setPaymentMode('razorpay'); setError(''); }}
-                        className={`flex-1 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${paymentMode === 'razorpay' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-white'}`}
-                      >
-                        Secure Pay
-                      </button>
-                      <button 
-                        onClick={() => { setPaymentMode('manual'); setError(''); }}
-                        className={`flex-1 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${paymentMode === 'manual' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-white'}`}
-                      >
-                        Manual UPI
-                      </button>
-                    </div>
-
-                    <AnimatePresence mode="wait">
-                      {paymentMode === 'manual' && (
-                        <motion.form
-                          key="manual"
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          onSubmit={handleManualApply}
-                          className="space-y-6 overflow-hidden"
-                        >
-                          <div className="p-5 bg-firefox-orange/5 border border-firefox-orange/20 rounded-xl mt-4">
-                             <h4 className="text-firefox-orange font-bold text-sm mb-2">Payment Instructions</h4>
-                             <p className="text-zinc-400 text-sm mb-4">Please scan the QR code at the club desk or use the official UPI ID. Manual verification takes 24-48 hours.</p>
-                             <div className="font-mono text-white bg-black/50 p-3 rounded-lg text-center tracking-wider">mfc.zcoer@upi</div>
-                          </div>
-
-                          <div>
-                            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">Transaction ID / UTR</label>
-                            <input 
-                              type="text" 
-                              required
-                              value={transactionId}
-                              onChange={(e) => setTransactionId(e.target.value)}
-                              placeholder="e.g. 123456789012"
-                              className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors text-white font-mono tracking-widest"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">Payment Screenshot</label>
-                            <label className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/10 hover:border-firefox-orange/50 rounded-xl cursor-pointer bg-black/50 transition-colors overflow-hidden group">
-                              {screenshot ? (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
-                                  <ImageIcon className="text-firefox-orange mb-2" size={24} />
-                                  <p className="text-xs text-zinc-300 truncate max-w-[200px] font-medium">{screenshot.name}</p>
-                                  <p className="text-[10px] text-firefox-orange font-bold mt-1 uppercase tracking-wider">Click to change</p>
-                                </div>
-                              ) : (
-                                <div className="flex flex-col items-center justify-center">
-                                  <UploadCloud className="text-zinc-500 mb-2 group-hover:text-firefox-orange transition-colors" size={24} />
-                                  <p className="text-xs text-zinc-400 font-medium">Upload Screenshot</p>
-                                  <p className="text-[10px] text-zinc-600 mt-1 uppercase tracking-wider">JPG, PNG (Max 5MB)</p>
-                                </div>
-                              )}
-                              <input 
-                                type="file" 
-                                className="hidden" 
-                                accept="image/*"
-                                onChange={handleFileChange}
-                              />
-                            </label>
-                          </div>
-
-                          {uploadProgress > 0 && uploadProgress < 100 && (
-                            <div className="w-full bg-black/50 rounded-full h-2 mt-2 border border-white/5 overflow-hidden">
-                              <div className="bg-firefox-orange h-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
-                            </div>
-                          )}
-
-                          <button
-                            type="submit"
-                            disabled={submitting}
-                            className="w-full py-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-display font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all shadow-lg disabled:opacity-50"
-                          >
-                            {submitting ? <Loader2 size={18} className="animate-spin" /> : <UploadCloud size={18} />}
-                            {submitting ? (uploadProgress > 0 && uploadProgress < 100 ? 'Uploading...' : 'Submitting...') : 'Submit Manual Verification'}
-                          </button>
-                        </motion.form>
-                      )}
-                    </AnimatePresence>
+                  <div className="space-y-2">
+                     <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Have a Coupon?</label>
+                     <div className="flex gap-2">
+                        <input 
+                           type="text"
+                           value={couponCode}
+                           onChange={e => setCouponCode(e.target.value)}
+                           disabled={!!appliedCoupon || validatingCoupon}
+                           placeholder="Enter Code"
+                           className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white uppercase font-mono tracking-widest focus:border-firefox-orange outline-none disabled:opacity-50"
+                        />
+                        {appliedCoupon ? (
+                           <button type="button" onClick={() => { setAppliedCoupon(null); setCouponCode(''); }} className="px-4 py-3 bg-red-500/20 text-red-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500/30">
+                              Remove
+                           </button>
+                        ) : (
+                           <button type="button" onClick={handleApplyCoupon} disabled={!couponCode || validatingCoupon} className="px-4 py-3 bg-white/5 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white/10 disabled:opacity-50 flex items-center gap-2">
+                              {validatingCoupon ? <Loader2 size={14} className="animate-spin" /> : <Ticket size={14} />}
+                              Apply
+                           </button>
+                        )}
+                     </div>
+                     {couponError && <p className="text-red-400 text-xs mt-1">{couponError}</p>}
                   </div>
                 )}
 
-                {error && (
-                  <p className="text-red-400 text-sm text-center bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</p>
+                {/* Manual UPI Flow */}
+                {!isFoundingMember && (
+                  <form onSubmit={handleManualApply} className="space-y-6">
+                     <div className="p-5 bg-firefox-orange/5 border border-firefox-orange/20 rounded-xl mt-4">
+                        <h4 className="text-firefox-orange font-bold text-sm mb-2">UPI Payment Instructions</h4>
+                        <p className="text-zinc-400 text-sm mb-4">Transfer the exact amount (₹{getFinalAmount()}) to the official UPI ID. Your account will be upgraded within 24 hours after verification.</p>
+                        <div className="font-mono text-white bg-black/50 p-3 rounded-lg text-center tracking-wider text-xl">mfc.zcoer@upi</div>
+                     </div>
+
+                     <div>
+                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">Transaction ID / UTR</label>
+                        <input 
+                        type="text" 
+                        required
+                        value={transactionId}
+                        onChange={(e) => setTransactionId(e.target.value)}
+                        placeholder="e.g. 123456789012"
+                        className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors text-white font-mono tracking-widest"
+                        />
+                     </div>
+
+                     <div>
+                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">Payment Screenshot</label>
+                        <label className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/10 hover:border-firefox-orange/50 rounded-xl cursor-pointer bg-black/50 transition-colors overflow-hidden group">
+                        {screenshot ? (
+                           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
+                              <ImageIcon className="text-firefox-orange mb-2" size={24} />
+                              <p className="text-xs text-zinc-300 truncate max-w-[200px] font-medium">{screenshot.name}</p>
+                              <p className="text-[10px] text-firefox-orange font-bold mt-1 uppercase tracking-wider">Click to change</p>
+                           </div>
+                        ) : (
+                           <div className="flex flex-col items-center justify-center">
+                              <UploadCloud className="text-zinc-500 mb-2 group-hover:text-firefox-orange transition-colors" size={24} />
+                              <p className="text-xs text-zinc-400 font-medium">Upload Screenshot</p>
+                              <p className="text-[10px] text-zinc-600 mt-1 uppercase tracking-wider">JPG, PNG (Max 5MB)</p>
+                           </div>
+                        )}
+                        <input 
+                           type="file" 
+                           className="hidden" 
+                           accept="image/*"
+                           onChange={handleFileChange}
+                        />
+                        </label>
+                     </div>
+
+                     {uploadProgress > 0 && uploadProgress < 100 && (
+                        <div className="w-full bg-black/50 rounded-full h-2 mt-2 border border-white/5 overflow-hidden">
+                        <div className="bg-firefox-orange h-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                        </div>
+                     )}
+
+                     {error && (
+                        <p className="text-red-400 text-sm text-center bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</p>
+                     )}
+
+                     <div className="flex gap-4 pt-4">
+                        <button
+                           type="button"
+                           onClick={() => setStep(2)}
+                           className="px-6 py-4 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors"
+                           disabled={submitting}
+                        >
+                           Back
+                        </button>
+
+                        <button
+                           type="submit"
+                           disabled={submitting}
+                           className="flex-1 py-4 bg-firefox-orange hover:bg-orange-600 text-white rounded-xl font-display font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all shadow-[0_0_20px_rgba(255,106,0,0.3)] disabled:opacity-50 disabled:hover:shadow-none"
+                        >
+                           {submitting ? <Loader2 size={18} className="animate-spin" /> : <UploadCloud size={18} />}
+                           {submitting ? (uploadProgress > 0 && uploadProgress < 100 ? 'Uploading...' : 'Submitting...') : 'Submit Verification'}
+                        </button>
+                     </div>
+                  </form>
                 )}
 
-                <div className="flex gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="px-6 py-4 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors"
-                    disabled={submitting}
-                  >
-                    Back
-                  </button>
-
-                  {(isFoundingMember || paymentMode === 'razorpay') && (
-                    <button
-                      type="button"
-                      onClick={isFoundingMember ? handleManualApply : handleRazorpayPayment}
-                      disabled={submitting}
-                      className="flex-1 py-4 bg-firefox-orange hover:bg-orange-600 text-white rounded-xl font-display font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all shadow-[0_0_20px_rgba(255,106,0,0.3)] hover:shadow-[0_0_30px_rgba(255,106,0,0.5)] disabled:opacity-50 disabled:hover:shadow-none"
-                    >
-                      {submitting ? <Loader2 size={18} className="animate-spin" /> : <CreditCard size={18} />}
-                      {submitting ? 'Processing...' : isFoundingMember ? 'Claim Free Access' : `Pay ₹${fee} Securely`}
-                    </button>
-                  )}
-                </div>
+                {isFoundingMember && (
+                  <div className="flex gap-4 pt-4">
+                     <button
+                        type="button"
+                        onClick={() => setStep(2)}
+                        className="px-6 py-4 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors"
+                        disabled={submitting}
+                     >
+                        Back
+                     </button>
+                     <button
+                        type="button"
+                        onClick={handleManualApply}
+                        disabled={submitting}
+                        className="flex-1 py-4 bg-firefox-orange hover:bg-orange-600 text-white rounded-xl font-display font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all shadow-[0_0_20px_rgba(255,106,0,0.3)] disabled:opacity-50 disabled:hover:shadow-none"
+                     >
+                        {submitting ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                        {submitting ? 'Processing...' : 'Claim Free Access'}
+                     </button>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>

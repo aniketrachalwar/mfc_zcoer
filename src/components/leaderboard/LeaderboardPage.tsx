@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import AdSenseBlock from '../AdSenseBlock';
 import { Trophy, Medal, Star, Award, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -63,9 +64,7 @@ const LeaderboardPage = () => {
           </header>
 
           {/* AdSense Placeholder: Top Banner */}
-          <aside id="adsense-leaderboard-top" className="w-full max-w-4xl mx-auto min-h-[90px] mb-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-zinc-600 text-xs uppercase tracking-widest font-black">
-            Advertisement
-          </aside>
+          <AdSenseBlock adSlot="leaderboard_top_banner" className="mb-8" />
 
           <section className="flex flex-col gap-4 max-w-4xl mx-auto">
             {leaders.map((leader, index) => {
@@ -129,10 +128,10 @@ const LeaderboardPage = () => {
                   </Link>
                   
                   {/* AdSense Placeholder: Middle List Banner (inject every 10th item) */}
-                  {(index + 1) === 10 && (
-                    <aside id="adsense-leaderboard-mid" className="w-full min-h-[90px] my-6 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-zinc-600 text-xs uppercase tracking-widest font-black">
-                      Advertisement
-                    </aside>
+                  {(index + 1) % 10 === 0 && (
+                    <div className="py-4">
+                      <AdSenseBlock adSlot={`leaderboard_middle_${index}`} />
+                    </div>
                   )}
                 </motion.div>
               );
@@ -145,11 +144,7 @@ const LeaderboardPage = () => {
             )}
             
             {/* AdSense Placeholder: Bottom Banner */}
-            {!loading && leaders.length > 0 && (
-              <aside id="adsense-leaderboard-bottom" className="w-full min-h-[90px] mt-8 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-zinc-600 text-xs uppercase tracking-widest font-black">
-                Advertisement
-              </aside>
-            )}
+            <AdSenseBlock adSlot="leaderboard_bottom_banner" className="mt-12" />
           </section>
         </div>
       </main>

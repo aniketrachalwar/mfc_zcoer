@@ -174,64 +174,52 @@ const TeamManager = () => {
           <div className="w-8 h-8 border-2 border-firefox-orange border-t-transparent rounded-full animate-spin mx-auto" />
         </div>
       ) : (
-        <div className="bg-zinc-900 border border-white/10 rounded-3xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-white/10 bg-black/20">
-                  <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">Member</th>
-                  <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">Team Role</th>
-                  <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">Cohort</th>
-                  <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-500 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {teamMembers.map((member) => {
-                  const user = getUserData(member.userId);
-                  return (
-                    <tr key={member.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <img loading="lazy" 
-                            src={user.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} 
-                            alt={user.fullName}
-                            className="w-10 h-10 rounded-full bg-zinc-800 object-cover border border-white/10"
-                          />
-                          <div>
-                            <p className="text-sm font-bold text-white">{user.fullName || 'Unknown'}</p>
-                            <p className="text-xs text-zinc-500">@{user.username || 'unknown'}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span className="px-3 py-1 bg-firefox-orange/20 text-firefox-orange rounded-full text-xs font-bold border border-firefox-orange/20">
-                          {member.role}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className="text-zinc-300 font-mono text-sm">{member.cohort}</span>
-                      </td>
-                      <td className="p-4 text-right">
-                        <button 
-                          onClick={() => handleRemoveMember(member.id)}
-                          className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-                {teamMembers.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="p-8 text-center text-zinc-500 text-sm">
-                      No team members added yet. Add someone from the community!
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {teamMembers.map((member) => {
+            const user = getUserData(member.userId);
+            return (
+              <motion.div 
+                key={member.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-zinc-900 border border-white/10 hover:border-white/20 rounded-3xl p-5 transition-all group"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <img loading="lazy" 
+                      src={user.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} 
+                      alt={user.fullName}
+                      className="w-12 h-12 rounded-full bg-zinc-800 object-cover border border-white/10 shrink-0"
+                    />
+                    <div className="truncate">
+                      <p className="text-sm font-bold text-white truncate">{user.fullName || 'Unknown'}</p>
+                      <p className="text-xs text-zinc-500 truncate">@{user.username || 'unknown'}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => handleRemoveMember(member.id)}
+                    className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+                
+                <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                  <span className="px-3 py-1 bg-firefox-orange/20 text-firefox-orange rounded-full text-[10px] font-black uppercase tracking-widest border border-firefox-orange/20">
+                    {member.role}
+                  </span>
+                  <div className="flex items-center gap-2 text-zinc-500 text-xs font-mono">
+                    Cohort {member.cohort}
+                  </div>
+                </div>
+              </motion.div>
+            )
+          })}
+          {teamMembers.length === 0 && (
+            <div className="col-span-full p-8 text-center text-zinc-500 text-sm bg-white/5 border border-white/10 rounded-3xl">
+              No team members added yet. Add someone from the community!
+            </div>
+          )}
         </div>
       )}
     </div>

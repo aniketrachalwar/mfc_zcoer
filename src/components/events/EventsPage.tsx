@@ -23,7 +23,7 @@ const EventsPage = () => {
     const fetchEvents = async () => {
       try {
         const snap = await getDocs(collection(db, 'events'));
-        const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
         list.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         setEvents(list);
       } catch (err) {
@@ -100,7 +100,7 @@ const EventsPage = () => {
   const pastEvents = events.filter(e => new Date(e.date).getTime() < now)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const EventCard = ({ event }: { event: any }) => {
+  const EventCard: React.FC<{ event: any }> = ({ event }) => {
     const isPast = new Date(event.date).getTime() < now;
     const ticket = userTickets.find(t => t.eventId === event.id);
     const hasCertificate = isPast && ticket && event.certificateType && event.certificateType !== 'None';

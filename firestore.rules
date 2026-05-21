@@ -54,7 +54,7 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if (isSignedIn() && request.auth.uid == userId && 
-                       (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'membershipStatus', 'isFoundingMember']) || 
+                       (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'membershipStatus', 'isFoundingMember', 'membershipTier', 'subscriptionStart', 'subscriptionEnd', 'paymentStatus']) || 
                         request.resource.data.membershipStatus == 'pending')) || 
                        canManageContent();
       allow delete: if canManageContent();
@@ -76,6 +76,22 @@ service cloud.firestore {
         );
       allow delete: if canManageContent() ||
         (isSignedIn() && resource.data.authorId == request.auth.uid);
+    }
+    
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if canManageContent();
+    }
+    
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if canManageContent();
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid || canManageContent();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if canManageContent();
     }
   }
 }

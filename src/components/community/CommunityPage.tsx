@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Trophy, MapPin, ExternalLink, Github, Linkedin, Instagram, Twitter, Sparkles } from 'lucide-react';
+import { Search, Trophy, ExternalLink, Sparkles } from 'lucide-react';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Link } from 'react-router-dom';
+import AdSenseBlock from '../AdSenseBlock';
 import { useAuth } from '../../lib/AuthContext';
 import AuthModal from '../AuthModal';
 
@@ -132,11 +134,7 @@ const CommunityPage = () => {
         </div>
 
         {/* AdSense Placeholder - Top */}
-        <div className="w-full max-w-4xl mx-auto h-24 bg-white/5 border border-white/10 rounded-xl mb-12 flex items-center justify-center relative overflow-hidden group">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50" />
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 relative z-10 group-hover:text-firefox-orange transition-colors">Advertisement</span>
-          <div id="adsense-community-top" className="absolute inset-0"></div>
-        </div>
+        <AdSenseBlock adSlot="community_top_banner" className="mb-12" />
 
         {/* Member Grid */}
         <AnimatePresence mode="popLayout">
@@ -149,16 +147,14 @@ const CommunityPage = () => {
           ) : (
             <motion.div 
               layout
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
             >
               {filteredProfiles.map((profile, i) => (
                 <React.Fragment key={profile.id}>
                   {/* Inject Advertisement every 12 profiles */}
                   {i > 0 && i % 12 === 0 && (
-                    <div className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-5 w-full h-20 bg-white/5 border border-white/10 rounded-2xl my-4 flex items-center justify-center relative overflow-hidden group">
-                      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50" />
-                      <span className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-600 relative z-10 group-hover:text-firefox-orange transition-colors">Advertisement</span>
-                      <div id={`adsense-community-mid-${i}`} className="absolute inset-0"></div>
+                    <div className="col-span-full w-full my-4">
+                      <AdSenseBlock adSlot={`community_mid_${i}`} />
                     </div>
                   )}
                   <motion.div
@@ -170,28 +166,28 @@ const CommunityPage = () => {
                   >
                     <div className="absolute top-0 right-0 w-24 h-24 bg-firefox-orange/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     
-                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 mb-3">
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 mb-4">
                       {(profile.membershipStatus === 'active' || ['admin', 'president', 'core_team'].includes(profile.role || '')) && (
                         <div className="absolute inset-0 bg-firefox-orange rounded-full blur-xl opacity-20 scale-125 animate-pulse" />
                       )}
                       <img loading="lazy" 
-                        src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`} 
-                        alt={profile.fullName}
-                        className="w-full h-full rounded-full object-cover border-2 border-zinc-800 relative z-10"
+                        src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username || 'unknown'}`} 
+                        alt={profile.fullName || 'Unknown User'}
+                        className="w-full h-full rounded-full object-cover aspect-square border-2 border-zinc-800 relative z-10"
                       />
                       {profile.isFoundingMember && (
-                        <div className="absolute -top-1 -right-1 z-20 bg-yellow-500 text-black p-1 rounded-full border border-black shadow-lg">
-                          <Sparkles size={10} />
+                        <div className="absolute -top-1 -right-1 z-20 bg-yellow-500 text-black p-1.5 rounded-full border border-black shadow-lg">
+                          <Sparkles size={12} />
                         </div>
                       )}
                     </div>
 
-                    <h3 className="text-[13px] sm:text-sm font-display font-black uppercase text-white group-hover:text-firefox-orange transition-colors line-clamp-1 w-full">
-                      {profile.fullName}
+                    <h3 className="text-base font-display font-black uppercase text-white group-hover:text-firefox-orange transition-colors line-clamp-1 w-full" title={profile.fullName || 'Unknown User'}>
+                      {profile.fullName || 'Unknown User'}
                     </h3>
                     
-                    <span className="text-[8px] sm:text-[9px] font-black tracking-widest text-firefox-orange uppercase mt-1 mb-3 bg-firefox-orange/10 px-2 py-0.5 rounded-full border border-firefox-orange/20">
-                      {profile.memberId}
+                    <span className="text-[10px] font-black tracking-widest text-firefox-orange uppercase mt-1 mb-4 bg-firefox-orange/10 px-3 py-1 rounded-full border border-firefox-orange/20 line-clamp-1 w-max max-w-full">
+                      {profile.memberId || 'GUEST'}
                     </span>
 
                     <div className="flex flex-wrap justify-center gap-1 text-[8px] uppercase tracking-wider font-bold mb-4">
@@ -224,11 +220,7 @@ const CommunityPage = () => {
         )}
 
         {/* AdSense Placeholder - Bottom */}
-        <div className="w-full max-w-4xl mx-auto h-24 bg-white/5 border border-white/10 rounded-xl mt-12 flex items-center justify-center relative overflow-hidden group">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50" />
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 relative z-10 group-hover:text-firefox-orange transition-colors">Advertisement</span>
-          <div id="adsense-community-bottom" className="absolute inset-0"></div>
-        </div>
+        <AdSenseBlock adSlot="community_bottom_banner" className="mt-12" />
       </div>
     </div>
   );

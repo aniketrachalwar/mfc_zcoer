@@ -10,6 +10,7 @@ interface BadgeCardProps {
   badge: Badge;
   unlocked?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  key?: React.Key;
 }
 
 export function BadgeCard({ badge, unlocked = true, size = 'md' }: BadgeCardProps) {
