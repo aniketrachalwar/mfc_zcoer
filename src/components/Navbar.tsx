@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X, Rocket, Zap, Users, Code, Info, LogOut, ChevronDown, ChevronRight, LayoutDashboard, User as UserIcon, ScanLine, Sparkles } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthModal from './AuthModal';
@@ -15,6 +15,17 @@ const Navbar = () => {
   const [activeHash, setActiveHash] = useState(window.location.hash || '#about');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { user, logout } = useAuth();
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleJoinClick = () => {
     if (user) {
@@ -191,7 +202,7 @@ const Navbar = () => {
               </motion.button>
             </>
           ) : (
-            <div className="relative">
+            <div className="relative" ref={profileDropdownRef}>
               <button 
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center gap-2 border border-white/10 px-4 py-2 rounded-full hover:bg-white/5 transition-colors"
@@ -236,14 +247,6 @@ const Navbar = () => {
                       Scanner
                     </Link>
 
-                    <Link 
-                      to="/dashboard#membership"
-                      onClick={() => setIsProfileOpen(false)}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#ff6a00] hover:bg-white/5 transition-colors text-[10px] uppercase font-black tracking-widest"
-                    >
-                      <Sparkles size={16} />
-                      Upgrade Tier
-                    </Link>
 
                     <button 
                       onClick={() => { logout(); setIsProfileOpen(false); }}

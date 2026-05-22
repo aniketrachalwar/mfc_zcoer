@@ -6,7 +6,7 @@ import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
 
 export default function SettingsManager() {
-  const [fees, setFees] = useState({ silver: 99, platinum: 199 });
+  const [config, setConfig] = useState({ silverFee: 99, platinumFee: 199, upiId: 'mfc.zcoer@upi' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { setSuccessMessage, setError } = useAuth();
@@ -18,9 +18,10 @@ export default function SettingsManager() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setFees({
-            silver: data.silverFee || 99,
-            platinum: data.platinumFee || 199
+          setConfig({
+            silverFee: data.silverFee || 99,
+            platinumFee: data.platinumFee || 199,
+            upiId: data.upiId || 'mfc.zcoer@upi'
           });
         }
       } catch (err) {
@@ -37,8 +38,9 @@ export default function SettingsManager() {
     setSaving(true);
     try {
       await setDoc(doc(db, 'settings', 'membership'), {
-        silverFee: Number(fees.silver),
-        platinumFee: Number(fees.platinum),
+        silverFee: Number(config.silverFee),
+        platinumFee: Number(config.platinumFee),
+        upiId: config.upiId,
         updatedAt: new Date().toISOString()
       }, { merge: true });
       setSuccessMessage('Settings updated successfully!');
@@ -85,8 +87,8 @@ export default function SettingsManager() {
                 <input 
                   type="number" 
                   min="0"
-                  value={fees.silver}
-                  onChange={(e) => setFees(prev => ({...prev, silver: Number(e.target.value)}))}
+                  value={config.silverFee}
+                  onChange={(e) => setConfig(prev => ({...prev, silverFee: Number(e.target.value)}))}
                   className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors text-white font-mono"
                 />
               </div>
@@ -97,14 +99,28 @@ export default function SettingsManager() {
                 <input 
                   type="number" 
                   min="0"
-                  value={fees.platinum}
-                  onChange={(e) => setFees(prev => ({...prev, platinum: Number(e.target.value)}))}
+                  value={config.platinumFee}
+                  onChange={(e) => setConfig(prev => ({...prev, platinumFee: Number(e.target.value)}))}
                   className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors text-white font-mono"
                 />
               </div>
             </div>
+            
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">
+                Official UPI ID
+              </label>
+              <input 
+                type="text" 
+                value={config.upiId}
+                onChange={(e) => setConfig(prev => ({...prev, upiId: e.target.value}))}
+                placeholder="e.g. mfc.zcoer@upi"
+                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors text-white font-mono tracking-widest"
+              />
+            </div>
+
             <p className="text-xs text-zinc-500 mt-2">
-              These fees apply to users upgrading to Silver and Platinum. Founding members bypass these fees.
+              These settings control global membership pricing and manual payment processing details.
             </p>
 
             <button

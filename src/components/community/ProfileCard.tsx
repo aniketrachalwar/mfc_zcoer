@@ -3,26 +3,17 @@ import { motion } from 'motion/react';
 import { Download, Share2, Github, Linkedin, Instagram, Twitter, Globe, Award, Trophy, Sparkles } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { QRCodeSVG } from 'qrcode.react';
+import { useOutletContext } from 'react-router-dom';
 
 interface ProfileCardProps {
-  profile: {
-    fullName: string;
-    username: string;
-    memberId: string;
-    photoURL?: string;
-    bio?: string;
-    department?: string;
-    year?: string;
-    skills?: string[];
-    socialLinks?: any;
-    favMozTech?: string;
-    points?: number;
-    isFoundingMember?: boolean;
-  };
+  profile?: any;
   isPublic?: boolean;
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isPublic = false }) => {
+const ProfileCard: React.FC<ProfileCardProps> = ({ profile: propProfile, isPublic = false }) => {
+  const context = useOutletContext<{ profile: any }>();
+  // Use context profile if available (in Dashboard), otherwise use propProfile (in Public Profile)
+  const profile = context?.profile || propProfile;
   const cardRef = useRef<HTMLDivElement>(null);
 
   const downloadCard = async () => {

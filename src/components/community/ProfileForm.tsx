@@ -5,17 +5,15 @@ import { doc, setDoc, collection, query, where, getDocs, updateDoc, increment, d
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
+import { useOutletContext } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 
-interface ProfileFormProps {
-  user: any;
-  initialData?: any;
-  onSave: (data: any) => void;
-}
-
-const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) => {
+const ProfileForm: React.FC = () => {
+  const { profile, refreshProfile: onSave } = useOutletContext<{ profile: any, refreshProfile: () => void }>();
+  const { user } = useAuth();
+  
   const [loading, setLoading] = useState(false);
-  const data = initialData || {};
+  const data = profile || {};
   const isNewUser = data.points === undefined;
   
   const { deleteAccount, refetchProfile } = useAuth();

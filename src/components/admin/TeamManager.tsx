@@ -247,7 +247,9 @@ const TeamManager = () => {
               No team members added yet. Add someone from the community!
             </div>
           )}
-        </>
+        </div>
+      )}
+      </>
       )}
     </div>
   );

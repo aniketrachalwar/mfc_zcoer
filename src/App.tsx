@@ -17,7 +17,11 @@ const About = React.lazy(() => import('./components/About'));
 const Projects = React.lazy(() => import('./components/Projects'));
 const TeamPage = React.lazy(() => import('./components/TeamPage'));
 const CommunityPage = React.lazy(() => import('./components/community/CommunityPage'));
-const Dashboard = React.lazy(() => import('./components/community/Dashboard'));
+const DashboardLayout = React.lazy(() => import('./components/community/DashboardLayout'));
+const DashboardOverview = React.lazy(() => import('./components/community/DashboardOverview'));
+const MembershipApply = React.lazy(() => import('./components/membership/MembershipApply'));
+const ProfileCard = React.lazy(() => import('./components/community/ProfileCard'));
+const ProfileForm = React.lazy(() => import('./components/community/ProfileForm'));
 const PublicProfile = React.lazy(() => import('./components/community/PublicProfile'));
 const VerifyProfile = React.lazy(() => import('./components/community/VerifyProfile'));
 const EventDetails = React.lazy(() => import('./components/events/EventDetails'));
@@ -36,11 +40,18 @@ const BlogsManager = React.lazy(() => import('./components/admin/BlogsManager'))
 const SettingsManager = React.lazy(() => import('./components/admin/SettingsManager'));
 const ApplicationsManager = React.lazy(() => import('./components/admin/ApplicationsManager'));
 const DashboardConfigManager = React.lazy(() => import('./components/admin/DashboardConfigManager'));
-const WebsiteConfigManager = React.lazy(() => import('./components/admin/WebsiteConfigManager'));
+
 const BlogsPage = React.lazy(() => import('./components/blogs/BlogsPage'));
 const BlogDetails = React.lazy(() => import('./components/blogs/BlogDetails'));
 const WriteBlog = React.lazy(() => import('./components/blogs/WriteBlog'));
 const CouponManager = React.lazy(() => import('./components/admin/CouponManager'));
+const StudentPortalManager = React.lazy(() => import('./components/admin/StudentPortalManager'));
+
+const StudentLayout = React.lazy(() => import('./components/student/StudentLayout'));
+const StudentOverview = React.lazy(() => import('./components/student/StudentOverview'));
+const RunningProjects = React.lazy(() => import('./components/student/RunningProjects'));
+const PurchasedItems = React.lazy(() => import('./components/student/PurchasedItems'));
+const MembershipHistory = React.lazy(() => import('./components/student/MembershipHistory'));
 
 // Leaderboard will be lazy loaded
 const LeaderboardPage = React.lazy(() => import('./components/leaderboard/LeaderboardPage'));
@@ -125,6 +136,7 @@ const RouteTracker = () => {
 // Shell container for common UI
 const Layout = ({ children, scaleX }: { children: React.ReactNode; scaleX: any }) => {
   const { error, success, clearError, clearSuccess, user } = useAuth();
+  const location = useLocation();
   
   return (
     <div className="relative min-h-screen bg-zinc-950 text-white selection:bg-firefox-orange selection:text-white">
@@ -191,7 +203,7 @@ const Layout = ({ children, scaleX }: { children: React.ReactNode; scaleX: any }
       <Footer />
 
       {/* Member Portal Overlay - Floating Action if logged in */}
-      {user && (
+      {user && !location.pathname.startsWith('/dashboard') && !location.pathname.startsWith('/admin') && !location.pathname.startsWith('/student') && (
         <Link to="/dashboard" className="fixed bottom-8 right-8 z-50 block">
           <motion.div
             initial={{ scale: 0 }}
@@ -230,7 +242,14 @@ export default function App() {
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/team" element={<TeamPage />} />
                 <Route path="/community" element={<CommunityPage />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard" element={<DashboardLayout />}>
+                  <Route index element={<DashboardOverview />} />
+                  <Route path="projects" element={<RunningProjects />} />
+                  <Route path="purchases" element={<PurchasedItems />} />
+                  <Route path="membership" element={<MembershipApply />} />
+                  <Route path="id-card" element={<ProfileCard />} />
+                  <Route path="settings" element={<ProfileForm />} />
+                </Route>
                 <Route path="/profile" element={<MemberProfilePage />} />
                 <Route path="/profile/:username" element={<PublicProfile />} />
                 <Route path="/events" element={<EventsPage />} />
@@ -256,9 +275,9 @@ export default function App() {
                   <Route path="blogs" element={<BlogsManager />} />
                   <Route path="settings" element={<SettingsManager />} />
                   <Route path="dashboard-config" element={<DashboardConfigManager />} />
-                  <Route path="website-config" element={<WebsiteConfigManager />} />
                   <Route path="applications" element={<ApplicationsManager />} />
                   <Route path="coupons" element={<CouponManager />} />
+                  <Route path="student-portal" element={<StudentPortalManager />} />
                 </Route>
 
                 {/* 404 Catch All Route */}

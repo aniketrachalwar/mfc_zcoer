@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Sparkles, ArrowRight, Target, Calendar, Rocket, Bell, Shield } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useOutletContext, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
-export default function DashboardOverview({ profile }: { profile: any }) {
+export default function DashboardOverview() {
+  const { profile } = useOutletContext<{ profile: any }>();
   const [config, setConfig] = useState<any>(null);
   
   useEffect(() => {

@@ -93,13 +93,13 @@ const AdminLayout = () => {
     { name: 'Merchandise', path: '/admin/merch', icon: ShoppingBag },
     { name: 'Notifications', path: '/admin/notifications', icon: Bell },
     { name: 'Dashboard Config', path: '/admin/dashboard-config', icon: MonitorSmartphone },
-    { name: 'Website Config', path: '/admin/website-config', icon: Globe },
+    { name: 'Student Portal', path: '/admin/student-portal', icon: Users },
     { name: 'Coupons', path: '/admin/coupons', icon: Ticket },
     { name: 'Settings', path: '/admin/settings', icon: SettingsIcon },
   ];
 
   const visibleNavItems = navItems.filter(item => {
-    if ((item.name === 'Members' || item.name === 'Team' || item.name === 'Applications' || item.name === 'Settings' || item.name === 'Dashboard Config' || item.name === 'Website Config' || item.name === 'Coupons') && !isStrictAdmin) return false;
+    if ((item.name === 'Members' || item.name === 'Team' || item.name === 'Applications' || item.name === 'Settings' || item.name === 'Dashboard Config' || item.name === 'Coupons') && !isStrictAdmin) return false;
     return true;
   });
 

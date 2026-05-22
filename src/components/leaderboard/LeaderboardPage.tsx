@@ -66,7 +66,7 @@ const LeaderboardPage = () => {
           {/* AdSense Placeholder: Top Banner */}
           <AdSenseBlock adSlot="leaderboard_top_banner" className="mb-8" />
 
-          <section className="flex flex-col gap-4 max-w-4xl mx-auto">
+          <section className="flex flex-col gap-2 max-w-4xl mx-auto">
             {leaders.map((leader, index) => {
               const isTop3 = index < 3;
               return (
@@ -77,29 +77,29 @@ const LeaderboardPage = () => {
                   key={leader.id}
                 >
                   <Link to={`/profile/${leader.username}`} className="block">
-                    <div className={`relative flex items-center justify-between p-4 md:p-6 rounded-[2rem] border transition-all duration-300 group hover:-translate-y-1 ${
+                    <div className={`relative flex items-center justify-between p-2 md:p-3 rounded-xl border transition-all duration-300 group hover:-translate-y-0.5 ${
                       index === 0 ? 'bg-gradient-to-r from-yellow-500/10 to-transparent border-yellow-500/30' :
                       index === 1 ? 'bg-gradient-to-r from-zinc-300/10 to-transparent border-zinc-300/30' :
                       index === 2 ? 'bg-gradient-to-r from-orange-700/10 to-transparent border-orange-700/30' :
                       'bg-white/5 border-white/10 hover:border-firefox-orange/30'
                     }`}>
-                      <div className="flex items-center gap-4 md:gap-6">
-                        <div className={`w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center font-display font-black text-lg md:text-2xl border ${
+                      <div className="flex items-center gap-2 md:gap-3">
+                        <div className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center font-display font-black text-xs md:text-sm border shrink-0 ${
                           index === 0 ? 'bg-yellow-500 text-black border-yellow-400' :
                           index === 1 ? 'bg-zinc-300 text-black border-zinc-200' :
                           index === 2 ? 'bg-orange-700 text-white border-orange-600' :
                           'bg-zinc-800 text-zinc-400 border-zinc-700'
                         }`}>
-                          {index === 0 ? <Trophy size={24} /> : index === 1 ? <Medal size={24} /> : index === 2 ? <Award size={24} /> : `#${index + 1}`}
+                          {index === 0 ? <Trophy size={14} /> : index === 1 ? <Medal size={14} /> : index === 2 ? <Award size={14} /> : `#${index + 1}`}
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 md:gap-3">
                           <img loading="lazy" 
                             src={leader.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${leader.username}`} 
                             alt={leader.fullName} 
-                            className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover border border-white/20"
+                            className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border border-white/20 shrink-0"
                           />
-                          <div>
-                            <h3 className={`font-display font-black uppercase tracking-wider text-base md:text-xl transition-colors ${
+                          <div className="min-w-0">
+                            <h3 className={`font-display font-black uppercase tracking-wider text-xs md:text-sm truncate transition-colors ${
                               index === 0 ? 'text-yellow-500 group-hover:text-yellow-400' :
                               index === 1 ? 'text-zinc-300 group-hover:text-white' :
                               index === 2 ? 'text-orange-500 group-hover:text-orange-400' :
@@ -107,11 +107,11 @@ const LeaderboardPage = () => {
                             }`}>
                               {leader.fullName}
                             </h3>
-                            <div className="flex items-center gap-2">
-                              <p className="text-zinc-500 text-[10px] md:text-xs font-black tracking-[0.2em] uppercase">@{leader.username}</p>
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                              <p className="text-zinc-500 text-[8px] md:text-[9px] font-black tracking-[0.2em] uppercase truncate">@{leader.username}</p>
                               {leader.isFoundingMember && (
-                                <span className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider flex items-center gap-1">
-                                  <Sparkles size={8} /> Founding
+                                <span className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-1 py-0.5 rounded text-[7px] font-black uppercase tracking-wider flex items-center gap-0.5 shrink-0">
+                                  <Sparkles size={8} /> <span className="hidden sm:inline">Founding</span>
                                 </span>
                               )}
                             </div>
@@ -119,17 +119,17 @@ const LeaderboardPage = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 md:gap-3 bg-black/40 px-4 md:px-6 py-2 md:py-3 rounded-full border border-white/5">
-                        <Star className={`w-4 h-4 md:w-5 md:h-5 ${isTop3 ? 'text-firefox-orange' : 'text-zinc-500'}`} fill={isTop3 ? 'currentColor' : 'none'} />
-                        <span className="font-display font-black text-lg md:text-2xl text-white">{leader.points || 0}</span>
-                        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-zinc-500 hidden md:inline">PTS</span>
+                      <div className="flex items-center gap-1 md:gap-1.5 bg-black/40 px-2.5 md:px-3 py-1 md:py-1.5 rounded-full border border-white/5 shrink-0 ml-2">
+                        <Star className={`w-3 h-3 ${isTop3 ? 'text-firefox-orange' : 'text-zinc-500'}`} fill={isTop3 ? 'currentColor' : 'none'} />
+                        <span className="font-display font-black text-sm md:text-base text-white">{leader.points || 0}</span>
+                        <span className="text-[7px] font-black uppercase tracking-widest text-zinc-500 hidden md:inline">PTS</span>
                       </div>
                     </div>
                   </Link>
                   
                   {/* AdSense Placeholder: Middle List Banner (inject every 10th item) */}
                   {(index + 1) % 10 === 0 && (
-                    <div className="py-4">
+                    <div className="py-2">
                       <AdSenseBlock adSlot={`leaderboard_middle_${index}`} />
                     </div>
                   )}

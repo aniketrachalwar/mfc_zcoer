@@ -140,6 +140,13 @@ const Dashboard = () => {
                 <span className="text-[10px] font-black uppercase tracking-widest group-hover:text-white transition-colors">Admin Portal</span>
               </Link>
             )}
+            <Link 
+              to="/student"
+              className="flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] rounded-xl bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all group text-blue-400"
+            >
+              <UserIcon size={16} className="group-hover:text-white transition-colors" />
+              <span className="text-[10px] font-black uppercase tracking-widest group-hover:text-white transition-colors">Student Portal</span>
+            </Link>
             {profile && (
               <Link 
                 to={`/profile/${profile.username}`}

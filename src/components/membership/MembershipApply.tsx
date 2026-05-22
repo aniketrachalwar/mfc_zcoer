@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Shield, Sparkles, CheckCircle2, Crown, Rocket, Zap, BookOpen, Loader2, ArrowRight, UploadCloud, Image as ImageIcon, Ticket } from 'lucide-react';
+import { Shield, Sparkles, CheckCircle2, Crown, Rocket, Zap, BookOpen, Loader2, ArrowRight, UploadCloud, Image as ImageIcon, Ticket, Copy } from 'lucide-react';
 import { doc, getDoc, addDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../../lib/firebase';
+import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
+import { useOutletContext } from 'react-router-dom';
 import { MembershipTier } from '../../types/membership';
 
-export default function MembershipApply({ profile, onComplete }: { profile: any, onComplete: () => void }) {
+export default function MembershipApply() {
+  const { profile, refreshProfile } = useOutletContext<{ profile: any, refreshProfile: () => void }>();
+  const onComplete = refreshProfile;
   const { user } = useAuth();
   
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [fees, setFees] = useState({ silver: 99, platinum: 199 });
+  const [upiId, setUpiId] = useState('mfc.zcoer@upi');
   
   const [step, setStep] = useState(1);
   const [selectedTier, setSelectedTier] = useState<MembershipTier | null>(null);
@@ -26,6 +29,7 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
   // Payment States
   const [transactionId, setTransactionId] = useState('');
   const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const isFoundingMember = profile?.isFoundingMember || false;
 
@@ -39,6 +43,9 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
             silver: data.silverFee || 99,
             platinum: data.platinumFee || 199
           });
+          if (data.upiId) {
+            setUpiId(data.upiId);
+          }
         }
       } catch (err) {
         console.error("Error fetching settings:", err);
@@ -139,7 +146,8 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
         userName: profile.fullName || user.displayName,
       });
 
-      // We do NOT update membershipTier yet, wait for admin approval
+      // Show success screen
+      setStep(4);
       onComplete();
     } catch (err: any) {
       console.error(err);
@@ -150,11 +158,27 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
   };
 
 
+  const currentTier = profile?.membershipTier || 'free';
+
   if (loading) return (
     <div className="py-20 flex justify-center">
       <div className="w-10 h-10 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
     </div>
   );
+
+  if (currentTier === 'platinum') {
+    return (
+      <div className="max-w-4xl mx-auto py-20 text-center">
+        <Crown size={64} className="text-[#FFBD00] mx-auto mb-6" />
+        <h2 className="text-3xl md:text-5xl font-display font-black uppercase tracking-tight text-white mb-4">
+          Highest Tier <span className="text-firefox-orange">Reached</span>
+        </h2>
+        <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+          You are already enjoying all premium benefits and exclusive perks as a Platinum member. Thank you for your continued support!
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto py-8">
@@ -175,7 +199,9 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
                 Unlock The <span className="text-firefox-orange">Premium Portal</span>
               </h2>
               <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-                Your Free Tier gives you basic access. Upgrade to Silver or Platinum to unlock the full builder network, premium resources, and exclusive events.
+                {currentTier === 'silver' 
+                  ? "Upgrade to Platinum to unlock the full builder network, premium resources, and exclusive events."
+                  : "Your Free Tier gives you basic access. Upgrade to Silver or Platinum to unlock the full builder network, premium resources, and exclusive events."}
               </p>
             </div>
 
@@ -203,32 +229,34 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
               <p className="text-zinc-400">Choose the membership that best fits your goals.</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className={`grid ${currentTier === 'silver' ? 'max-w-md mx-auto grid-cols-1' : 'md:grid-cols-2'} gap-6`}>
               {/* Silver Tier */}
-              <div 
-                onClick={() => setSelectedTier('silver')}
-                className={`relative bg-zinc-900 border-2 rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:-translate-y-2 ${selectedTier === 'silver' ? 'border-zinc-400 shadow-[0_0_30px_rgba(161,161,170,0.2)]' : 'border-white/5 hover:border-white/20'}`}
-              >
-                {selectedTier === 'silver' && (
-                  <div className="absolute -top-3 -right-3 w-8 h-8 bg-zinc-400 rounded-full flex items-center justify-center text-zinc-900 shadow-lg">
-                    <CheckCircle2 size={18} className="fill-current" />
+              {currentTier !== 'silver' && (
+                <div 
+                  onClick={() => setSelectedTier('silver')}
+                  className={`relative bg-zinc-900 border-2 rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:-translate-y-2 ${selectedTier === 'silver' ? 'border-zinc-400 shadow-[0_0_30px_rgba(161,161,170,0.2)]' : 'border-white/5 hover:border-white/20'}`}
+                >
+                  {selectedTier === 'silver' && (
+                    <div className="absolute -top-3 -right-3 w-8 h-8 bg-zinc-400 rounded-full flex items-center justify-center text-zinc-900 shadow-lg">
+                      <CheckCircle2 size={18} className="fill-current" />
+                    </div>
+                  )}
+                  <div className="mb-6">
+                    <Shield size={32} className="text-zinc-400 mb-4" />
+                    <h4 className="text-2xl font-display font-black uppercase text-white mb-1">Silver</h4>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-black text-zinc-400">₹{fees.silver}</span>
+                      <span className="text-zinc-500 text-sm font-bold uppercase">/year</span>
+                    </div>
                   </div>
-                )}
-                <div className="mb-6">
-                  <Shield size={32} className="text-zinc-400 mb-4" />
-                  <h4 className="text-2xl font-display font-black uppercase text-white mb-1">Silver</h4>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-black text-zinc-400">₹{fees.silver}</span>
-                    <span className="text-zinc-500 text-sm font-bold uppercase">/year</span>
-                  </div>
+                  <ul className="space-y-3 mb-8">
+                    <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Official Member ID Card</li>
+                    <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Access to Member Directory</li>
+                    <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Standard Event Discounts</li>
+                    <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Access to Roadmaps & Resources</li>
+                  </ul>
                 </div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Official Member ID Card</li>
-                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Access to Member Directory</li>
-                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Standard Event Discounts</li>
-                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Access to Roadmaps & Resources</li>
-                </ul>
-              </div>
+              )}
 
               {/* Platinum Tier */}
               <div 
@@ -286,9 +314,9 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
             key="payment"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="max-w-2xl mx-auto"
+            className="max-w-2xl mx-auto w-full"
           >
-            <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
+            <div className="bg-zinc-900 border border-white/10 rounded-3xl p-5 sm:p-8 md:p-12 shadow-2xl relative overflow-hidden">
               {isFoundingMember && (
                 <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/20 blur-[100px] rounded-full pointer-events-none" />
               )}
@@ -351,16 +379,17 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
                            onChange={e => setCouponCode(e.target.value)}
                            disabled={!!appliedCoupon || validatingCoupon}
                            placeholder="Enter Code"
-                           className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white uppercase font-mono tracking-widest focus:border-firefox-orange outline-none disabled:opacity-50"
+                           className="flex-1 min-w-0 bg-black/50 border border-white/10 rounded-xl px-3 sm:px-4 py-3 text-white uppercase font-mono tracking-widest focus:border-firefox-orange outline-none disabled:opacity-50"
                         />
                         {appliedCoupon ? (
-                           <button type="button" onClick={() => { setAppliedCoupon(null); setCouponCode(''); }} className="px-4 py-3 bg-red-500/20 text-red-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500/30">
+                           <button type="button" onClick={() => { setAppliedCoupon(null); setCouponCode(''); }} className="shrink-0 px-4 py-3 bg-red-500/20 text-red-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500/30">
                               Remove
                            </button>
                         ) : (
-                           <button type="button" onClick={handleApplyCoupon} disabled={!couponCode || validatingCoupon} className="px-4 py-3 bg-white/5 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white/10 disabled:opacity-50 flex items-center gap-2">
+                           <button type="button" onClick={handleApplyCoupon} disabled={!couponCode || validatingCoupon} className="shrink-0 px-4 py-3 bg-white/5 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white/10 disabled:opacity-50 flex items-center gap-2">
                               {validatingCoupon ? <Loader2 size={14} className="animate-spin" /> : <Ticket size={14} />}
-                              Apply
+                              <span className="hidden sm:inline">Apply</span>
+                              <span className="sm:hidden">Add</span>
                            </button>
                         )}
                      </div>
@@ -374,7 +403,21 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
                      <div className="p-5 bg-firefox-orange/5 border border-firefox-orange/20 rounded-xl mt-4">
                         <h4 className="text-firefox-orange font-bold text-sm mb-2">UPI Payment Instructions</h4>
                         <p className="text-zinc-400 text-sm mb-4">Transfer the exact amount (₹{getFinalAmount()}) to the official UPI ID. Your account will be upgraded within 24 hours after verification.</p>
-                        <div className="font-mono text-white bg-black/50 p-3 rounded-lg text-center tracking-wider text-xl">mfc.zcoer@upi</div>
+                        <div className="flex items-center justify-between bg-black/50 p-3 rounded-lg border border-white/5">
+                           <div className="font-mono text-white tracking-wider text-lg sm:text-xl truncate">{upiId}</div>
+                           <button 
+                             type="button"
+                             onClick={() => {
+                               navigator.clipboard.writeText(upiId);
+                               setCopied(true);
+                               setTimeout(() => setCopied(false), 2000);
+                             }}
+                             className="ml-2 shrink-0 p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-zinc-400 hover:text-white"
+                             title="Copy UPI ID"
+                           >
+                             {copied ? <CheckCircle2 size={18} className="text-green-400" /> : <Copy size={18} />}
+                           </button>
+                        </div>
                      </div>
 
                      <div>
@@ -438,6 +481,29 @@ export default function MembershipApply({ profile, onComplete }: { profile: any,
                 )}
               </div>
             </div>
+          </motion.div>
+        )}
+
+        {step === 4 && (
+          <motion.div
+            key="success"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-xl mx-auto text-center py-12"
+          >
+            <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 size={48} className="text-green-500" />
+            </div>
+            <h3 className="text-3xl font-display font-black uppercase text-white mb-4">Application Submitted!</h3>
+            <p className="text-zinc-400 text-lg mb-8">
+              Your {selectedTier} membership application has been successfully submitted. Our team will verify your payment and upgrade your account within 24 hours.
+            </p>
+            <button
+              onClick={() => window.location.href = '/dashboard'}
+              className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold transition-colors"
+            >
+              Return to Dashboard
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
