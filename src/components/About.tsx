@@ -3,7 +3,8 @@ import { Users } from 'lucide-react';
 
 const About = () => {
   return (
-    <section id="about" className="section-padding bg-white">
+    <div className="bg-white min-h-screen pt-32 pb-16">
+      <section id="about" className="section-padding">
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-2 gap-20 items-center mb-32">
           <motion.div
@@ -73,6 +74,7 @@ const About = () => {
         </div>
       </div>
     </section>
+    </div>
   );
 };
 

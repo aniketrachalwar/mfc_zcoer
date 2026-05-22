@@ -13,7 +13,9 @@ import ErrorBoundary from './components/ErrorBoundary';
 import NotFound from './components/NotFound';
 
 // Lazy loaded components
+const About = React.lazy(() => import('./components/About'));
 const Projects = React.lazy(() => import('./components/Projects'));
+const TeamPage = React.lazy(() => import('./components/TeamPage'));
 const CommunityPage = React.lazy(() => import('./components/community/CommunityPage'));
 const Dashboard = React.lazy(() => import('./components/community/Dashboard'));
 const PublicProfile = React.lazy(() => import('./components/community/PublicProfile'));
@@ -224,7 +226,9 @@ export default function App() {
             <React.Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
                 <Route path="/projects" element={<Projects />} />
+                <Route path="/team" element={<TeamPage />} />
                 <Route path="/community" element={<CommunityPage />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<MemberProfilePage />} />

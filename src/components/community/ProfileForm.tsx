@@ -18,7 +18,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
   const data = initialData || {};
   const isNewUser = data.points === undefined;
   
-  const { deleteAccount } = useAuth();
+  const { deleteAccount, refetchProfile } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);  
   const isGoogleAuth = user?.providerData?.some((p: any) => p.providerId === 'google.com');
@@ -126,6 +126,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
         colors: ['#FF5C00', '#FFBD00', '#8A2BE2']
       });
 
+      await refetchProfile();
       onSave(cleanData);
     } catch (err) {
       console.error("Save failed:", err);
@@ -183,7 +184,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
           <div className="absolute inset-0 bg-firefox-orange blur-3xl opacity-20 group-hover:opacity-40 transition-opacity" />
           <div className="relative w-32 h-32 rounded-full border-4 border-zinc-800 overflow-hidden bg-zinc-900 flex items-center justify-center">
             {formData.photoURL ? (
-              <img loading="lazy" src={formData.photoURL} alt="Profile" className="w-full h-full object-cover" />
+              <img loading="lazy" src={formData.photoURL} alt="Profile" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.username || 'error'}`; }} />
             ) : (
               <User size={48} className="text-zinc-700" />
             )}
@@ -196,8 +197,9 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, initialData, onSave }) 
             value={formData.photoURL}
             onChange={(e) => setFormData({...formData, photoURL: e.target.value})}
             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[16px] focus:border-firefox-orange outline-none transition-colors"
-            placeholder="https://..."
+            placeholder="Direct Image URL (e.g. https://.../.jpg)"
           />
+          <p className="text-[10px] text-zinc-500 mt-2 text-center">Must be a direct link ending in .jpg or .png</p>
         </div>
       </div>
 

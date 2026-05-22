@@ -37,6 +37,10 @@ class ErrorBoundary extends React.Component<Props, State> {
           <p className="text-zinc-400 max-w-md mx-auto mb-8">
             We've encountered an unexpected error while loading this page. Our team has been notified.
           </p>
+          <div className="bg-red-900/20 p-4 rounded-xl text-left text-xs font-mono text-red-200 w-full max-w-4xl overflow-auto mb-8">
+            <p className="font-bold text-red-400 mb-2">{this.state.error?.toString()}</p>
+            <pre className="whitespace-pre-wrap">{this.state.error?.stack}</pre>
+          </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => window.location.reload()}

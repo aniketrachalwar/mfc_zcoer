@@ -1,21 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { Users, UserCheck, Calendar, Briefcase, FileCheck, Activity } from 'lucide-react';
+import { Users, UserCheck, Calendar, Briefcase, FileCheck, Activity, Plus, ShoppingBag, CheckSquare } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const StatCard = ({ title, value, icon: Icon, color }: any) => (
   <motion.div 
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-white/5 border border-white/10 rounded-2xl p-6 flex items-start justify-between"
+    className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 flex items-start justify-between hover:bg-white/10 transition-colors"
   >
     <div>
-      <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest mb-1">{title}</p>
-      <p className="text-3xl font-display font-black text-white">{value}</p>
+      <p className="text-zinc-400 text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1">{title}</p>
+      <p className="text-2xl sm:text-3xl font-display font-black text-white">{value}</p>
     </div>
-    <div className={`p-3 rounded-xl ${color}`}>
-      <Icon size={20} />
+    <div className={`p-2.5 sm:p-3 rounded-xl ${color}`}>
+      <Icon size={18} className="sm:w-5 sm:h-5" />
     </div>
   </motion.div>
 );
@@ -67,63 +68,81 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-display font-black uppercase text-white mb-2">
+    <div className="pb-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-display font-black uppercase text-white mb-2">
           System <span className="text-firefox-orange">Overview</span>
         </h1>
-        <p className="text-zinc-400 text-sm">Real-time metrics for MFC ZCOER platform.</p>
+        <p className="text-zinc-400 text-xs sm:text-sm">Real-time metrics for MFC ZCOER platform.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+      {/* Quick Actions Bar (Horizontal Scroll on Mobile) */}
+      <div className="mb-8">
+        <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 px-1">Quick Actions</h2>
+        <div className="flex overflow-x-auto gap-3 pb-4 snap-x hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+          <Link to="/admin/applications" className="snap-start shrink-0 flex items-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+            <CheckSquare size={16} /> Approve Members
+          </Link>
+          <Link to="/admin/events" className="snap-start shrink-0 flex items-center gap-2 bg-firefox-orange/10 hover:bg-firefox-orange/20 text-firefox-orange border border-firefox-orange/20 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+            <Plus size={16} /> Add Event
+          </Link>
+          <Link to="/admin/merch" className="snap-start shrink-0 flex items-center gap-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+            <ShoppingBag size={16} /> Add Merchandise
+          </Link>
+          <Link to="/admin/dashboard-config" className="snap-start shrink-0 flex items-center gap-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+            <Activity size={16} /> Live Alert
+          </Link>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-12">
         <StatCard 
-          title="Total Members" 
+          title="Members" 
           value={stats.totalMembers} 
           icon={Users} 
           color="bg-blue-500/10 text-blue-500" 
         />
         <StatCard 
-          title="Active Members" 
+          title="Active" 
           value={stats.activeMembers} 
           icon={UserCheck} 
           color="bg-green-500/10 text-green-500" 
         />
         <StatCard 
-          title="Pending Approvals" 
+          title="Pending" 
           value={stats.pendingApprovals} 
           icon={FileCheck} 
           color="bg-yellow-500/10 text-yellow-500" 
         />
         <StatCard 
-          title="Total Projects" 
+          title="Projects" 
           value={stats.totalProjects} 
           icon={Briefcase} 
           color="bg-purple-500/10 text-purple-500" 
         />
         <StatCard 
-          title="Upcoming Events" 
+          title="Events" 
           value={stats.upcomingEvents} 
           icon={Calendar} 
           color="bg-pink-500/10 text-pink-500" 
         />
         <StatCard 
-          title="Recent Activity" 
+          title="Activity" 
           value={stats.recentActivity} 
           icon={Activity} 
           color="bg-firefox-orange/10 text-firefox-orange" 
         />
       </div>
 
-      {/* Quick Actions or Recent Activity List could go here */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-        <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Recent System Activity</h2>
-        <div className="space-y-4">
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6">
+        <h2 className="text-[10px] font-black text-white uppercase tracking-widest mb-4">Recent System Activity</h2>
+        <div className="space-y-3">
           {[1, 2, 3].map((_, i) => (
-            <div key={i} className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors">
-              <div className="w-2 h-2 rounded-full bg-firefox-orange" />
-              <div className="flex-1">
-                <p className="text-sm text-white">System update placeholder</p>
-                <p className="text-xs text-zinc-500">2 hours ago</p>
+            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:bg-white/5 transition-colors">
+              <div className="w-2 h-2 rounded-full bg-firefox-orange shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm text-white truncate">System update placeholder</p>
+                <p className="text-[10px] text-zinc-500">2 hours ago</p>
               </div>
             </div>
           ))}

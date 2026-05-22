@@ -12,6 +12,7 @@ const EventsManager = () => {
   const [managingEventId, setManagingEventId] = useState<string | null>(null);
   const [attendees, setAttendees] = useState<any[]>([]);
   const [loadingAttendees, setLoadingAttendees] = useState(false);
+  const [formStep, setFormStep] = useState(1);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -63,6 +64,7 @@ const EventsManager = () => {
       setFormData({ title: '', type: 'Hackathon', desc: '', img: '', date: '', location: '', prizes: '', totalSeats: 30, certificateType: 'Participation', price: 0 });
       setEditingId(null);
     }
+    setFormStep(1);
     setIsFormOpen(true);
   };
 
@@ -385,167 +387,215 @@ const EventsManager = () => {
       <AnimatePresence>
         {isFormOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeForm} />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-zinc-950 border border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 p-8 shadow-2xl"
-            >
-              <button 
-                onClick={closeForm}
-                className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors"
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeForm} />
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="bg-zinc-950 border border-white/10 rounded-t-3xl md:rounded-3xl w-full max-w-2xl h-[90vh] md:h-auto md:max-h-[90vh] flex flex-col relative z-10 shadow-2xl mt-auto md:mt-0"
               >
-                <X size={24} />
-              </button>
-              
-              <h2 className="text-2xl font-display font-black uppercase text-white mb-8">
-                {editingId ? 'Edit Event' : 'Create New Event'}
-              </h2>
-              
-              <form onSubmit={saveEvent} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Event Title</label>
-                    <input 
-                      type="text" 
-                      name="title"
-                      value={formData.title}
-                      onChange={handleChange}
-                      required
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Event Type</label>
-                    <select 
-                      name="type"
-                      value={formData.type}
-                      onChange={handleChange}
-                      className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/5 shrink-0">
+                  <h2 className="text-lg sm:text-2xl font-display font-black uppercase text-white">
+                    {editingId ? 'Edit Event' : 'Create New Event'}
+                  </h2>
+                  <button 
+                    onClick={closeForm}
+                    className="text-zinc-500 hover:text-white transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                {/* Stepper Progress */}
+                <div className="flex gap-2 p-4 sm:px-6 bg-white/5 shrink-0">
+                  {[1, 2, 3].map(step => (
+                    <div key={step} className={`h-1 flex-1 rounded-full ${formStep >= step ? 'bg-firefox-orange' : 'bg-white/10'}`} />
+                  ))}
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                  <form id="event-form" onSubmit={saveEvent} className="space-y-6">
+                    {formStep === 1 && (
+                      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Event Title</label>
+                          <input 
+                            type="text" 
+                            name="title"
+                            value={formData.title}
+                            onChange={handleChange}
+                            required
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Event Type</label>
+                          <select 
+                            name="type"
+                            value={formData.type}
+                            onChange={handleChange}
+                            className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                          >
+                            <option value="Hackathon">Hackathon</option>
+                            <option value="Workshop">Workshop</option>
+                            <option value="Open Source Sprint">Open Source Sprint</option>
+                            <option value="Meetup">Meetup</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Description</label>
+                          <textarea 
+                            name="desc"
+                            value={formData.desc}
+                            onChange={handleChange}
+                            required
+                            rows={4}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {formStep === 2 && (
+                      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Date & Time</label>
+                          <input 
+                            type="datetime-local" 
+                            name="date"
+                            value={formData.date}
+                            onChange={handleChange}
+                            required
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Location</label>
+                          <input 
+                            type="text" 
+                            name="location"
+                            value={formData.location}
+                            onChange={handleChange}
+                            required
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Cover Image URL</label>
+                          <input 
+                            type="url" 
+                            name="img"
+                            value={formData.img}
+                            onChange={handleChange}
+                            placeholder="https://..."
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {formStep === 3 && (
+                      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Certificate Type</label>
+                          <select 
+                            name="certificateType"
+                            value={formData.certificateType}
+                            onChange={handleChange}
+                            className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                          >
+                            <option value="None">None</option>
+                            <option value="Participation">Participation</option>
+                            <option value="Completion">Completion</option>
+                            <option value="Excellence">Excellence</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Prizes (Optional)</label>
+                          <input 
+                            type="text" 
+                            name="prizes"
+                            value={formData.prizes}
+                            onChange={handleChange}
+                            placeholder="e.g. ₹50,000 Pool + Exclusive Swags"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Total Seats</label>
+                          <input 
+                            type="number" 
+                            name="totalSeats"
+                            value={formData.totalSeats}
+                            onChange={handleChange}
+                            min="1"
+                            required
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Base Price (₹) - Enter 0 for Free</label>
+                          <input 
+                            type="number" 
+                            name="price"
+                            value={formData.price}
+                            onChange={handleChange}
+                            min="0"
+                            required
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+                  </form>
+                </div>
+
+                {/* Sticky Bottom Actions */}
+                <div className="p-4 sm:p-6 border-t border-white/5 bg-zinc-950/80 backdrop-blur-xl shrink-0 flex items-center justify-between gap-4">
+                  {formStep > 1 ? (
+                    <button 
+                      type="button"
+                      onClick={() => setFormStep(prev => prev - 1)}
+                      className="px-6 py-3 bg-white/5 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white/10 transition-colors"
                     >
-                      <option value="Hackathon">Hackathon</option>
-                      <option value="Workshop">Workshop</option>
-                      <option value="Open Source Sprint">Open Source Sprint</option>
-                      <option value="Meetup">Meetup</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Description</label>
-                  <textarea 
-                    name="desc"
-                    value={formData.desc}
-                    onChange={handleChange}
-                    required
-                    rows={3}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Date & Time</label>
-                    <input 
-                      type="datetime-local" 
-                      name="date"
-                      value={formData.date}
-                      onChange={handleChange}
-                      required
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Location</label>
-                    <input 
-                      type="text" 
-                      name="location"
-                      value={formData.location}
-                      onChange={handleChange}
-                      required
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Cover Image URL</label>
-                    <input 
-                      type="url" 
-                      name="img"
-                      value={formData.img}
-                      onChange={handleChange}
-                      placeholder="https://..."
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Certificate Type</label>
-                    <select 
-                      name="certificateType"
-                      value={formData.certificateType}
-                      onChange={handleChange}
-                      className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                      Back
+                    </button>
+                  ) : (
+                    <button 
+                      type="button"
+                      onClick={closeForm}
+                      className="px-6 py-3 text-zinc-500 hover:text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-colors"
                     >
-                      <option value="None">None</option>
-                      <option value="Participation">Participation</option>
-                      <option value="Completion">Completion</option>
-                      <option value="Excellence">Excellence</option>
-                    </select>
-                  </div>
-                </div>
+                      Cancel
+                    </button>
+                  )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Prizes (Optional)</label>
-                    <input 
-                      type="text" 
-                      name="prizes"
-                      value={formData.prizes}
-                      onChange={handleChange}
-                      placeholder="e.g. ₹50,000 Pool + Exclusive Swags"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Total Seats</label>
-                    <input 
-                      type="number" 
-                      name="totalSeats"
-                      value={formData.totalSeats}
-                      onChange={handleChange}
-                      min="1"
-                      required
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
-                    />
-                  </div>
+                  {formStep < 3 ? (
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        const form = document.getElementById('event-form') as HTMLFormElement;
+                        if (form.checkValidity()) {
+                          setFormStep(prev => prev + 1);
+                        } else {
+                          form.reportValidity();
+                        }
+                      }}
+                      className="flex-1 sm:flex-none px-8 py-3 bg-white text-black rounded-xl font-black text-xs uppercase tracking-widest hover:bg-zinc-200 transition-colors"
+                    >
+                      Next Step
+                    </button>
+                  ) : (
+                    <button 
+                      type="submit"
+                      form="event-form"
+                      className="flex-1 sm:flex-none px-8 py-3 bg-firefox-orange text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-colors shadow-[0_0_20px_rgba(255,106,0,0.2)]"
+                    >
+                      {editingId ? 'Save' : 'Publish'}
+                    </button>
+                  )}
                 </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Base Price (₹) - Enter 0 for Free Event</label>
-                  <input 
-                    type="number" 
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    min="0"
-                    required
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors"
-                  />
-                  <p className="text-xs text-zinc-500 mt-1">Silver members get 50% off. Platinum members attend for free.</p>
-                </div>
-
-                <button 
-                  type="submit"
-                  className="w-full py-4 bg-firefox-orange text-white rounded-xl font-display font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-colors shadow-[0_0_20px_rgba(255,92,0,0.2)]"
-                >
-                  {editingId ? 'Save Changes' : 'Create Event'}
-                </button>
-              </form>
-            </motion.div>
+              </motion.div>
           </div>
         )}
       </AnimatePresence>

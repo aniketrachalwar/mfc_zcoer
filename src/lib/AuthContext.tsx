@@ -21,6 +21,10 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   signupWithEmail: (email: string, pass: string) => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
+  login: () => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  signupWithEmail: (email: string, pass: string) => Promise<void>;
+  loginWithEmail: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   setError: (msg: string | null) => void;
@@ -29,6 +33,7 @@ interface AuthContextType {
   success: string | null;
   clearSuccess: () => void;
   setSuccessMessage: (msg: string) => void;
+  refetchProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -76,6 +81,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
     return unsubscribe;
   }, []);
+
+  const refetchProfile = async () => {
+    if (!user) return;
+    try {
+      const profileSnap = await getDoc(doc(db, 'users', user.uid));
+      if (profileSnap.exists()) {
+        const data = profileSnap.data();
+        setUserProfile({ 
+          id: profileSnap.id, 
+          membershipStatus: data.membershipStatus || 'public',
+          isFoundingMember: data.isFoundingMember || false,
+          membershipTier: data.membershipTier || 'free',
+          subscriptionStart: data.subscriptionStart || null,
+          subscriptionEnd: data.subscriptionEnd || null,
+          paymentStatus: data.paymentStatus || 'none',
+          ...data 
+        });
+      }
+    } catch (err) {
+      console.error('Failed to refetch user profile:', err);
+    }
+  };
 
   useEffect(() => {
     if (success) {
@@ -181,7 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider value={{ 
       user, userProfile, loading, error, success, 
       login, loginWithGoogle, signupWithEmail, loginWithEmail, logout, deleteAccount,
-      setError, setSuccess, clearError, clearSuccess, setSuccessMessage 
+      setError, setSuccess, clearError, clearSuccess, setSuccessMessage, refetchProfile 
     }}>
       {children}
     </AuthContext.Provider>

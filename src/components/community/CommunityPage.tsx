@@ -139,15 +139,15 @@ const CommunityPage = () => {
         {/* Member Grid */}
         <AnimatePresence mode="popLayout">
           {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
               {[...Array(10)].map((_, i) => (
-                <div key={i} className="h-48 bg-white/5 border border-white/5 rounded-3xl animate-pulse" />
+                <div key={i} className="h-48 bg-white/5 border border-white/5 rounded-2xl sm:rounded-3xl animate-pulse" />
               ))}
             </div>
           ) : (
             <motion.div 
               layout
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+              className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 md:gap-6"
             >
               {filteredProfiles.map((profile, i) => (
                 <React.Fragment key={profile.id}>
@@ -162,16 +162,17 @@ const CommunityPage = () => {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.05 }}
-                    className="group relative bg-zinc-900/40 border border-white/5 p-4 sm:p-5 rounded-[1.5rem] hover:border-firefox-orange/30 transition-all duration-500 overflow-hidden flex flex-col items-center text-center"
+                    className="group relative bg-zinc-900/40 border border-white/5 p-2 sm:p-5 rounded-2xl sm:rounded-[1.5rem] hover:border-firefox-orange/30 transition-all duration-500 overflow-hidden flex flex-col items-center text-center h-full"
                   >
                     <div className="absolute top-0 right-0 w-24 h-24 bg-firefox-orange/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     
-                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 mb-4">
+                    <div className="relative w-12 h-12 sm:w-24 sm:h-24 mb-2 sm:mb-4 shrink-0">
                       {(profile.membershipStatus === 'active' || ['admin', 'president', 'core_team'].includes(profile.role || '')) && (
                         <div className="absolute inset-0 bg-firefox-orange rounded-full blur-xl opacity-20 scale-125 animate-pulse" />
                       )}
                       <img loading="lazy" 
                         src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username || 'unknown'}`} 
+                        onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username || 'error'}`; }}
                         alt={profile.fullName || 'Unknown User'}
                         className="w-full h-full rounded-full object-cover aspect-square border-2 border-zinc-800 relative z-10"
                       />
@@ -182,11 +183,11 @@ const CommunityPage = () => {
                       )}
                     </div>
 
-                    <h3 className="text-base font-display font-black uppercase text-white group-hover:text-firefox-orange transition-colors line-clamp-1 w-full" title={profile.fullName || 'Unknown User'}>
+                    <h3 className="text-[10px] sm:text-base font-display font-black uppercase text-white group-hover:text-firefox-orange transition-colors line-clamp-1 w-full" title={profile.fullName || 'Unknown User'}>
                       {profile.fullName || 'Unknown User'}
                     </h3>
                     
-                    <span className="text-[10px] font-black tracking-widest text-firefox-orange uppercase mt-1 mb-4 bg-firefox-orange/10 px-3 py-1 rounded-full border border-firefox-orange/20 line-clamp-1 w-max max-w-full">
+                    <span className="text-[8px] sm:text-[10px] font-black tracking-widest text-firefox-orange uppercase mt-1 mb-2 sm:mb-4 bg-firefox-orange/10 px-2 sm:px-3 py-1 rounded-full border border-firefox-orange/20 line-clamp-1 w-max max-w-full">
                       {profile.memberId || 'GUEST'}
                     </span>
 

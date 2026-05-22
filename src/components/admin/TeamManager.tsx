@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { UserPlus, Trash2, Search } from 'lucide-react';
+import { UserPlus, Trash2, Search, Users as UsersIcon, CheckSquare } from 'lucide-react';
 import { motion } from 'motion/react';
+import TeamApplicationsList from './TeamApplicationsList';
 
 const TeamManager = () => {
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
@@ -11,6 +12,7 @@ const TeamManager = () => {
   
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'members' | 'applications'>('members');
   
   // New member state
   const [selectedUserId, setSelectedUserId] = useState('');
@@ -98,6 +100,31 @@ const TeamManager = () => {
           {showAddForm ? 'Cancel' : 'Add Team Member'}
         </button>
       </div>
+
+      <div className="flex bg-white/5 p-1 rounded-2xl w-fit">
+        <button
+          onClick={() => setActiveTab('members')}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-display font-black text-[10px] uppercase tracking-widest transition-all ${
+            activeTab === 'members' ? 'bg-firefox-orange text-white shadow-lg' : 'text-zinc-400 hover:text-white'
+          }`}
+        >
+          <UsersIcon size={14} /> Current Team
+        </button>
+        <button
+          onClick={() => setActiveTab('applications')}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-display font-black text-[10px] uppercase tracking-widest transition-all ${
+            activeTab === 'applications' ? 'bg-firefox-orange text-white shadow-lg' : 'text-zinc-400 hover:text-white'
+          }`}
+        >
+          <CheckSquare size={14} /> Applications
+        </button>
+      </div>
+
+      {activeTab === 'applications' ? (
+        <TeamApplicationsList />
+      ) : (
+        <>
+          {/* Add Team Member Form */}
 
       {showAddForm && (
         <motion.div 
@@ -220,7 +247,7 @@ const TeamManager = () => {
               No team members added yet. Add someone from the community!
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );

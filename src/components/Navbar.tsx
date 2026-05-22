@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthModal from './AuthModal';
+import LiveNotificationBar from './LiveNotificationBar';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,14 +40,13 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', href: '/', type: 'link' },
-    { name: 'About', href: '/#about', type: 'anchor' },
+    { name: 'About', href: '/about', type: 'link' },
     { name: 'Blogs', href: '/blogs', type: 'link' },
-    { name: 'Leaderboard', href: '/#leaderboard', type: 'anchor' },
+    { name: 'Leaderboard', href: '/leaderboard', type: 'link' },
     { name: 'Events', href: '/events', type: 'link' },
     { name: 'Projects', href: '/projects', type: 'link' },
-    { name: 'Team', href: '/#teams', type: 'anchor' },
-    { name: 'Community', href: '/community', type: 'link' },
-    { name: 'Contact', href: '/#contact', type: 'anchor' },
+    { name: 'Team', href: '/team', type: 'link' },
+    { name: 'Community', href: '/community', type: 'link' }
   ];
 
   useEffect(() => {
@@ -105,8 +105,9 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 overflow-x-clip ${scrolled ? 'glass-nav py-3 md:py-4' : 'bg-transparent py-4 md:py-8'}`}>
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 md:px-12 flex items-center justify-between gap-3">
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 overflow-x-clip ${scrolled ? 'glass-nav flex flex-col' : 'bg-transparent flex flex-col'}`}>
+      <LiveNotificationBar />
+      <div className={`max-w-[1920px] w-full mx-auto px-4 sm:px-6 md:px-12 flex items-center justify-between gap-3 transition-all duration-500 ${scrolled ? 'py-3 md:py-4' : 'py-4 md:py-8'}`}>
         
         {/* Logo Section */}
         <Link to="/" className="flex items-center gap-4 group cursor-pointer">
