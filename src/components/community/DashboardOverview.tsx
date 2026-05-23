@@ -4,10 +4,12 @@ import { Sparkles, ArrowRight, Target, Calendar, Rocket, Bell, Shield } from 'lu
 import { useOutletContext, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import ProposeWorkshopModal from './ProposeWorkshopModal';
 
 export default function DashboardOverview() {
   const { profile } = useOutletContext<{ profile: any }>();
   const [config, setConfig] = useState<any>(null);
+  const [isProposeModalOpen, setIsProposeModalOpen] = useState(false);
   
   useEffect(() => {
     const fetchConfig = async () => {
@@ -90,13 +92,6 @@ export default function DashboardOverview() {
                 <ArrowRight size={14} className="text-zinc-500" />
               </Link>
               <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 opacity-60 cursor-not-allowed">
-                <span className="text-sm font-medium text-zinc-300">Premium Resources</span>
-                <div className="flex items-center gap-2">
-                   <span className="text-[8px] font-black uppercase tracking-widest text-firefox-orange">Silver+</span>
-                   <Shield size={14} className="text-zinc-500" />
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 opacity-60 cursor-not-allowed">
                 <span className="text-sm font-medium text-zinc-300">Project Incubation</span>
                 <div className="flex items-center gap-2">
                    <span className="text-[8px] font-black uppercase tracking-widest text-yellow-500">Platinum</span>
@@ -162,6 +157,23 @@ export default function DashboardOverview() {
         </div>
       </div>
 
+      {/* Propose Workshop Banner */}
+      <button 
+        onClick={() => setIsProposeModalOpen(true)}
+        className="w-full bg-zinc-900 border border-white/10 hover:border-firefox-orange/30 rounded-3xl p-6 flex items-center justify-between group transition-all"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-firefox-orange/10 rounded-xl flex items-center justify-center text-firefox-orange group-hover:scale-110 transition-transform">
+            <Rocket size={24} />
+          </div>
+          <div className="text-left">
+            <h3 className="text-lg font-bold text-white mb-1 group-hover:text-firefox-orange transition-colors">Propose a Workshop</h3>
+            <p className="text-sm text-zinc-400">Share your expertise! Propose an event or workshop and co-host it with the community.</p>
+          </div>
+        </div>
+        <ArrowRight className="text-zinc-500 group-hover:text-firefox-orange group-hover:translate-x-1 transition-all" />
+      </button>
+
       {activeAnnouncements.length > 0 && (
         <div className="space-y-3">
           {activeAnnouncements.map((ann: any) => (
@@ -176,6 +188,12 @@ export default function DashboardOverview() {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {widgets.filter((w: any) => w.enabled).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)).map((w: any) => renderWidget(w.id))}
       </div>
+
+      <ProposeWorkshopModal 
+        isOpen={isProposeModalOpen} 
+        onClose={() => setIsProposeModalOpen(false)} 
+        profile={profile} 
+      />
     </div>
   );
 }

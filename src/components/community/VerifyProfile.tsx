@@ -20,7 +20,7 @@ const VerifyProfile = () => {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState('MFCZ-');
   const [searchLoading, setSearchLoading] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
 
@@ -266,7 +266,7 @@ const VerifyProfile = () => {
         <p className="text-zinc-500 mb-8 max-w-md">{error || "The provided identifier is invalid."}</p>
         
         <div className="flex gap-4">
-          <button onClick={() => { setError(null); setSearchInput(''); setIsScanning(false); setShowAttendanceForm(false); window.history.replaceState(null, '', '/verify'); }} className="px-8 py-3 bg-white/5 border border-white/10 rounded-full text-white font-display text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
+          <button onClick={() => { setError(null); setSearchInput('MFCZ-'); setIsScanning(false); setShowAttendanceForm(false); window.history.replaceState(null, '', '/verify'); }} className="px-8 py-3 bg-white/5 border border-white/10 rounded-full text-white font-display text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
             Scan Another
           </button>
         </div>
@@ -356,11 +356,26 @@ const VerifyProfile = () => {
 
   // --- TICKET VERIFIED VIEW ---
   if (ticket && profile && eventData) {
+    const isPaidEvent = eventData.price > 0;
+    const paymentOrigin = isPaidEvent ? (profile.membershipTier === 'Platinum' ? 'Platinum Access' : (profile.membershipTier === 'Silver' ? 'Silver Discounted' : 'Paid Entry')) : 'Free Event';
+
+    const handleReset = () => {
+      setTicket(null); 
+      setProfile(null); 
+      setSearchInput('MFCZ-');
+      window.history.replaceState(null, '', '/verify');
+      // If we were scanning, we can just immediately drop back to scan mode.
+      setIsScanning(true); 
+    };
+
     return (
-      <div className="min-h-screen bg-[#09090b] pt-32 pb-20 px-4 flex flex-col items-center justify-center">
-        <button onClick={() => { setTicket(null); setProfile(null); window.history.replaceState(null, '', '/verify'); }} className="absolute top-24 left-4 md:left-12 z-20 cursor-pointer inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group">
+      <div 
+        className="min-h-screen bg-[#09090b] pt-32 pb-20 px-4 flex flex-col items-center justify-center cursor-pointer"
+        onClick={handleReset}
+      >
+        <button className="absolute top-24 left-4 md:left-12 z-20 inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Back to Scanner</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Tap Anywhere to Scan Next</span>
         </button>
 
         <motion.div
@@ -407,6 +422,10 @@ const VerifyProfile = () => {
                 <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Ticket ID</span>
                 <span className="text-white text-[10px] font-mono opacity-50 truncate w-32 text-right">{ticket.id}</span>
               </div>
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Origin</span>
+                <span className="text-firefox-orange text-[10px] font-black uppercase tracking-widest text-right">{paymentOrigin}</span>
+              </div>
               <div className="flex justify-between items-center py-2">
                 <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Admit</span>
                 <span className="text-white text-xs font-bold uppercase">1 Person</span>
@@ -420,11 +439,21 @@ const VerifyProfile = () => {
 
   // --- PROFILE VERIFIED VIEW ---
   if (profile && !ticket) {
+    const handleReset = () => {
+      setProfile(null); 
+      setSearchInput('MFCZ-');
+      window.history.replaceState(null, '', '/verify');
+      setIsScanning(true);
+    };
+
     return (
-      <div className="min-h-screen bg-[#09090b] pt-32 pb-20 px-4 flex flex-col items-center justify-center">
-        <button onClick={() => { setProfile(null); window.history.replaceState(null, '', '/verify'); }} className="absolute top-24 left-4 md:left-12 z-20 cursor-pointer inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group">
+      <div 
+        className="min-h-screen bg-[#09090b] pt-32 pb-20 px-4 flex flex-col items-center justify-center cursor-pointer"
+        onClick={handleReset}
+      >
+        <button className="absolute top-24 left-4 md:left-12 z-20 inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Back to Scanner</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Tap Anywhere to Scan Next</span>
         </button>
 
         <motion.div
@@ -440,7 +469,9 @@ const VerifyProfile = () => {
             </div>
             
             <h1 className="text-3xl font-display font-black uppercase text-[#22c55e] mb-2">Verified Member</h1>
-            <p className="text-zinc-400 text-sm font-medium mb-8">This is an authentic MFC ZCOER member card.</p>
+            <p className="text-zinc-400 text-sm font-medium mb-8 uppercase tracking-widest text-[10px] font-black text-center max-w-[200px] leading-relaxed">
+              Tier: <span className="text-white">{profile.membershipTier || 'Free'}</span>
+            </p>
 
             <div className="w-24 h-24 rounded-full border-2 border-white/10 p-1 mb-4 overflow-hidden">
               <img loading="lazy" 

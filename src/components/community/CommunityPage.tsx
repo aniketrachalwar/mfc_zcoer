@@ -67,11 +67,13 @@ const CommunityPage = () => {
     fetchProfiles();
   }, [user]);
 
-  const filteredProfiles = profiles.filter(p => 
-    p.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.memberId.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProfiles = profiles.filter(p => {
+    const s = searchTerm.toLowerCase();
+    const nameMatch = p.fullName ? p.fullName.toLowerCase().includes(s) : false;
+    const userMatch = p.username ? p.username.toLowerCase().includes(s) : false;
+    const idMatch = p.memberId ? p.memberId.toLowerCase().includes(s) : false;
+    return nameMatch || userMatch || idMatch;
+  });
 
   if (authLoading) {
     return (
@@ -139,7 +141,7 @@ const CommunityPage = () => {
         {/* Member Grid */}
         <AnimatePresence mode="popLayout">
           {loading ? (
-            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
               {[...Array(10)].map((_, i) => (
                 <div key={i} className="h-48 bg-white/5 border border-white/5 rounded-2xl sm:rounded-3xl animate-pulse" />
               ))}
@@ -147,7 +149,7 @@ const CommunityPage = () => {
           ) : (
             <motion.div 
               layout
-              className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 md:gap-6"
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6"
             >
               {filteredProfiles.map((profile, i) => (
                 <React.Fragment key={profile.id}>

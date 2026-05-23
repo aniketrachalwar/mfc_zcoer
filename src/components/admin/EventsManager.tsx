@@ -25,7 +25,9 @@ const EventsManager = () => {
     prizes: '',
     totalSeats: 30,
     certificateType: 'Participation',
-    price: 0
+    price: 0,
+    why: '',
+    outcomes: ''
   });
 
   const fetchEvents = async () => {
@@ -57,11 +59,13 @@ const EventsManager = () => {
         prizes: event.prizes || '',
         totalSeats: event.totalSeats || 30,
         certificateType: event.certificateType || 'Participation',
-        price: event.price || 0
+        price: event.price || 0,
+        why: event.why || '',
+        outcomes: event.outcomes || ''
       });
       setEditingId(event.id);
     } else {
-      setFormData({ title: '', type: 'Hackathon', desc: '', img: '', date: '', location: '', prizes: '', totalSeats: 30, certificateType: 'Participation', price: 0 });
+      setFormData({ title: '', type: 'Hackathon', desc: '', img: '', date: '', location: '', prizes: '', totalSeats: 30, certificateType: 'Participation', price: 0, why: '', outcomes: '' });
       setEditingId(null);
     }
     setFormStep(1);
@@ -77,8 +81,8 @@ const EventsManager = () => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const saveEvent = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const saveEvent = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
     try {
       if (editingId) {
         await updateDoc(doc(db, 'events', editingId), formData);
@@ -89,6 +93,16 @@ const EventsManager = () => {
       fetchEvents();
     } catch (err) {
       console.error("Error saving event:", err);
+    }
+  };
+
+  const triggerSave = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const form = document.getElementById('event-form') as HTMLFormElement;
+    if (form.checkValidity()) {
+      saveEvent();
+    } else {
+      form.reportValidity();
     }
   };
 
@@ -414,7 +428,11 @@ const EventsManager = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-                  <form id="event-form" onSubmit={saveEvent} className="space-y-6">
+                  <form 
+                    id="event-form" 
+                    onSubmit={(e) => e.preventDefault()}
+                    className="space-y-6"
+                  >
                     {formStep === 1 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
                         <div className="space-y-2">
@@ -587,11 +605,11 @@ const EventsManager = () => {
                     </button>
                   ) : (
                     <button 
-                      type="submit"
-                      form="event-form"
-                      className="flex-1 sm:flex-none px-8 py-3 bg-firefox-orange text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-colors shadow-[0_0_20px_rgba(255,106,0,0.2)]"
+                      type="button"
+                      onClick={triggerSave}
+                      className="flex-1 sm:flex-none px-8 py-3 bg-firefox-orange text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-colors shadow-[0_0_20px_rgba(255,92,0,0.3)]"
                     >
-                      {editingId ? 'Save' : 'Publish'}
+                      {editingId ? 'Update Event' : 'Create Event'}
                     </button>
                   )}
                 </div>
@@ -648,6 +666,28 @@ const EventsManager = () => {
                               <option value="Winner">Winner</option>
                               <option value="Excellence">Excellence</option>
                             </select>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block ml-4">Why is this event happening?</label>
+                            <textarea 
+                              required
+                              name="why"
+                              value={formData.why}
+                              onChange={handleChange}
+                              className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-firefox-orange text-sm resize-none h-24"
+                              placeholder="Reason for hosting the event..."
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block ml-4">What will attendees get? (Outcomes)</label>
+                            <textarea 
+                              required
+                              name="outcomes"
+                              value={formData.outcomes}
+                              onChange={handleChange}
+                              className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-firefox-orange text-sm resize-none h-24"
+                              placeholder="Certificates, knowledge, swags..."
+                            />
                           </div>
                         </div>
                       </div>

@@ -39,16 +39,15 @@ const TeamManager = React.lazy(() => import('./components/admin/TeamManager'));
 const BlogsManager = React.lazy(() => import('./components/admin/BlogsManager'));
 const SettingsManager = React.lazy(() => import('./components/admin/SettingsManager'));
 const ApplicationsManager = React.lazy(() => import('./components/admin/ApplicationsManager'));
-const DashboardConfigManager = React.lazy(() => import('./components/admin/DashboardConfigManager'));
+const AboutManager = React.lazy(() => import('./components/admin/AboutManager'));
 
 const BlogsPage = React.lazy(() => import('./components/blogs/BlogsPage'));
 const BlogDetails = React.lazy(() => import('./components/blogs/BlogDetails'));
 const WriteBlog = React.lazy(() => import('./components/blogs/WriteBlog'));
 const CouponManager = React.lazy(() => import('./components/admin/CouponManager'));
-const StudentPortalManager = React.lazy(() => import('./components/admin/StudentPortalManager'));
+const MembersDashboardManager = React.lazy(() => import('./components/admin/MembersDashboardManager'));
+const WorkshopProposalsManager = React.lazy(() => import('./components/admin/WorkshopProposalsManager'));
 
-const StudentLayout = React.lazy(() => import('./components/student/StudentLayout'));
-const StudentOverview = React.lazy(() => import('./components/student/StudentOverview'));
 const RunningProjects = React.lazy(() => import('./components/student/RunningProjects'));
 const PurchasedItems = React.lazy(() => import('./components/student/PurchasedItems'));
 const MembershipHistory = React.lazy(() => import('./components/student/MembershipHistory'));
@@ -203,7 +202,7 @@ const Layout = ({ children, scaleX }: { children: React.ReactNode; scaleX: any }
       <Footer />
 
       {/* Member Portal Overlay - Floating Action if logged in */}
-      {user && !location.pathname.startsWith('/dashboard') && !location.pathname.startsWith('/admin') && !location.pathname.startsWith('/student') && (
+      {user && !location.pathname.startsWith('/dashboard') && !location.pathname.startsWith('/admin') && (
         <Link to="/dashboard" className="fixed bottom-8 right-8 z-50 block">
           <motion.div
             initial={{ scale: 0 }}
@@ -249,6 +248,7 @@ export default function App() {
                   <Route path="membership" element={<MembershipApply />} />
                   <Route path="id-card" element={<ProfileCard />} />
                   <Route path="settings" element={<ProfileForm />} />
+                  <Route path="membership-history" element={<MembershipHistory />} />
                 </Route>
                 <Route path="/profile" element={<MemberProfilePage />} />
                 <Route path="/profile/:username" element={<PublicProfile />} />
@@ -274,10 +274,11 @@ export default function App() {
                   <Route path="team" element={<TeamManager />} />
                   <Route path="blogs" element={<BlogsManager />} />
                   <Route path="settings" element={<SettingsManager />} />
-                  <Route path="dashboard-config" element={<DashboardConfigManager />} />
+                  <Route path="about" element={<AboutManager />} />
                   <Route path="applications" element={<ApplicationsManager />} />
                   <Route path="coupons" element={<CouponManager />} />
-                  <Route path="student-portal" element={<StudentPortalManager />} />
+                  <Route path="members-dashboard" element={<MembersDashboardManager />} />
+                  <Route path="proposals" element={<WorkshopProposalsManager />} />
                 </Route>
 
                 {/* 404 Catch All Route */}

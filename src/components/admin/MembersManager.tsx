@@ -83,7 +83,6 @@ const MembersManager = () => {
         setMembers(members.map(m => m.id === userId ? { ...m, points: pointsNum } : m));
       } catch (error) {
         console.error("Error updating points:", error);
-        alert("Failed to update points.");
       }
     }
   };

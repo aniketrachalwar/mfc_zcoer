@@ -22,7 +22,8 @@ import {
   Ticket,
   MoreHorizontal,
   X,
-  Plus
+  Plus,
+  Lightbulb
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -92,14 +93,15 @@ const AdminLayout = () => {
     { name: 'Blogs', path: '/admin/blogs', icon: FileText },
     { name: 'Merchandise', path: '/admin/merch', icon: ShoppingBag },
     { name: 'Notifications', path: '/admin/notifications', icon: Bell },
-    { name: 'Dashboard Config', path: '/admin/dashboard-config', icon: MonitorSmartphone },
-    { name: 'Student Portal', path: '/admin/student-portal', icon: Users },
+    { name: 'About Page', path: '/admin/about', icon: Globe },
+    { name: 'Members Dashboard', path: '/admin/members-dashboard', icon: LayoutDashboard },
+    { name: 'Workshop Proposals', path: '/admin/proposals', icon: Lightbulb },
     { name: 'Coupons', path: '/admin/coupons', icon: Ticket },
     { name: 'Settings', path: '/admin/settings', icon: SettingsIcon },
   ];
 
   const visibleNavItems = navItems.filter(item => {
-    if ((item.name === 'Members' || item.name === 'Team' || item.name === 'Applications' || item.name === 'Settings' || item.name === 'Dashboard Config' || item.name === 'Coupons') && !isStrictAdmin) return false;
+    if ((item.name === 'Members' || item.name === 'Team' || item.name === 'Applications' || item.name === 'Settings' || item.name === 'About Page' || item.name === 'Coupons') && !isStrictAdmin) return false;
     return true;
   });
 

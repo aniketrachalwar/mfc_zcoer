@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { Users, UserCheck, Calendar, Briefcase, FileCheck, Activity, Plus, ShoppingBag, CheckSquare } from 'lucide-react';
+import { Users, UserCheck, Calendar, Briefcase, FileCheck, Activity, Plus, ShoppingBag, CheckSquare, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const StatCard = ({ title, value, icon: Icon, color }: any) => (
@@ -89,8 +89,8 @@ const AdminDashboard = () => {
           <Link to="/admin/merch" className="snap-start shrink-0 flex items-center gap-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
             <ShoppingBag size={16} /> Add Merchandise
           </Link>
-          <Link to="/admin/dashboard-config" className="snap-start shrink-0 flex items-center gap-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
-            <Activity size={16} /> Live Alert
+          <Link to="/admin/about" className="snap-start shrink-0 flex items-center gap-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+            <Globe size={16} /> Edit About Page
           </Link>
         </div>
       </div>

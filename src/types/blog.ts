@@ -12,4 +12,12 @@ export interface Blog {
   status: 'pending' | 'approved';
   createdAt: number;
   republishCount?: number;
+  isExternal?: boolean;
+  externalUrl?: string;
+  mcq?: {
+    question: string;
+    options: string[]; // 4 options
+    correctOptionIndex: number; // 0-3
+  };
+  engagementScore?: number;
 }

@@ -25,6 +25,7 @@ const EventDetails = () => {
   
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
@@ -292,10 +293,14 @@ const EventDetails = () => {
 
   const submitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ticketId || !feedbackText.trim() || !user) return;
+    if (!ticketId || !feedbackText.trim() || !user || feedbackRating === 0) {
+      alert("Please provide a rating and your thoughts.");
+      return;
+    }
     
     try {
       await updateDoc(doc(db, 'tickets', ticketId), {
+        feedbackRating: feedbackRating,
         feedback: feedbackText.trim(),
         feedbackSubmittedAt: new Date().toISOString()
       });
@@ -424,6 +429,26 @@ const EventDetails = () => {
                 </div>
               )}
             </div>
+
+            {event.why && (
+              <div className="mb-12">
+                <h2 className="text-2xl font-display font-black text-white uppercase tracking-wider mb-4 border-l-4 border-firefox-orange pl-4">Why Attend?</h2>
+                <p className="text-zinc-400 text-lg leading-relaxed bg-white/5 border border-white/10 p-6 rounded-2xl">
+                  {event.why}
+                </p>
+              </div>
+            )}
+
+            {event.outcomes && (
+              <div className="mb-12">
+                <h2 className="text-2xl font-display font-black text-white uppercase tracking-wider mb-4 border-l-4 border-firefox-orange pl-4">Key Outcomes</h2>
+                <div className="bg-firefox-orange/5 border border-firefox-orange/20 p-6 rounded-2xl">
+                  <p className="text-firefox-orange/90 text-lg leading-relaxed">
+                    {event.outcomes}
+                  </p>
+                </div>
+              </div>
+            )}
           </motion.div>
 
           <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col lg:items-end justify-center w-full sticky top-32">
@@ -497,6 +522,20 @@ const EventDetails = () => {
                     ) : (
                       <form onSubmit={submitFeedback} className="w-full bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col gap-4 text-left">
                         <h3 className="text-white font-display font-black uppercase text-xl mb-2 text-center">Event Feedback</h3>
+                        
+                        <div className="flex justify-center gap-2 mb-2">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button 
+                              key={star}
+                              type="button"
+                              onClick={() => setFeedbackRating(star)}
+                              className={`transition-colors ${star <= feedbackRating ? 'text-yellow-400' : 'text-zinc-600'}`}
+                            >
+                              <Star size={28} fill={star <= feedbackRating ? "currentColor" : "none"} />
+                            </button>
+                          ))}
+                        </div>
+
                         <textarea 
                           required
                           value={feedbackText}

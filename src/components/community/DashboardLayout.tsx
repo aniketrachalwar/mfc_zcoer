@@ -14,13 +14,19 @@ import {
   Code,
   ShoppingBag,
   MoreHorizontal,
-  X
+  X,
+  User as UserIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 const DashboardLayout = () => {
   const { user, loading: authLoading, logout } = useAuth();
   const [profile, setProfile] = useState<any>(null);
+  const [dashboardConfig, setDashboardConfig] = useState<any>({
+    enableProjectsTab: true,
+    enablePurchasesTab: true,
+    enableMembershipHistory: true,
+  });
   const [loading, setLoading] = useState(true);
   const location = useLocation();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -30,26 +36,31 @@ const DashboardLayout = () => {
     setIsMoreOpen(false);
   }, [location.pathname]);
 
-  const fetchProfile = async () => {
+  const fetchData = async () => {
     if (!user) {
       setLoading(false);
       return;
     }
     try {
-      const docRef = doc(db, 'users', user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setProfile(docSnap.data());
+      const [profileSnap, configSnap] = await Promise.all([
+        getDoc(doc(db, 'users', user.uid)),
+        getDoc(doc(db, 'config', 'membersDashboard'))
+      ]);
+      if (profileSnap.exists()) {
+        setProfile(profileSnap.data());
+      }
+      if (configSnap.exists()) {
+        setDashboardConfig(configSnap.data());
       }
     } catch (err) {
-      console.error("Error fetching profile:", err);
+      console.error("Error fetching dashboard data:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProfile();
+    fetchData();
   }, [user]);
 
   if (authLoading || loading) return (
@@ -62,8 +73,9 @@ const DashboardLayout = () => {
 
   const primaryTabs = [
     { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Projects', path: '/dashboard/projects', icon: Code },
-    { name: 'Purchases', path: '/dashboard/purchases', icon: ShoppingBag },
+    ...(dashboardConfig.enableProjectsTab ? [{ name: 'Projects', path: '/dashboard/projects', icon: Code }] : []),
+    ...(dashboardConfig.enablePurchasesTab ? [{ name: 'Purchases', path: '/dashboard/purchases', icon: ShoppingBag }] : []),
+    ...(dashboardConfig.enableMembershipHistory ? [{ name: 'History', path: '/dashboard/membership-history', icon: Shield }] : []),
     { name: 'ID Card', path: '/dashboard/id-card', icon: IdCard },
   ];
 
@@ -117,6 +129,8 @@ const DashboardLayout = () => {
               </Link>
             )}
 
+
+
             <Link 
               to={`/profile/${profile?.username}`}
               className="mt-2 flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] rounded-xl bg-white/5 border border-white/10 hover:border-firefox-orange transition-all group"
@@ -137,7 +151,7 @@ const DashboardLayout = () => {
           {/* Main Content Area */}
           <div className="flex-1 bg-zinc-900/40 border border-white/5 rounded-3xl md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 backdrop-blur-xl relative overflow-hidden min-h-[600px]">
             <div className="absolute top-0 right-0 w-96 h-96 bg-firefox-orange/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-            <Outlet context={{ profile, setProfile, refreshProfile: fetchProfile }} />
+            <Outlet context={{ profile, setProfile, refreshProfile: fetchData }} />
           </div>
           
         </div>
@@ -215,6 +229,8 @@ const DashboardLayout = () => {
                     <span className="text-[10px] font-black uppercase tracking-widest">Admin Portal</span>
                   </Link>
                 )}
+
+
 
                 <Link 
                   to={`/profile/${profile?.username}`}

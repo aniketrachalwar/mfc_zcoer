@@ -4,7 +4,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { motion } from 'motion/react';
 
-export default function StudentPortalManager() {
+export default function MembersDashboardManager() {
   const [config, setConfig] = useState<any>({
     enableProjectsTab: true,
     enablePurchasesTab: true,
@@ -19,13 +19,13 @@ export default function StudentPortalManager() {
 
   const fetchConfig = async () => {
     try {
-      const docRef = doc(db, 'config', 'studentPortal');
+      const docRef = doc(db, 'config', 'membersDashboard');
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setConfig(docSnap.data());
       }
     } catch (error) {
-      console.error("Error fetching student portal config:", error);
+      console.error("Error fetching members dashboard config:", error);
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ export default function StudentPortalManager() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await setDoc(doc(db, 'config', 'studentPortal'), config);
+      await setDoc(doc(db, 'config', 'membersDashboard'), config);
       // Optional: Add a toast notification here
     } catch (error) {
       console.error("Error saving config:", error);
@@ -57,8 +57,8 @@ export default function StudentPortalManager() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-display font-black text-white uppercase tracking-tight">Student Portal <span className="text-firefox-orange">Manager</span></h2>
-          <p className="text-zinc-400 text-sm">Configure the features available in the Student Portal.</p>
+          <h2 className="text-2xl font-display font-black text-white uppercase tracking-tight">Members <span className="text-firefox-orange">Dashboard</span></h2>
+          <p className="text-zinc-400 text-sm">Configure the features available in the Members Dashboard.</p>
         </div>
         <button 
           onClick={handleSave}
@@ -88,7 +88,7 @@ export default function StudentPortalManager() {
             </div>
             <div>
               <h4 className="font-bold text-white">Running Projects Tab</h4>
-              <p className="text-xs text-zinc-500 mt-1">Allow students to view and track their running project contributions.</p>
+              <p className="text-xs text-zinc-500 mt-1">Allow members to view and track their running project contributions.</p>
             </div>
           </div>
 
@@ -106,7 +106,7 @@ export default function StudentPortalManager() {
             </div>
             <div>
               <h4 className="font-bold text-white">Purchased Items Tab</h4>
-              <p className="text-xs text-zinc-500 mt-1">Show students their purchased merchandise and event tickets.</p>
+              <p className="text-xs text-zinc-500 mt-1">Show members their purchased merchandise and event tickets.</p>
             </div>
           </div>
 
@@ -124,7 +124,7 @@ export default function StudentPortalManager() {
             </div>
             <div>
               <h4 className="font-bold text-white">Membership History Tab</h4>
-              <p className="text-xs text-zinc-500 mt-1">Allow students to view their membership timeline and current tier perks.</p>
+              <p className="text-xs text-zinc-500 mt-1">Allow members to view their membership timeline and current tier perks.</p>
             </div>
           </div>
         </div>

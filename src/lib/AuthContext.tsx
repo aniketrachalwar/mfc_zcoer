@@ -9,7 +9,7 @@ import {
   signInWithEmailAndPassword,
   deleteUser
 } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 
 interface AuthContextType {
@@ -59,6 +59,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const profileSnap = await getDoc(doc(db, 'users', currentUser.uid));
         if (profileSnap.exists()) {
           const data = profileSnap.data();
+          
+          let memberId = data.memberId;
+          if (!memberId) {
+            memberId = `MFCZ-${Math.floor(1000 + Math.random() * 9000)}`;
+            try {
+              await updateDoc(doc(db, 'users', currentUser.uid), { memberId });
+            } catch (e) {
+              console.error("Could not auto-generate member ID:", e);
+            }
+          }
+
           setUserProfile({ 
             id: profileSnap.id, 
             membershipStatus: data.membershipStatus || 'public',
@@ -67,6 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             subscriptionStart: data.subscriptionStart || null,
             subscriptionEnd: data.subscriptionEnd || null,
             paymentStatus: data.paymentStatus || 'none',
+            memberId,
             ...data 
           });
         } else {
@@ -88,6 +100,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const profileSnap = await getDoc(doc(db, 'users', user.uid));
       if (profileSnap.exists()) {
         const data = profileSnap.data();
+        let memberId = data.memberId;
+        if (!memberId) {
+          memberId = `MFCZ-${Math.floor(1000 + Math.random() * 9000)}`;
+          try {
+            await updateDoc(doc(db, 'users', user.uid), { memberId });
+          } catch (e) {
+            console.error("Could not auto-generate member ID:", e);
+          }
+        }
+        
         setUserProfile({ 
           id: profileSnap.id, 
           membershipStatus: data.membershipStatus || 'public',
@@ -96,6 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           subscriptionStart: data.subscriptionStart || null,
           subscriptionEnd: data.subscriptionEnd || null,
           paymentStatus: data.paymentStatus || 'none',
+          memberId,
           ...data 
         });
       }
