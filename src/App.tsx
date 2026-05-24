@@ -12,6 +12,7 @@ import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import NotFound from './components/NotFound';
 import EcosystemTour from './components/EcosystemTour';
+import InstallPwaBanner from './components/InstallPwaBanner';
 
 // Lazy loaded components
 const About = React.lazy(() => import('./components/About'));
@@ -204,6 +205,7 @@ const Layout = ({ children, scaleX }: { children: React.ReactNode; scaleX: any }
       <Footer />
       
       <EcosystemTour />
+      <InstallPwaBanner />
 
       {/* Member Portal Overlay - Floating Action if logged in */}
       {user && !location.pathname.startsWith('/dashboard') && !location.pathname.startsWith('/admin') && (

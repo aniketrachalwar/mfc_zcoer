@@ -73,7 +73,7 @@ const AdminDashboard = () => {
         <h1 className="text-2xl sm:text-3xl font-display font-black uppercase text-white mb-2">
           System <span className="text-firefox-orange">Overview</span>
         </h1>
-        <p className="text-zinc-400 text-xs sm:text-sm">Real-time metrics for MFC ZCOER platform.</p>
+        <p className="text-zinc-400 text-xs sm:text-sm">Real-time metrics for MFC Open Web platform.</p>
       </div>
 
       {/* Quick Actions Bar (Horizontal Scroll on Mobile) */}

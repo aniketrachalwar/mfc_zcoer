@@ -49,7 +49,7 @@ export default function MembershipHistory() {
             </div>
             <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white/5 border border-white/10 p-4 rounded-xl">
               <div className="flex items-center justify-between space-x-2 mb-1">
-                <div className="font-bold text-white">Joined MFC ZCOER</div>
+                <div className="font-bold text-white">Joined MFC Open Web</div>
                 <time className="font-mono text-xs text-zinc-500">Date Joined</time>
               </div>
               <div className="text-zinc-400 text-sm">Account created and Free tier activated.</div>

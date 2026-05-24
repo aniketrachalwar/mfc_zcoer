@@ -16,7 +16,7 @@ const System = () => {
         <div className="text-center mb-20">
           <h2 className="text-4xl md:text-6xl font-display font-bold mb-6 tracking-tight">How the <span className="text-gradient">System</span> Works</h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            MFC ZCOER runs on a structured, performance-driven system that ensures 
+            MFC Open Web runs on a structured, performance-driven system that ensures 
             every member grows based on their actual contribution.
           </p>
         </div>

@@ -64,7 +64,7 @@ export async function createMemberProfile(uid: string, name: string, email: stri
   });
   
   // Award joining bonus points
-  await addPoints(uid, 'join_club', 'Joined Mozilla Firefox Club ZCOER');
+  await addPoints(uid, 'join_club', 'Joined MFC Open Web');
   
   return profile;
 }

@@ -288,7 +288,7 @@ const EventsPage = () => {
                    <div className="w-40 h-40 border-[6px] border-firefox-orange/50 bg-[#09090b] rounded-full flex flex-col items-center justify-center text-firefox-orange -rotate-[15deg] backdrop-blur-xl shadow-2xl relative">
                      <div className="absolute inset-2 border-2 border-dashed border-firefox-orange/30 rounded-full" />
                      <span className="font-display font-black uppercase text-2xl tracking-[0.2em] relative z-10">Verified</span>
-                     <span className="text-[9px] font-bold tracking-[0.3em] opacity-80 mt-2 bg-firefox-orange text-black px-2 py-0.5 rounded-full relative z-10">MFC ZCOER</span>
+                     <span className="text-[9px] font-bold tracking-[0.3em] opacity-80 mt-2 bg-firefox-orange text-black px-2 py-0.5 rounded-full relative z-10">MFC Open Web</span>
                    </div>
                  </div>
 

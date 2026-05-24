@@ -95,7 +95,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
             <div className="relative z-10">
               <h2 className="text-2xl sm:text-3xl font-display font-black uppercase text-white mb-1.5">
-                Join <span className="text-firefox-orange">MFC ZCOER</span>
+                Join <span className="text-firefox-orange">MFC Open Web</span>
               </h2>
               <p className="text-zinc-400 text-xs sm:text-sm mb-4 sm:mb-6 font-medium">
                 {isLogin ? 'Sign in to access your portal and manage your profile.' : 'Create an account to become an official member.'}

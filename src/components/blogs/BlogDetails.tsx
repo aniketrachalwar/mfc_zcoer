@@ -134,7 +134,7 @@ const BlogDetails = () => {
   return (
     <>
       <Helmet>
-        <title>{blog.title} | Mozilla Firefox Club ZCOER</title>
+        <title>{blog.title} | MFC Open Web</title>
         <meta name="description" content={blog.excerpt} />
         <meta property="og:title" content={blog.title} />
         <meta property="og:description" content={blog.excerpt} />

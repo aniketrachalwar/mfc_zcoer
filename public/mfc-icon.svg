@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Black Background -->
+  <rect width="512" height="512" fill="#000000" rx="112" />
+  
+  <!-- Minimalist 'M' in Orange -->
+  <path d="M120 370 V160 L256 280 L392 160 V370" 
+        stroke="#ff6a00" 
+        stroke-width="52" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        fill="none" />
+</svg>

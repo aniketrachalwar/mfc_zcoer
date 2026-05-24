@@ -198,7 +198,7 @@ const TeamPage = () => {
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8">
             <span className="w-2 h-2 rounded-full bg-firefox-orange animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">MFC ZCOER Ecosystem</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">MFC Open Web Ecosystem</span>
           </div>
           <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-black uppercase tracking-tighter mb-6 leading-[0.9]">
             The <span className="text-gradient">Builders</span> <br />

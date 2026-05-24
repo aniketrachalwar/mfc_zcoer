@@ -57,7 +57,7 @@ export const BADGES: Badge[] = [
   {
     id: 'founding_member',
     name: 'Founding Member',
-    description: 'One of the first members of Mozilla Firefox Club ZCOER',
+    description: 'One of the first members of MFC Open Web',
     icon: '🏛️',
     category: 'achievement',
     rarity: 'legendary',

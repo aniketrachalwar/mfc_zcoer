@@ -59,7 +59,7 @@ const Projects = () => {
           </div>
           <div className="max-w-sm space-y-5">
             <p className="text-zinc-500 text-base md:text-lg font-medium">
-              Selected work from MFC ZCOER members, built for the open web and real-world campus needs.
+              Selected work from MFC Open Web members, built for the open web and real-world campus needs.
             </p>
             {canManageProjects && (
               <Link

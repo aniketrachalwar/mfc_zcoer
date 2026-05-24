@@ -97,8 +97,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: propProfile, isPubli
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: `MFC ZCOER Member Card - ${profile.fullName}`,
-          text: `Check out my official MFC ZCOER member card!`,
+          title: `MFC Open Web Member Card - ${profile.fullName}`,
+          text: `Check out my official MFC Open Web member card!`,
         });
       } else {
         const link = document.createElement('a');
@@ -173,7 +173,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: propProfile, isPubli
               </div>
 
               <div className="mt-auto pt-4 flex items-center justify-center gap-2 opacity-40">
-                <p className="text-[8px] font-black uppercase tracking-[0.4em] text-zinc-500">Proud Member of MFC ZCOER</p>
+                <p className="text-[8px] font-black uppercase tracking-[0.4em] text-zinc-500">Proud Member of MFC Open Web</p>
               </div>
             </div>
           </motion.div>
@@ -224,7 +224,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: propProfile, isPubli
             <div className="w-8 h-8 sm:w-10 sm:h-10 opacity-80 mix-blend-screen">
               <img loading="lazy" src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png" alt="MFC" className="w-full h-full object-contain" />
             </div>
-            <p className="mt-2 text-[8px] sm:text-[10px] font-black tracking-widest text-zinc-500 uppercase text-center">MFC ZCOER</p>
+            <p className="mt-2 text-[8px] sm:text-[10px] font-black tracking-widest text-zinc-500 uppercase text-center">MFC Open Web</p>
           </div>
 
           {/* Right Column: Information */}

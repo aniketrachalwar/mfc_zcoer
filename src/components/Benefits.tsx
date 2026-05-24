@@ -32,7 +32,7 @@ const Benefits = () => {
           <h2 className="text-4xl md:text-6xl font-display font-bold mb-6 tracking-tight">What You <span className="text-gradient">Gain</span></h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
              Personal growth here is directly tied to your career. 
-             Here is exactly what membership in MFC ZCOER delivers.
+             Here is exactly what membership in MFC Open Web delivers.
           </p>
         </div>
 

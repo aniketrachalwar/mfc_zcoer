@@ -88,7 +88,7 @@ const CommunityPage = () => {
       <div className="pt-32 pb-20 px-4 min-h-screen flex flex-col items-center justify-center text-center">
         <Trophy className="text-firefox-orange mb-6" size={64} />
         <h1 className="text-4xl md:text-5xl font-display font-black uppercase text-white mb-4">Members Only</h1>
-        <p className="text-zinc-400 mb-8 max-w-md">You need to log in to view and connect with the MFC ZCOER community members.</p>
+        <p className="text-zinc-400 mb-8 max-w-md">You need to log in to view and connect with the MFC Open Web community members.</p>
         <button 
           onClick={() => setIsAuthModalOpen(true)}
           className="px-10 py-4 bg-firefox-orange text-white rounded-full font-display font-black text-sm uppercase tracking-widest hover:bg-white hover:text-black transition-all"
@@ -110,7 +110,7 @@ const CommunityPage = () => {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6"
           >
             <Trophy className="text-firefox-orange" size={16} />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">MFC ZCOER Community</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">MFC Open Web Community</span>
           </motion.div>
           <h1 className="text-5xl md:text-7xl font-display font-black uppercase tracking-tight mb-6">
             Meet The <span className="text-firefox-orange">Community</span>

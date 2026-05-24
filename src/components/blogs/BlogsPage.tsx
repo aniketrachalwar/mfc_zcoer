@@ -57,8 +57,8 @@ const BlogsPage = () => {
   return (
     <>
       <Helmet>
-        <title>Insights & Blogs | Mozilla Firefox Club ZCOER</title>
-        <meta name="description" content="Read the latest insights, tutorials, and engineering blogs from the Mozilla Firefox Club ZCOER community." />
+        <title>Insights & Blogs | MFC Open Web</title>
+        <meta name="description" content="Read the latest insights, tutorials, and engineering blogs from the MFC Open Web community." />
       </Helmet>
 
       <main className="min-h-screen pt-24 md:pt-32 pb-24 md:pb-20 px-4 bg-zinc-950">

@@ -362,7 +362,7 @@ export default function MembershipApply() {
                       <Sparkles size={18} className="text-yellow-500 shrink-0 mt-0.5" />
                       <div>
                         <p className="text-yellow-500 font-bold text-sm mb-1">Founding Member Privilege</p>
-                        <p className="text-yellow-500/80 text-xs leading-relaxed">As an early supporter of MFC ZCOER, your membership fee has been permanently waived. Thank you for building with us!</p>
+                        <p className="text-yellow-500/80 text-xs leading-relaxed">As an early supporter of MFC Open Web, your membership fee has been permanently waived. Thank you for building with us!</p>
                       </div>
                     </div>
                   )}

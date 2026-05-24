@@ -7,7 +7,7 @@ const NotFound = () => {
   return (
     <>
       <Helmet>
-        <title>Page Not Found | MFC ZCOER</title>
+        <title>Page Not Found | MFC Open Web</title>
       </Helmet>
       <div className="min-h-screen pt-32 pb-20 flex flex-col items-center justify-center px-4 text-center">
         <motion.div 

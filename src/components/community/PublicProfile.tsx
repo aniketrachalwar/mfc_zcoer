@@ -144,7 +144,7 @@ const PublicProfile = () => {
             <div className="space-y-4">
               <h1 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tight leading-none">
                 {profile.isFoundingMember ? 'Founding Member of' : 'Member of'} <br />
-                <span className="text-firefox-orange">MFC ZCOER</span>
+                <span className="text-firefox-orange">MFC Open Web</span>
               </h1>
               <p className="text-zinc-400 font-medium">
                 {profile.bio || "Building the open web and spreading the Mozilla magic at Zeal College."}

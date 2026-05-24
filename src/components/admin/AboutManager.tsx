@@ -15,8 +15,8 @@ interface AboutData {
 }
 
 const defaultData: AboutData = {
-  identityText: "Mozilla Firefox Club ZCOER",
-  identityDescription: "MFC ZCOER is a community of makers, builders, and learners. We bridge the gap between academic theory and industry reality through relentless open-source contribution and collaborative product building.",
+  identityText: "MFC Open Web",
+  identityDescription: "MFC Open Web is a community of makers, builders, and learners. We bridge the gap between academic theory and industry reality through relentless open-source contribution and collaborative product building.",
   stats: [
     { label: "Active Members", val: "450+" },
     { label: "Projects Launched", val: "24" },

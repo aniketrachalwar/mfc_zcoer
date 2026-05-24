@@ -57,8 +57,8 @@ const LeaderboardPage = () => {
   return (
     <>
       <Helmet>
-        <title>Global Leaderboard | Mozilla Firefox Club ZCOER</title>
-        <meta name="description" content="Top community members leading the charts through contributions, events, and active participation in the MFC ZCOER ecosystem." />
+        <title>Global Leaderboard | MFC Open Web</title>
+        <meta name="description" content="Top community members leading the charts through contributions, events, and active participation in the MFC Open Web ecosystem." />
       </Helmet>
       
       <main className="min-h-screen pt-24 md:pt-32 pb-20 relative bg-zinc-950 overflow-hidden">
