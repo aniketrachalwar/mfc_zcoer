@@ -8,7 +8,7 @@ const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    domain: 'Technical',
+    subject: 'General Inquiry',
     message: ''
   });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -24,7 +24,7 @@ const Contact = () => {
         createdAt: new Date().toISOString()
       });
       setStatus('success');
-      setFormData({ name: '', email: '', domain: 'Technical', message: '' });
+      setFormData({ name: '', email: '', subject: 'General Inquiry', message: '' });
       setTimeout(() => setStatus('idle'), 4000);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -39,16 +39,16 @@ const Contact = () => {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-firefox-orange/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
 
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="grid lg:grid-cols-2 gap-24">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-24">
           <div>
             <span className="text-firefox-orange font-bold text-xs uppercase tracking-[0.3em]">Reach Out</span>
-            <h2 className="text-5xl md:text-7xl font-display font-black mt-6 mb-10 tracking-tighter text-zinc-950">Let's <span className="text-gradient">Innovate.</span></h2>
-            <p className="text-zinc-500 text-xl leading-relaxed mb-12 max-w-lg">
-              Have an idea, a project, or just want to chat about the open web? 
+            <h2 className="text-3xl sm:text-5xl md:text-7xl font-display font-black mt-4 sm:mt-6 mb-6 sm:mb-10 tracking-tighter text-zinc-950">Let's <span className="text-gradient">Connect.</span></h2>
+            <p className="text-zinc-500 text-base sm:text-xl leading-relaxed mb-6 sm:mb-12 max-w-lg">
+              Have a question, a project idea, or just want to chat about the open web? 
               Drop us a message and we'll get back to you within 24 hours.
             </p>
 
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               {[
                 { icon: Mail, label: "Email Us", val: "mfc@zcoer.edu.in" },
                 { icon: MapPin, label: "Visit Us", val: "DBMSL LAB 3rd Floor, D-Block, ZCOER Pune" }
@@ -74,7 +74,7 @@ const Contact = () => {
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="p-10 bg-zinc-50 rounded-[3rem] border border-zinc-200"
+            className="p-6 sm:p-10 bg-zinc-50 rounded-2xl sm:rounded-[3rem] border border-zinc-200 shadow-sm"
           >
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid md:grid-cols-2 gap-8">
@@ -102,15 +102,16 @@ const Contact = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Domain Interest</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Subject</label>
                 <select 
-                  value={formData.domain}
-                  onChange={(e) => setFormData(prev => ({...prev, domain: e.target.value}))}
+                  value={formData.subject}
+                  onChange={(e) => setFormData(prev => ({...prev, subject: e.target.value}))}
                   className="w-full bg-white border border-zinc-200 rounded-2xl px-6 py-4 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-firefox-orange/20 transition-all cursor-pointer"
                 >
-                  <option className="text-zinc-900" value="Technical">Technical</option>
-                  <option className="text-zinc-900" value="Design">Design</option>
-                  <option className="text-zinc-900" value="Management">Management</option>
+                  <option className="text-zinc-900" value="General Inquiry">General Inquiry</option>
+                  <option className="text-zinc-900" value="Project Proposal">Project Proposal</option>
+                  <option className="text-zinc-900" value="Partnership">Partnership</option>
+                  <option className="text-zinc-900" value="Feedback">Feedback</option>
                 </select>
               </div>
               <div className="space-y-2">
@@ -121,7 +122,7 @@ const Contact = () => {
                   placeholder="Tell us what's on your mind..." 
                   value={formData.message}
                   onChange={(e) => setFormData(prev => ({...prev, message: e.target.value}))}
-                  className="w-full bg-white border border-zinc-200 rounded-2xl px-6 py-4 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-firefox-orange/20 transition-all" 
+                  className="w-full bg-white border border-zinc-200 rounded-2xl px-6 py-4 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-firefox-orange/20 transition-all resize-none" 
                 />
               </div>
 
@@ -153,7 +154,7 @@ const Contact = () => {
                 whileTap={{ scale: 0.98 }}
                 disabled={status === 'loading' || status === 'success'}
                 type="submit"
-                className="w-full py-5 bg-zinc-950 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-zinc-800 transition-all shadow-xl shadow-black/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3.5 sm:py-5 bg-zinc-950 text-white rounded-xl sm:rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-zinc-800 transition-all shadow-xl shadow-black/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {status === 'loading' ? (
                   <><Loader2 size={18} className="animate-spin" /> Sending...</>

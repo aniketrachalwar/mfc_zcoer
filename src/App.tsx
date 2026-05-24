@@ -11,6 +11,7 @@ import Home from './components/Home';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import NotFound from './components/NotFound';
+import EcosystemTour from './components/EcosystemTour';
 
 // Lazy loaded components
 const About = React.lazy(() => import('./components/About'));
@@ -40,6 +41,7 @@ const BlogsManager = React.lazy(() => import('./components/admin/BlogsManager'))
 const SettingsManager = React.lazy(() => import('./components/admin/SettingsManager'));
 const ApplicationsManager = React.lazy(() => import('./components/admin/ApplicationsManager'));
 const AboutManager = React.lazy(() => import('./components/admin/AboutManager'));
+const AdminAccessManager = React.lazy(() => import('./components/admin/AdminAccessManager'));
 
 const BlogsPage = React.lazy(() => import('./components/blogs/BlogsPage'));
 const BlogDetails = React.lazy(() => import('./components/blogs/BlogDetails'));
@@ -200,6 +202,8 @@ const Layout = ({ children, scaleX }: { children: React.ReactNode; scaleX: any }
       </main>
       
       <Footer />
+      
+      <EcosystemTour />
 
       {/* Member Portal Overlay - Floating Action if logged in */}
       {user && !location.pathname.startsWith('/dashboard') && !location.pathname.startsWith('/admin') && (
@@ -275,6 +279,7 @@ export default function App() {
                   <Route path="blogs" element={<BlogsManager />} />
                   <Route path="settings" element={<SettingsManager />} />
                   <Route path="about" element={<AboutManager />} />
+                  <Route path="access" element={<AdminAccessManager />} />
                   <Route path="applications" element={<ApplicationsManager />} />
                   <Route path="coupons" element={<CouponManager />} />
                   <Route path="members-dashboard" element={<MembersDashboardManager />} />

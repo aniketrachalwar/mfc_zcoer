@@ -102,7 +102,7 @@ const WriteBlog = () => {
     }
     setGeneratingMcq(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: 'AIzaSyCS_6UPbDXvS0kd34s5tKEM0Z-eOeM1Bng' });
+      const ai = new GoogleGenAI({ apiKey: 'AIzaSyCJ6kN-OCeb65dRwMqK4hJQPh55DBYXhoI' });
       const prompt = `Based on the following blog content, generate one multiple choice question with exactly 4 options. Return ONLY a JSON object in this exact format, nothing else:
 {
   "question": "The question text here?",
@@ -140,7 +140,7 @@ ${formData.content.substring(0, 5000)}
   const handleGetTrendingTopics = async () => {
     setFetchingTrends(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: 'AIzaSyCS_6UPbDXvS0kd34s5tKEM0Z-eOeM1Bng' });
+      const ai = new GoogleGenAI({ apiKey: 'AIzaSyCJ6kN-OCeb65dRwMqK4hJQPh55DBYXhoI' });
       const prompt = `Give me a list of 5 currently trending topics in Technology and Software Engineering that would make great blog posts. For each topic, provide a short 1-sentence idea for what the blog could cover. Format the output as a simple Markdown list. Do not include any conversational text.`;
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',

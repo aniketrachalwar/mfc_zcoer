@@ -52,7 +52,7 @@ const Projects = () => {
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10 mb-16">
           <div className="max-w-2xl">
             <span className="text-firefox-orange font-mono text-sm tracking-[0.3em] uppercase mb-4 block font-bold">Project Lab</span>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-display font-black tracking-tighter leading-[0.95]">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-display font-black tracking-tighter leading-[0.95]">
               Open Source <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-300 to-zinc-600">Projects.</span>
             </h1>
@@ -78,7 +78,7 @@ const Projects = () => {
             <div className="w-10 h-10 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
           </div>
         ) : projects.length === 0 ? (
-          <div className="bg-white/5 border border-white/10 rounded-[2rem] p-12 text-center flex flex-col items-center">
+          <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-[2rem] p-6 sm:p-12 text-center flex flex-col items-center">
             <Briefcase className="text-zinc-600 mb-4" size={44} />
             <h2 className="text-2xl font-display font-black text-white mb-3">No Projects Yet</h2>
             <p className="text-zinc-400 max-w-md">Projects added by admins and core team members will appear here.</p>

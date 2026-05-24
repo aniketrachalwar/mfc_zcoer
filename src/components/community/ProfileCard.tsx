@@ -97,8 +97,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: propProfile, isPubli
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: `MFC ZCOER Business Card - ${profile.fullName}`,
-          text: `Check out my official MFC ZCOER business card!`,
+          title: `MFC ZCOER Member Card - ${profile.fullName}`,
+          text: `Check out my official MFC ZCOER member card!`,
         });
       } else {
         const link = document.createElement('a');
@@ -157,10 +157,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: propProfile, isPubli
                 <h3 className="text-2xl font-display font-black uppercase text-white tracking-tight mb-1 line-clamp-1">{profile.fullName || 'Unknown User'}</h3>
                 <p className="text-firefox-orange/80 text-[10px] font-black uppercase tracking-[0.3em] line-clamp-1">@{profile.username || 'unknown'}</p>
                 <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-firefox-orange/10 border border-firefox-orange/20 rounded-full">
-                    <Trophy size={12} className="text-firefox-orange" />
-                    <span className="text-firefox-orange font-black text-xs uppercase tracking-widest">{profile.points || 0} PTS</span>
-                  </div>
+                  {!profile?.isLeadership && (
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-firefox-orange/10 border border-firefox-orange/20 rounded-full">
+                      <Trophy size={12} className="text-firefox-orange" />
+                      <span className="text-firefox-orange font-black text-xs uppercase tracking-widest">{profile?.points || 0} PTS</span>
+                    </div>
+                  )}
                 </div>
                 <div className="mt-3">
                   <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full ${theme.badgeBg} shadow-lg`}>
@@ -257,10 +259,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: propProfile, isPubli
             {/* Bottom Right: QR & Footer details */}
             <div className="flex justify-between items-end gap-2">
               <div className="space-y-0.5 sm:space-y-1">
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <Trophy size={8} className="sm:w-[10px] sm:h-[10px] text-firefox-orange" />
-                  <span className="text-[8px] sm:text-[10px] font-bold text-white">{profile.points || 0} Points</span>
-                </div>
+                {!profile?.isLeadership && (
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <Trophy size={8} className="sm:w-[10px] sm:h-[10px] text-firefox-orange" />
+                    <span className="text-[8px] sm:text-[10px] font-bold text-white">{profile?.points || 0} Points</span>
+                  </div>
+                )}
                 {profile.isFoundingMember && (
                   <div className="flex items-center gap-1 sm:gap-2">
                     <Sparkles size={8} className="sm:w-[10px] sm:h-[10px] text-yellow-500" />
@@ -297,7 +301,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: propProfile, isPubli
             onClick={shareCard}
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-firefox-orange text-white font-display font-black text-[11px] uppercase tracking-widest hover:shadow-[0_0_20px_rgba(255,92,0,0.4)] transition-all flex-1 sm:flex-none w-full sm:w-auto"
           >
-            <Share2 size={16} /> Share Business Card
+            <Share2 size={12} />
+            Share Member Card
           </button>
         </div>
       )}

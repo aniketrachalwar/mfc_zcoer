@@ -9,7 +9,7 @@ import {
   signInWithEmailAndPassword,
   deleteUser
 } from 'firebase/auth';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from './firebase';
 
 interface AuthContextType {
@@ -17,10 +17,6 @@ interface AuthContextType {
   userProfile: Record<string, any> | null;
   loading: boolean;
   error: string | null;
-  login: () => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  signupWithEmail: (email: string, pass: string) => Promise<void>;
-  loginWithEmail: (email: string, pass: string) => Promise<void>;
   login: () => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   signupWithEmail: (email: string, pass: string) => Promise<void>;
@@ -70,6 +66,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           }
 
+          let isTeamLeadership = false;
+          try {
+            const teamQuery = query(collection(db, 'team'), where('userId', '==', currentUser.uid));
+            const teamSnap = await getDocs(teamQuery);
+            isTeamLeadership = teamSnap.docs.some(d => d.data().category === 'Core Leadership' || d.data().category === 'Department Leads');
+          } catch (e) {
+            console.error("Failed to check team leadership:", e);
+          }
+
           setUserProfile({ 
             id: profileSnap.id, 
             membershipStatus: data.membershipStatus || 'public',
@@ -78,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             subscriptionStart: data.subscriptionStart || null,
             subscriptionEnd: data.subscriptionEnd || null,
             paymentStatus: data.paymentStatus || 'none',
+            isLeadership: data.isLeadership === true || ['admin', 'president', 'core_team'].includes(data.role) || isTeamLeadership,
             memberId,
             ...data 
           });
@@ -109,7 +115,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error("Could not auto-generate member ID:", e);
           }
         }
-        
+        let isTeamLeadership = false;
+        try {
+          const teamQuery = query(collection(db, 'team'), where('userId', '==', user.uid));
+          const teamSnap = await getDocs(teamQuery);
+          isTeamLeadership = teamSnap.docs.some(d => d.data().category === 'Core Leadership' || d.data().category === 'Department Leads');
+        } catch (e) {
+          console.error("Failed to check team leadership:", e);
+        }
+
         setUserProfile({ 
           id: profileSnap.id, 
           membershipStatus: data.membershipStatus || 'public',
@@ -118,6 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           subscriptionStart: data.subscriptionStart || null,
           subscriptionEnd: data.subscriptionEnd || null,
           paymentStatus: data.paymentStatus || 'none',
+          isLeadership: data.isLeadership === true || ['admin', 'president', 'core_team'].includes(data.role) || isTeamLeadership,
           memberId,
           ...data 
         });

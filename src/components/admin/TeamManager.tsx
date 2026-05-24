@@ -18,6 +18,9 @@ const TeamManager = () => {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [teamRole, setTeamRole] = useState('');
   const [cohort, setCohort] = useState('25-26');
+  const [category, setCategory] = useState('Active Contributors');
+
+  const [filterCohort, setFilterCohort] = useState('25-26');
 
   const fetchData = async () => {
     setLoading(true);
@@ -45,19 +48,27 @@ const TeamManager = () => {
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedUserId || !teamRole || !cohort) return;
+    if (!selectedUserId || !teamRole || !cohort || !category) return;
     
     try {
       const docId = `${selectedUserId}_${cohort}`;
       await setDoc(doc(db, 'team', docId), {
         userId: selectedUserId,
         role: teamRole,
+        category: category,
         cohort: cohort,
         addedAt: new Date().toISOString()
       });
+
+      const isLeadership = category === 'Core Leadership' || category === 'Department Leads';
+      await setDoc(doc(db, 'users', selectedUserId), {
+        isLeadership: isLeadership
+      }, { merge: true });
+
       setShowAddForm(false);
       setSelectedUserId('');
       setTeamRole('');
+      setCategory('Active Contributors');
       fetchData();
     } catch (err) {
       console.error("Error adding team member", err);
@@ -65,10 +76,13 @@ const TeamManager = () => {
     }
   };
 
-  const handleRemoveMember = async (id: string) => {
+  const handleRemoveMember = async (id: string, userId: string) => {
     if (!window.confirm("Are you sure you want to remove this member from the team page?")) return;
     try {
       await deleteDoc(doc(db, 'team', id));
+      await setDoc(doc(db, 'users', userId), {
+        isLeadership: false
+      }, { merge: true });
       setTeamMembers(teamMembers.filter(m => m.id !== id));
     } catch (err) {
       console.error("Error removing", err);
@@ -132,7 +146,7 @@ const TeamManager = () => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-zinc-900 border border-white/10 rounded-3xl p-6"
         >
-          <form onSubmit={handleAddMember} className="grid md:grid-cols-4 gap-4 items-end">
+          <form onSubmit={handleAddMember} className="grid md:grid-cols-5 gap-4 items-end">
             <div className="col-span-1">
               <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">Search Community</label>
               <div className="relative">
@@ -175,6 +189,20 @@ const TeamManager = () => {
             </div>
 
             <div className="col-span-1">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">Category</label>
+              <select 
+                required
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors text-sm"
+              >
+                <option value="Core Leadership">Core Leadership</option>
+                <option value="Department Leads">Department Leads</option>
+                <option value="Active Contributors">Active Contributors</option>
+              </select>
+            </div>
+
+            <div className="col-span-1">
               <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">Cohort</label>
               <div className="flex gap-2">
                 <select 
@@ -201,9 +229,24 @@ const TeamManager = () => {
           <div className="w-8 h-8 border-2 border-firefox-orange border-t-transparent rounded-full animate-spin mx-auto" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {teamMembers.map((member) => {
-            const user = getUserData(member.userId);
+        <div>
+          <div className="flex items-center gap-4 mb-6">
+            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Filter Year:</label>
+            <select
+              value={filterCohort}
+              onChange={(e) => setFilterCohort(e.target.value)}
+              className="bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-firefox-orange"
+            >
+              <option value="All">All Years</option>
+              <option value="25-26">25-26</option>
+              <option value="26-27">26-27</option>
+              <option value="27-28">27-28</option>
+            </select>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {teamMembers.filter(m => filterCohort === 'All' || m.cohort === filterCohort).map((member) => {
+              const user = getUserData(member.userId);
             return (
               <motion.div 
                 key={member.id}
@@ -224,7 +267,7 @@ const TeamManager = () => {
                     </div>
                   </div>
                   <button 
-                    onClick={() => handleRemoveMember(member.id)}
+                    onClick={() => handleRemoveMember(member.id, member.userId)}
                     className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
                   >
                     <Trash2 size={16} />
@@ -232,19 +275,23 @@ const TeamManager = () => {
                 </div>
                 
                 <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                  <span className="px-3 py-1 bg-firefox-orange/20 text-firefox-orange rounded-full text-[10px] font-black uppercase tracking-widest border border-firefox-orange/20">
-                    {member.role}
-                  </span>
-                  <div className="flex items-center gap-2 text-zinc-500 text-xs font-mono">
+                  <div className="flex flex-col gap-1">
+                    <span className="px-3 py-1 bg-firefox-orange/20 text-firefox-orange rounded-full text-[10px] font-black uppercase tracking-widest border border-firefox-orange/20 w-max">
+                      {member.role}
+                    </span>
+                    <span className="text-[10px] text-zinc-500 px-1 font-bold">{member.category || 'Legacy'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-500 text-xs font-mono self-end">
                     Cohort {member.cohort}
                   </div>
                 </div>
               </motion.div>
-            )
+            );
           })}
-          {teamMembers.length === 0 && (
-            <div className="col-span-full p-8 text-center text-zinc-500 text-sm bg-white/5 border border-white/10 rounded-3xl">
-              No team members added yet. Add someone from the community!
+          </div>
+          {teamMembers.filter(m => filterCohort === 'All' || m.cohort === filterCohort).length === 0 && (
+            <div className="col-span-full p-8 text-center text-zinc-500 text-sm bg-white/5 border border-white/10 rounded-3xl mt-4">
+              No team members found for this year.
             </div>
           )}
         </div>

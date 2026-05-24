@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Mail, Instagram, Linkedin, Github, Twitter, Youtube } from 'lucide-react';
+import { Mail, Instagram, Linkedin, Github, Twitter, Youtube, Sparkles } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -13,7 +13,7 @@ const Footer = () => {
             { icon: Mail, label: 'Email', url: 'mailto:mfc@zcoer.edu.in' },
             { icon: Instagram, label: 'Instagram', url: 'https://www.instagram.com/mfc.zcoer/' },
             { icon: Youtube, label: 'Youtube', url: '#' },
-            { icon: Github, label: 'Github', url: '#' },
+            { icon: Github, label: 'Github', url: 'https://github.com/mfczcoer/' },
             { icon: Linkedin, label: 'Linkedin', url: '#' },
             { icon: Twitter, label: 'X', url: '#' },
           ].map((social, i) => (
@@ -44,7 +44,11 @@ const Footer = () => {
                <p className="text-center md:text-left">© {new Date().getFullYear()} MOZILLA FIREFOX CLUB ZCOER. ALL RIGHTS RESERVED.</p>
                <p className="text-center md:text-left text-firefox-orange/80">DEVELOPED BY ANIKET RACHALWAR</p>
            </div>
-           <div className="flex gap-8 md:gap-12">
+           <div className="flex items-center gap-8 md:gap-12 mt-6 md:mt-0">
+                <button onClick={() => window.dispatchEvent(new Event('start-ecosystem-tour'))} className="hover:text-firefox-orange transition-colors flex items-center gap-2">
+                  <Sparkles size={14} />
+                  Take Website Tour
+                </button>
                 <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
                 <a href="#" className="hover:text-white transition-colors">ZCOER Pune</a>
            </div>

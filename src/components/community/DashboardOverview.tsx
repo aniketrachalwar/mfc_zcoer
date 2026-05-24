@@ -5,6 +5,7 @@ import { useOutletContext, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import ProposeWorkshopModal from './ProposeWorkshopModal';
+import DashboardTour from './DashboardTour';
 
 export default function DashboardOverview() {
   const { profile } = useOutletContext<{ profile: any }>();
@@ -126,6 +127,7 @@ export default function DashboardOverview() {
 
   return (
     <div className="space-y-8">
+      <DashboardTour />
       {/* Welcome Banner */}
       <div className="bg-gradient-to-br from-firefox-orange/10 to-transparent border border-firefox-orange/20 rounded-3xl p-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-firefox-orange/10 blur-[80px] rounded-full pointer-events-none" />
@@ -146,13 +148,15 @@ export default function DashboardOverview() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/5">
-              <Sparkles className="text-yellow-500" size={24} />
-              <div>
-                <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Total Points</p>
-                <p className="text-2xl font-display font-black text-white">{profile?.points || 0}</p>
+            {!profile?.isLeadership && (
+              <div className="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/5">
+                <Sparkles className="text-yellow-500" size={24} />
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Total Points</p>
+                  <p className="text-2xl font-display font-black text-white">{profile?.points || 0}</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

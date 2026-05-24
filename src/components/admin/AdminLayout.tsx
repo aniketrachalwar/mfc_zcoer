@@ -84,6 +84,7 @@ const AdminLayout = () => {
 
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
+    { name: 'Access Control', path: '/admin/access', icon: ShieldAlert },
     { name: 'Members', path: '/admin/members', icon: Users },
     { name: 'Applications', path: '/admin/applications', icon: CheckSquare },
     { name: 'Team', path: '/admin/team', icon: Star },
@@ -101,7 +102,18 @@ const AdminLayout = () => {
   ];
 
   const visibleNavItems = navItems.filter(item => {
-    if ((item.name === 'Members' || item.name === 'Team' || item.name === 'Applications' || item.name === 'Settings' || item.name === 'About Page' || item.name === 'Coupons') && !isStrictAdmin) return false;
+    // Strict admins see everything
+    if (isStrictAdmin) return true;
+    
+    // Check assigned permissions array
+    const assignedPerms = profile?.adminPermissions;
+    if (Array.isArray(assignedPerms)) {
+      // Allow if explicitely listed
+      return assignedPerms.includes(item.name);
+    }
+    
+    // Default legacy permissions for non-admins if array is missing
+    if (['Access Control', 'Members', 'Team', 'Applications', 'Settings', 'About Page', 'Coupons'].includes(item.name)) return false;
     return true;
   });
 
@@ -143,15 +155,21 @@ const AdminLayout = () => {
           {/* Main Content Area */}
           <div className="flex-1 bg-zinc-900/40 border border-white/5 rounded-3xl md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 backdrop-blur-xl relative overflow-hidden min-h-[600px]">
             <div className="absolute top-0 right-0 w-96 h-96 bg-firefox-orange/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-            {(location.pathname === '/admin/members' || location.pathname === '/admin/team') && !isStrictAdmin ? (
-              <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-                <ShieldAlert size={48} className="text-red-500 mb-4" />
-                <h2 className="text-2xl font-display font-black uppercase text-white mb-2">Access Restricted</h2>
-                <p className="text-zinc-400">Only administrators can manage this section.</p>
-              </div>
-            ) : (
-              <Outlet />
-            )}
+            {(() => {
+              // Find the current nav item to check if it's visible to this user
+              const currentItem = navItems.find(item => location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path)));
+              
+              if (currentItem && !visibleNavItems.some(v => v.name === currentItem.name)) {
+                return (
+                  <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
+                    <ShieldAlert size={48} className="text-red-500 mb-4" />
+                    <h2 className="text-2xl font-display font-black uppercase text-white mb-2">Access Restricted</h2>
+                    <p className="text-zinc-400">You do not have permission to manage this section.</p>
+                  </div>
+                );
+              }
+              return <Outlet />;
+            })()}
           </div>
           
         </div>

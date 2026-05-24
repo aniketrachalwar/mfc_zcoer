@@ -54,38 +54,49 @@ const TeamPage = () => {
               instagram: user.instagramUrl || '#'
             };
 
-            const roleLower = memberData.role.toLowerCase();
+            const category = tm.category;
             
-            if (
-              roleLower.includes('president') || 
-              roleLower.includes('core') || 
-              roleLower.includes('founder') || 
-              roleLower.includes('vice') ||
-              roleLower.includes('director')
-            ) {
+            if (category === 'Core Leadership') {
               dataMap[cohort].core.push(memberData);
-            } else if (
-              roleLower.includes('lead') || 
-              roleLower.includes('head') || 
-              roleLower.includes('manager')
-            ) {
+            } else if (category === 'Department Leads') {
               dataMap[cohort].leads.push(memberData);
-            } else {
+            } else if (category === 'Active Contributors') {
               dataMap[cohort].contributors.push(memberData);
+            } else {
+              // Legacy fallback
+              const roleLower = memberData.role.toLowerCase();
+              if (
+                roleLower.includes('president') || 
+                roleLower.includes('core') || 
+                roleLower.includes('founder') || 
+                roleLower.includes('vice') ||
+                roleLower.includes('director')
+              ) {
+                dataMap[cohort].core.push(memberData);
+              } else if (
+                roleLower.includes('lead') || 
+                roleLower.includes('head') || 
+                roleLower.includes('manager')
+              ) {
+                dataMap[cohort].leads.push(memberData);
+              } else {
+                dataMap[cohort].contributors.push(memberData);
+              }
             }
           }
         });
         
-        const sortedCohorts = Array.from(cohortsSet).sort((a, b) => b.localeCompare(a));
+        let sortedCohorts = Array.from(cohortsSet).sort((a, b) => b.localeCompare(a));
+        sortedCohorts = sortedCohorts.filter(c => c !== '24-25'); // Exclude 24-25 per user request
         setAvailableCohorts(sortedCohorts);
         setCohortData(dataMap);
         
         if (sortedCohorts.length > 0) {
-          const latestCohort = sortedCohorts[0];
-          setSelectedCohort(latestCohort);
-          setCoreLeadership(dataMap[latestCohort].core);
-          setDepartmentLeads(dataMap[latestCohort].leads);
-          setActiveContributors(dataMap[latestCohort].contributors);
+          const defaultCohort = sortedCohorts.includes('25-26') ? '25-26' : sortedCohorts[0];
+          setSelectedCohort(defaultCohort);
+          setCoreLeadership(dataMap[defaultCohort].core);
+          setDepartmentLeads(dataMap[defaultCohort].leads);
+          setActiveContributors(dataMap[defaultCohort].contributors);
         }
       } catch (err) {
         console.error("Error fetching team", err);
@@ -118,7 +129,7 @@ const TeamPage = () => {
               damping: 20,
               delay: (i % 4) * 0.05 
             }}
-            onClick={() => navigate(`/profile/${member.username}`)}
+            onClick={() => navigate(`/profile/${member.username}`, { state: { fromTeamPage: true } })}
             className="flex flex-col items-center text-center group cursor-pointer bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/[0.04] p-4 sm:p-6 rounded-3xl transition-all h-full"
           >
             <div className="relative w-24 h-24 sm:w-32 sm:h-32 mb-4 sm:mb-6 shrink-0">
@@ -161,6 +172,7 @@ const TeamPage = () => {
               )}
               <Link 
                 to={`/profile/${member.username}`}
+                state={{ fromTeamPage: true }}
                 onClick={(e) => e.stopPropagation()}
                 className="px-3 py-1.5 bg-white/5 border border-white/10 hover:border-firefox-orange/50 hover:bg-firefox-orange hover:text-white transition-all rounded-full font-display font-black text-[8px] uppercase tracking-widest text-zinc-400 flex items-center gap-1.5"
               >
@@ -188,7 +200,7 @@ const TeamPage = () => {
             <span className="w-2 h-2 rounded-full bg-firefox-orange animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">MFC ZCOER Ecosystem</span>
           </div>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-black uppercase tracking-tighter mb-6 leading-[0.9]">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-black uppercase tracking-tighter mb-6 leading-[0.9]">
             The <span className="text-gradient">Builders</span> <br />
             Behind the Scene
           </h1>
@@ -208,28 +220,31 @@ const TeamPage = () => {
             </div>
           ) : (
             <>
-              {/* Cohort Filter Tabs */}
+              {/* Cohort Filter Dropdown */}
               {availableCohorts.length > 0 && (
                 <div className="flex justify-center mb-16 relative z-20">
-                  <div className="inline-flex items-center p-1 bg-white/5 border border-white/10 rounded-full overflow-x-auto hide-scrollbar max-w-full">
-                    {availableCohorts.map(cohort => (
-                      <button
-                        key={cohort}
-                        onClick={() => {
-                          setSelectedCohort(cohort);
-                          setCoreLeadership(cohortData[cohort].core);
-                          setDepartmentLeads(cohortData[cohort].leads);
-                          setActiveContributors(cohortData[cohort].contributors);
-                        }}
-                        className={`px-6 py-2.5 rounded-full font-display font-black text-[10px] sm:text-xs uppercase tracking-widest whitespace-nowrap transition-all ${
-                          selectedCohort === cohort
-                            ? 'bg-firefox-orange text-white shadow-lg'
-                            : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                        }`}
-                      >
-                        AY 20{cohort}
-                      </button>
-                    ))}
+                  <div className="relative">
+                    <label className="absolute -top-6 left-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">Academic Year</label>
+                    <select
+                      value={selectedCohort}
+                      onChange={(e) => {
+                        const cohort = e.target.value;
+                        setSelectedCohort(cohort);
+                        setCoreLeadership(cohortData[cohort].core);
+                        setDepartmentLeads(cohortData[cohort].leads);
+                        setActiveContributors(cohortData[cohort].contributors);
+                      }}
+                      className="appearance-none px-6 py-3 pr-10 bg-zinc-900 border border-white/10 rounded-xl font-display font-black text-sm uppercase tracking-widest text-white focus:outline-none focus:border-firefox-orange transition-colors shadow-lg cursor-pointer"
+                    >
+                      {availableCohorts.map(cohort => (
+                        <option key={cohort} value={cohort}>
+                          AY 20{cohort}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                      <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
                   </div>
                 </div>
               )}
@@ -279,7 +294,7 @@ const TeamPage = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-zinc-900 border border-white/10 rounded-3xl p-8 md:p-16 text-center max-w-4xl mx-auto relative overflow-hidden"
+            className="bg-zinc-900 border border-white/10 rounded-3xl p-6 sm:p-8 md:p-16 text-center max-w-4xl mx-auto relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-tr from-firefox-orange/10 to-transparent pointer-events-none" />
             <h2 className="text-2xl md:text-4xl font-display font-black uppercase tracking-tight mb-4 text-white relative z-10">

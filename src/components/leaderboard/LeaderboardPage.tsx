@@ -15,9 +15,24 @@ const LeaderboardPage = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const q = query(collection(db, 'users'), orderBy('points', 'desc'), limit(50));
-        const snap = await getDocs(q);
-        const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const [usersSnap, teamSnap] = await Promise.all([
+          getDocs(query(collection(db, 'users'), orderBy('points', 'desc'), limit(150))),
+          getDocs(collection(db, 'team'))
+        ]);
+        
+        const teamDocs = teamSnap.docs.map(doc => doc.data() as any);
+        const leadershipUserIds = new Set(
+          teamDocs
+            .filter(t => t.category === 'Core Leadership' || t.category === 'Department Leads')
+            .map(t => t.userId)
+        );
+
+        let data = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        data = data.filter((user: any) => 
+          user.isLeadership !== true && 
+          !['admin', 'president', 'core_team'].includes(user.role) &&
+          !leadershipUserIds.has(user.id)
+        ).slice(0, 50);
         setLeaders(data);
       } catch (err) {
         console.error("Failed to fetch leaderboard", err);
@@ -59,7 +74,7 @@ const LeaderboardPage = () => {
               <Trophy size={14} />
               Hall of Fame
             </div>
-            <h1 className="text-4xl md:text-7xl font-display font-black uppercase tracking-tighter mb-6 text-white">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-display font-black uppercase tracking-tighter mb-6 text-white">
               Global <span className="text-firefox-orange">Leaderboard</span>
             </h1>
             

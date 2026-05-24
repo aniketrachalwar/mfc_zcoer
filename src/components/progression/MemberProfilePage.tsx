@@ -14,7 +14,7 @@ import { PointsSummary } from './PointsSummary';
 import { Mail, Github, Linkedin, Globe, Edit2, CheckCircle, Clock } from 'lucide-react';
 
 export function MemberProfilePage() {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { profile, recentPoints, badges, activityFeed, loading } = useProgression();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -87,44 +87,48 @@ export function MemberProfilePage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Profile Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Left Column - Level & Streak */}
-          <div className="space-y-6">
-            {/* Level Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="font-bold text-white mb-4">Your Level</h3>
-              <div className="flex justify-center mb-4">
-                <LevelBadge profile={profile} size="lg" showLabel={false} />
+          {!userProfile?.isLeadership && (
+            <>
+              {/* Left Column - Level & Streak */}
+              <div className="space-y-6">
+                {/* Level Card */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="font-bold text-gray-800 mb-4">Your Level</h3>
+                  <div className="flex justify-center mb-4">
+                    <LevelBadge profile={profile} size="lg" showLabel={false} />
+                  </div>
+                  <p className="text-center text-lg font-bold text-gray-800">{profile.level.replace('_', ' ').toUpperCase()}</p>
+                  <p className="text-center text-sm text-gray-500 mt-2">
+                    {profile.totalPoints.toLocaleString()} total points
+                  </p>
+                </div>
+                
+                {/* Streak Card */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="font-bold text-gray-800 mb-4">Your Streak</h3>
+                  <StreakDisplay profile={profile} />
+                </div>
               </div>
-              <p className="text-center text-lg font-bold text-white">{profile.level.replace('_', ' ').toUpperCase()}</p>
-              <p className="text-center text-sm text-white/60 mt-2">
-                {profile.totalPoints.toLocaleString()} total points
-              </p>
-            </div>
-            
-            {/* Streak Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="font-bold text-white mb-4">Your Streak</h3>
-              <StreakDisplay profile={profile} />
-            </div>
-          </div>
-          
-          {/* Middle Column - Points & Progress */}
-          <div className="space-y-6">
-            {/* Points Summary */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <PointsSummary profile={profile} recentPoints={recentPoints} showBreakdown={true} />
-            </div>
-            
-            {/* Progress to Next Level */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="font-bold text-white mb-4">Progression</h3>
-              <ProgressToNextLevel showDetails={true} animated={true} />
-            </div>
-          </div>
+              
+              {/* Middle Column - Points & Progress */}
+              <div className="space-y-6">
+                {/* Points Summary */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <PointsSummary profile={profile} recentPoints={recentPoints} showBreakdown={true} />
+                </div>
+                
+                {/* Progress to Next Level */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="font-bold text-gray-800 mb-4">Progression</h3>
+                  <ProgressToNextLevel showDetails={true} animated={true} />
+                </div>
+              </div>
+            </>
+          )}
           
           {/* Right Column - Profile Info */}
-          <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
-            <h3 className="font-bold text-white">Profile Info</h3>
+          <div className={`bg-white rounded-lg shadow-md p-6 space-y-4 ${userProfile?.isLeadership ? 'md:col-span-3' : ''}`}>
+            <h3 className="font-bold text-gray-800">Profile Info</h3>
             
             {/* Profile Completion */}
             <div>
@@ -285,19 +289,21 @@ export function MemberProfilePage() {
         
         {/* Member Info */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-bold text-white mb-4">Member Information</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-4">Member Information</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-xs text-white/60 font-semibold mb-1">JOINED</p>
-              <p className="text-sm text-white">{new Date(profile.joinDate).toLocaleDateString()}</p>
+              <p className="text-xs text-gray-500 font-semibold mb-1">JOINED</p>
+              <p className="text-sm text-gray-800">{new Date(profile.joinDate).toLocaleDateString()}</p>
             </div>
+            {!userProfile?.isLeadership && (
+              <div>
+                <p className="text-xs text-gray-500 font-semibold mb-1">TOTAL POINTS</p>
+                <p className="text-sm text-gray-800 font-bold">{profile.totalPoints.toLocaleString()}</p>
+              </div>
+            )}
             <div>
-              <p className="text-xs text-white/60 font-semibold mb-1">TOTAL POINTS</p>
-              <p className="text-sm text-white font-bold">{profile.totalPoints.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-xs text-white/60 font-semibold mb-1">BADGES EARNED</p>
-              <p className="text-sm text-white font-bold">{profile.badges.length}</p>
+              <p className="text-xs text-gray-500 font-semibold mb-1">BADGES EARNED</p>
+              <p className="text-sm text-gray-800 font-bold">{profile.badges.length}</p>
             </div>
             <div>
               <p className="text-xs text-white/60 font-semibold mb-1">PROFILE STATUS</p>

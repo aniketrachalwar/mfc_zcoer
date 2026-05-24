@@ -11,12 +11,21 @@ interface TeamApplicationModalProps {
 }
 
 const ROLES = [
-  "Frontend Developer",
-  "Backend Developer",
-  "UI/UX Designer",
-  "Community Manager",
-  "Content Writer",
-  "Event Coordinator",
+  "Video & Photo Producer",
+  "Graphic & UI Designer",
+  "Motion Graphics Artist",
+  "Social Media & Copywriter",
+  "Newsletter Editor",
+  "Events & Logistics Coordinator",
+  "Outreach & PR Specialist",
+  "Sponsorship Executive",
+  "Promotions Distributor",
+  "Discord & Community Moderator",
+  "Workshop Facilitator",
+  "Web & Tech Developer",
+  "Analytics & Data Tracker",
+  "Merchandise Coordinator",
+  "Audio & Visual Technician",
   "Other"
 ];
 
@@ -27,6 +36,7 @@ const TeamApplicationModal = ({ isOpen, onClose }: TeamApplicationModalProps) =>
     fullName: user?.displayName || '',
     email: user?.email || '',
     role: '',
+    proficiency: 3,
     customRole: '',
     pitch: '',
     github: '',
@@ -50,6 +60,7 @@ const TeamApplicationModal = ({ isOpen, onClose }: TeamApplicationModalProps) =>
         fullName: formData.fullName,
         email: formData.email,
         role: formData.role === 'Other' ? formData.customRole : formData.role,
+        proficiency: formData.proficiency,
         pitch: formData.pitch,
         github: formData.github,
         linkedin: formData.linkedin,
@@ -61,7 +72,7 @@ const TeamApplicationModal = ({ isOpen, onClose }: TeamApplicationModalProps) =>
       setTimeout(() => {
         onClose();
         setSuccess(false);
-        setFormData({ ...formData, role: '', customRole: '', pitch: '', github: '', linkedin: '', portfolio: '' });
+        setFormData({ ...formData, role: '', proficiency: 3, customRole: '', pitch: '', github: '', linkedin: '', portfolio: '' });
       }, 3000);
     } catch (err) {
       console.error("Application failed:", err);
@@ -145,6 +156,23 @@ const TeamApplicationModal = ({ isOpen, onClose }: TeamApplicationModalProps) =>
                       ))}
                     </select>
                   </div>
+
+                  {formData.role && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                      <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-2">Proficiency Level ({formData.proficiency}/5)</label>
+                      <input 
+                        type="range" min="1" max="5" step="1"
+                        value={formData.proficiency}
+                        onChange={e => setFormData({...formData, proficiency: parseInt(e.target.value)})}
+                        className="w-full accent-firefox-orange mt-2"
+                      />
+                      <div className="flex justify-between text-[10px] text-zinc-500 font-bold uppercase mt-2 mb-4">
+                        <span>Beginner</span>
+                        <span>Intermediate</span>
+                        <span>Expert</span>
+                      </div>
+                    </motion.div>
+                  )}
 
                   {formData.role === 'Other' && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { collection, query, where, getDocs, limit, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -17,6 +17,8 @@ import {
 const PublicProfile = () => {
   const { username } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromTeamPage = location.state?.fromTeamPage;
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,12 +32,31 @@ const PublicProfile = () => {
         if (querySnapshot.empty) {
           setError("Profile not found.");
         } else {
-          const profileData = querySnapshot.docs[0].data();
-          setProfile(profileData);
+          const userDoc = querySnapshot.docs[0];
+          const userData = { id: userDoc.id, ...userDoc.data() } as any;
+
+          const teamQ = query(collection(db, 'team'), where('userId', '==', userDoc.id));
+          const teamSnap = await getDocs(teamQ);
+          
+          if (!teamSnap.empty) {
+            const teamDocs = teamSnap.docs.map(d => d.data());
+            // Sort by cohort descending so we get the most recent role
+            teamDocs.sort((a, b) => (b.cohort || '').localeCompare(a.cohort || ''));
+            const latestTeam = teamDocs[0];
+            
+            userData.professionalTitle = latestTeam.role;
+            userData.department = latestTeam.category;
+            
+            if (latestTeam.category === 'Core Leadership' || latestTeam.category === 'Department Leads') {
+              userData.isLeadership = true;
+            }
+          }
+
+          setProfile(userData);
           
           // Fetch attended events
           try {
-            const ticketsQuery = query(collection(db, 'tickets'), where('userId', '==', profileData.uid), where('verified', '==', true));
+            const ticketsQuery = query(collection(db, 'tickets'), where('userId', '==', userData.uid), where('verified', '==', true));
             const ticketsSnap = await getDocs(ticketsQuery);
             const eventsList = [];
             for (const docSnap of ticketsSnap.docs) {
@@ -93,12 +114,16 @@ const PublicProfile = () => {
         <button 
           onClick={() => {
             window.scrollTo(0, 0);
-            navigate('/community');
+            if (fromTeamPage) {
+              navigate('/team');
+            } else {
+              navigate('/community');
+            }
           }}
           className="relative z-50 self-start inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-12 group cursor-pointer"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Back to Hub</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">{fromTeamPage ? 'Back to Team' : 'Back to Hub'}</span>
         </button>
 
         <div className="grid lg:grid-cols-2 gap-16 items-center w-full">
@@ -190,7 +215,7 @@ const PublicProfile = () => {
                   </div>
                 </TelegramShareButton>
 
-                <FacebookShareButton url={shareUrl} quote={title}>
+                <FacebookShareButton url={shareUrl}>
                   <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#4267B2] hover:text-white transition-all text-zinc-500">
                     <Facebook size={20} />
                   </div>

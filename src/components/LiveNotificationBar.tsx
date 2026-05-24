@@ -58,7 +58,7 @@ const LiveNotificationBar: React.FC = () => {
         initial={{ height: 0, opacity: 0 }}
         animate={{ height: 'auto', opacity: 1 }}
         exit={{ height: 0, opacity: 0 }}
-        className="w-full bg-[#050505] border-b border-white/5 relative z-50 overflow-hidden flex items-center h-10 sm:h-12"
+        className="w-full bg-[#050505] border-b border-white/5 relative z-50 overflow-hidden flex items-center h-8 sm:h-10"
       >
         {/* Left LIVE Badge */}
         <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center px-3 sm:px-6 bg-gradient-to-r from-[#050505] via-[#050505] to-transparent shrink-0">

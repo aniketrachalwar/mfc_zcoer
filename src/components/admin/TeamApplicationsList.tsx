@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, setDoc, query, orderBy } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { CheckCircle, XCircle, Loader2, ExternalLink } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -8,14 +8,24 @@ const TeamApplicationsList = () => {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [editData, setEditData] = useState<Record<string, { role: string, cohort: string }>>({});
 
   const fetchApplications = async () => {
     setLoading(true);
     try {
       const q = query(collection(db, 'team_applications'), orderBy('appliedAt', 'desc'));
       const snap = await getDocs(q);
-      const apps = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const apps = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setApplications(apps);
+      
+      // Initialize edit data for pending applications
+      const initialEditData: Record<string, { role: string, cohort: string }> = {};
+      apps.forEach(app => {
+        if (app.status === 'pending') {
+          initialEditData[app.id] = { role: app.role, cohort: '25-26' };
+        }
+      });
+      setEditData(initialEditData);
     } catch (err) {
       console.error("Error fetching applications:", err);
     } finally {
@@ -27,11 +37,23 @@ const TeamApplicationsList = () => {
     fetchApplications();
   }, []);
 
-  const handleUpdateStatus = async (id: string, status: 'approved' | 'rejected') => {
+  const handleUpdateStatus = async (app: any, status: 'approved' | 'rejected', finalRole: string = '', finalCohort: string = '') => {
     if (!window.confirm(`Are you sure you want to mark this application as ${status}?`)) return;
-    setProcessingId(id);
+    setProcessingId(app.id);
     try {
-      await updateDoc(doc(db, 'team_applications', id), { status });
+      await updateDoc(doc(db, 'team_applications', app.id), { status });
+      
+      if (status === 'approved') {
+        const docId = `${app.userId}_${finalCohort}`;
+        await setDoc(doc(db, 'team', docId), {
+          userId: app.userId,
+          role: finalRole,
+          category: 'Active Contributors',
+          cohort: finalCohort,
+          addedAt: new Date().toISOString()
+        });
+      }
+      
       fetchApplications();
     } catch (err) {
       console.error(err);
@@ -119,21 +141,46 @@ const TeamApplicationsList = () => {
             </div>
 
             {app.status === 'pending' && (
-              <div className="flex md:flex-col gap-2 shrink-0">
-                <button
-                  onClick={() => handleUpdateStatus(app.id, 'approved')}
-                  disabled={processingId === app.id}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white rounded-xl transition-colors font-bold text-xs"
-                >
-                  <CheckCircle size={16} /> Approve
-                </button>
-                <button
-                  onClick={() => handleUpdateStatus(app.id, 'rejected')}
-                  disabled={processingId === app.id}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-colors font-bold text-xs"
-                >
-                  <XCircle size={16} /> Reject
-                </button>
+              <div className="flex flex-col gap-3 shrink-0 bg-white/5 p-4 rounded-xl border border-white/10 w-full md:w-64">
+                <div>
+                  <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold block mb-1">Assign Role</label>
+                  <input 
+                    type="text" 
+                    value={editData[app.id]?.role ?? app.role}
+                    onChange={(e) => setEditData({...editData, [app.id]: { ...editData[app.id], role: e.target.value }})}
+                    className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-firefox-orange transition-colors"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold block mb-1">Academic Year</label>
+                  <select 
+                    value={editData[app.id]?.cohort ?? '25-26'}
+                    onChange={(e) => setEditData({...editData, [app.id]: { ...editData[app.id], cohort: e.target.value }})}
+                    className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-firefox-orange transition-colors"
+                  >
+                    <option value="25-26">25-26</option>
+                    <option value="26-27">26-27</option>
+                    <option value="27-28">27-28</option>
+                  </select>
+                </div>
+
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={() => handleUpdateStatus(app, 'approved', editData[app.id]?.role || app.role, editData[app.id]?.cohort || '25-26')}
+                    disabled={processingId === app.id}
+                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white rounded-lg transition-colors font-bold text-xs"
+                  >
+                    <CheckCircle size={14} /> Approve
+                  </button>
+                  <button
+                    onClick={() => handleUpdateStatus(app, 'rejected')}
+                    disabled={processingId === app.id}
+                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors font-bold text-xs"
+                  >
+                    <XCircle size={14} /> Reject
+                  </button>
+                </div>
               </div>
             )}
           </div>

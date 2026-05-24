@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, MapPin, Trophy, ArrowLeft, CheckCircle2, Clock, Download, XCircle, Ticket, Loader2 } from 'lucide-react';
+import { Calendar, MapPin, Trophy, ArrowLeft, CheckCircle2, Clock, Download, XCircle, Ticket, Loader2, Star } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, setDoc, updateDoc, increment, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';

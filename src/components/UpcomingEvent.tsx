@@ -97,7 +97,7 @@ const UpcomingEvent = () => {
 
 
   return (
-    <section className="bg-zinc-950 border-b border-white/5 py-16 relative overflow-hidden min-h-[400px] flex items-center">
+    <section className="bg-zinc-950 border-b border-white/5 py-10 md:py-16 relative overflow-hidden flex items-center">
       <div className="absolute inset-0 bg-firefox-orange/5 blur-3xl rounded-full translate-y-1/2 pointer-events-none" />
       
       <div className="max-w-7xl mx-auto px-4 relative z-10 w-full">
@@ -115,7 +115,7 @@ const UpcomingEvent = () => {
                 {activeEvent.type || 'Upcoming Event'}
               </span>
               
-              <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tight mb-4">
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-display font-black uppercase tracking-tight mb-4">
                 {activeEvent.title?.split(' ').slice(0, 2).join(' ')} <br/>
                 <span className="text-transparent" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.5)' }}>
                   {activeEvent.title?.split(' ').slice(2).join(' ')}

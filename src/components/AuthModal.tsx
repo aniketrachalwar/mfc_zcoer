@@ -80,23 +80,24 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-md bg-zinc-900/90 border border-white/10 p-6 sm:p-8 rounded-[2rem] overflow-y-auto overflow-x-hidden max-h-[90vh] backdrop-blur-xl shadow-2xl"
+            className="relative w-full max-w-md bg-zinc-900/90 border border-white/10 p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] overflow-y-auto overflow-x-hidden max-h-[90vh] backdrop-blur-xl shadow-2xl"
           >
             {/* Background Aura */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-firefox-orange/10 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
             
             <button
               onClick={onClose}
-              className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors z-10"
+              className="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors z-50 w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/5"
+              aria-label="Close modal"
             >
               <X size={20} />
             </button>
 
             <div className="relative z-10">
-              <h2 className="text-3xl font-display font-black uppercase text-white mb-2">
+              <h2 className="text-2xl sm:text-3xl font-display font-black uppercase text-white mb-1.5">
                 Join <span className="text-firefox-orange">MFC ZCOER</span>
               </h2>
-              <p className="text-zinc-400 text-sm mb-6 font-medium">
+              <p className="text-zinc-400 text-xs sm:text-sm mb-4 sm:mb-6 font-medium">
                 {isLogin ? 'Sign in to access your portal and manage your profile.' : 'Create an account to become an official member.'}
               </p>
 
@@ -107,7 +108,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 </div>
               )}
 
-              <form onSubmit={handleEmailAuth} className="space-y-4 mb-6">
+              <form onSubmit={handleEmailAuth} className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                 <div>
                   <div className="relative">
                     <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
@@ -116,7 +117,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                       placeholder="Email Address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-black/50 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors"
+                      className="w-full bg-black/50 border border-white/5 rounded-xl py-2.5 sm:py-3 pl-12 pr-4 text-[15px] sm:text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors"
                       required
                     />
                   </div>
@@ -129,7 +130,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                       placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-black/50 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors"
+                      className="w-full bg-black/50 border border-white/5 rounded-xl py-2.5 sm:py-3 pl-12 pr-4 text-[15px] sm:text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors"
                       required
                       minLength={6}
                     />
@@ -145,7 +146,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                         placeholder="Referral Code (Optional)"
                         value={referralCode}
                         onChange={(e) => setReferralCode(e.target.value)}
-                        className="w-full bg-black/50 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors uppercase"
+                        className="w-full bg-black/50 border border-white/5 rounded-xl py-2.5 sm:py-3 pl-12 pr-4 text-[15px] sm:text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors uppercase"
                       />
                     </div>
                   </div>
@@ -156,16 +157,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 bg-gradient-to-r from-firefox-orange to-firefox-yellow text-white rounded-xl font-display font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 transition-all shadow-lg shadow-firefox-orange/20"
+                  className="w-full py-3 sm:py-4 bg-gradient-to-r from-firefox-orange to-firefox-yellow text-white rounded-xl font-display font-black text-[10px] sm:text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 transition-all shadow-lg shadow-firefox-orange/20"
                 >
                   {loading ? <Loader2 size={16} className="animate-spin" /> : null}
                   {loading ? 'Processing...' : (isLogin ? 'Sign In with Email' : 'Sign Up with Email')}
                 </motion.button>
               </form>
 
-              <div className="relative flex items-center gap-4 py-4">
+              <div className="relative flex items-center gap-3 sm:gap-4 py-2 sm:py-4">
                 <div className="flex-1 h-[1px] bg-white/10" />
-                <span className="text-zinc-500 text-xs font-medium uppercase tracking-wider">or</span>
+                <span className="text-zinc-500 text-[10px] sm:text-xs font-medium uppercase tracking-wider">or</span>
                 <div className="flex-1 h-[1px] bg-white/10" />
               </div>
 
@@ -175,17 +176,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 onClick={handleGoogleAuth}
                 disabled={loading}
                 type="button"
-                className="w-full mt-4 py-4 bg-white text-black rounded-xl font-display font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 transition-all hover:bg-zinc-200"
+                className="w-full mt-2 sm:mt-4 py-3 sm:py-4 bg-white text-black rounded-xl font-display font-black text-[10px] sm:text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 transition-all hover:bg-zinc-200"
               >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <Chrome size={16} />}
                 {loading ? 'Connecting...' : 'Continue with Google'}
               </motion.button>
 
-              <div className="mt-6 text-center">
+              <div className="mt-4 sm:mt-6 text-center">
                 <button
                   type="button"
                   onClick={() => setIsLogin(!isLogin)}
-                  className="text-zinc-400 hover:text-white text-sm transition-colors"
+                  className="text-zinc-400 hover:text-white text-xs sm:text-sm transition-colors"
                 >
                   {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
                 </button>

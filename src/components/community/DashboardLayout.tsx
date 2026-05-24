@@ -84,6 +84,18 @@ const DashboardLayout = () => {
     { name: 'Settings', path: '/dashboard/settings', icon: Settings },
   ];
 
+  const mobilePrimaryTabs = [
+    { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
+    ...(dashboardConfig.enableProjectsTab ? [{ name: 'Projects', path: '/dashboard/projects', icon: Code }] : []),
+    { name: 'ID Card', path: '/dashboard/id-card', icon: IdCard },
+  ];
+
+  const mobileSecondaryTabs = [
+    ...(dashboardConfig.enablePurchasesTab ? [{ name: 'Purchases', path: '/dashboard/purchases', icon: ShoppingBag }] : []),
+    ...(dashboardConfig.enableMembershipHistory ? [{ name: 'History', path: '/dashboard/membership-history', icon: Shield }] : []),
+    ...secondaryTabs,
+  ];
+
   const allTabs = [...primaryTabs, ...secondaryTabs];
   const isAdmin = profile && (profile.role === 'admin' || profile.role === 'president' || profile.role === 'core_team');
 
@@ -160,7 +172,7 @@ const DashboardLayout = () => {
       {/* Mobile Bottom Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#080808]/90 backdrop-blur-xl border-t border-white/5 z-50 px-2 pb-safe pt-2">
         <div className="flex items-center justify-around relative">
-          {primaryTabs.map((item) => {
+          {mobilePrimaryTabs.map((item) => {
             const isActive = location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
             return (
               <Link
@@ -179,7 +191,7 @@ const DashboardLayout = () => {
           <button
             onClick={() => setIsMoreOpen(!isMoreOpen)}
             className={`flex flex-col items-center justify-center p-2 rounded-xl transition-colors min-w-[64px] ${
-              isMoreOpen || secondaryTabs.some(t => location.pathname.startsWith(t.path)) 
+              isMoreOpen || mobileSecondaryTabs.some(t => location.pathname.startsWith(t.path)) 
                 ? 'text-firefox-orange' : 'text-zinc-500'
             }`}
           >
@@ -200,7 +212,7 @@ const DashboardLayout = () => {
               <div className="p-4 space-y-2 pb-6">
                 <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-6" />
                 
-                {secondaryTabs.map((item) => {
+                {mobileSecondaryTabs.map((item) => {
                   const isActive = location.pathname.startsWith(item.path);
                   return (
                     <Link

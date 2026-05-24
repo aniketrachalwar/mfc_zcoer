@@ -125,7 +125,7 @@ const ProfileForm: React.FC = () => {
       });
 
       await refetchProfile();
-      onSave(cleanData);
+      onSave();
     } catch (err) {
       console.error("Save failed:", err);
     } finally {
@@ -150,7 +150,7 @@ const ProfileForm: React.FC = () => {
         </div>
       )}
       
-      {!isNewUser && (
+      {!isNewUser && !data.isLeadership && (
         <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
              <h4 className="text-zinc-500 font-black uppercase text-[10px] tracking-widest mb-2">Your Referral Code</h4>
@@ -173,6 +173,13 @@ const ProfileForm: React.FC = () => {
                 </div>
              )}
           </div>
+        </div>
+      )}
+      
+      {!isNewUser && data.isLeadership && (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
+          <h4 className="text-firefox-orange font-black uppercase text-[10px] tracking-widest mb-2">Leadership Account</h4>
+          <p className="text-sm text-zinc-400">As a member of the Core Leadership or Department Leads, you are excluded from the global leaderboard.</p>
         </div>
       )}
 

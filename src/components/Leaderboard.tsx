@@ -11,10 +11,25 @@ const LeaderboardPreview = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const q = query(collection(db, 'users'), orderBy('points', 'desc'), limit(3));
-        const snap = await getDocs(q);
-        const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setLeaders(data);
+        const [usersSnap, teamSnap] = await Promise.all([
+          getDocs(query(collection(db, 'users'), orderBy('points', 'desc'), limit(50))),
+          getDocs(collection(db, 'team'))
+        ]);
+        
+        const teamDocs = teamSnap.docs.map(doc => doc.data() as any);
+        const leadershipUserIds = new Set(
+          teamDocs
+            .filter(t => t.category === 'Core Leadership' || t.category === 'Department Leads')
+            .map(t => t.userId)
+        );
+
+        const data = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const filtered = data.filter((u: any) => 
+          u.isLeadership !== true && 
+          !['admin', 'president', 'core_team'].includes(u.role) &&
+          !leadershipUserIds.has(u.id)
+        ).slice(0, 3);
+        setLeaders(filtered);
       } catch (err) {
         console.error("Failed to fetch leaderboard", err);
       } finally {
@@ -33,12 +48,12 @@ const LeaderboardPreview = () => {
   }
 
   return (
-    <section id="leaderboard" className="py-24 relative bg-zinc-950 overflow-hidden">
+    <section id="leaderboard" className="py-12 md:py-24 relative bg-zinc-950 overflow-hidden">
       {/* Significantly reduced effects for mobile performance */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
       
       <div className="max-w-4xl mx-auto px-4 relative z-10">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8 md:mb-12">
           <div className="inline-flex items-center gap-3 px-4 py-2 bg-firefox-orange/10 border border-firefox-orange/20 rounded-full text-firefox-orange text-[10px] font-black uppercase tracking-[0.2em] mb-4">
             <Trophy size={14} />
             Hall of Fame

@@ -68,7 +68,7 @@ const BlogsPage = () => {
             <span className="text-zinc-500 font-bold text-[10px] md:text-xs uppercase tracking-[0.3em] flex items-center gap-2">
               <Sparkles size={14} className="text-firefox-orange" /> Knowledge Base
             </span>
-            <h1 className="text-4xl md:text-6xl font-display font-black mt-4 tracking-tighter text-white">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-display font-black mt-4 tracking-tighter text-white">
               Latest <span className="text-gradient">Insights</span>
             </h1>
           </header>
@@ -218,7 +218,7 @@ const BlogsPage = () => {
                 
                 {/* Write CTA Block */}
                 {user ? (
-                  <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[2rem] text-center">
+                  <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl sm:rounded-[2rem] text-center">
                     <h3 className="text-xl font-black text-white mb-2">Got something to say?</h3>
                     <p className="text-zinc-400 text-sm mb-6">Share your knowledge with the community and earn points.</p>
                     <button 
@@ -229,7 +229,7 @@ const BlogsPage = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[2rem] text-center">
+                  <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl sm:rounded-[2rem] text-center">
                     <h3 className="text-xl font-black text-white mb-2">Join the Discussion</h3>
                     <p className="text-zinc-400 text-sm mb-6">Sign in to read, earn points, and publish your own insights.</p>
                     <button 

@@ -84,7 +84,7 @@ const About = () => {
                 <span className="flex items-center gap-2 text-firefox-orange font-mono text-[10px] md:text-xs tracking-widest uppercase mb-4 md:mb-6">
                   <Sparkles size={14} /> Our Identity
                 </span>
-                <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display font-black mb-6 md:mb-8 tracking-tighter text-white leading-[0.9]">
+                <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-display font-black mb-6 md:mb-8 tracking-tighter text-white leading-[0.9]">
                   {data.identityText.split(' ').map((word, i) => (
                     <span key={i} className={i === data.identityText.split(' ').length - 1 ? 'text-firefox-orange' : ''}>
                       {word}{' '}
@@ -147,7 +147,7 @@ const About = () => {
             <div className="max-w-7xl mx-auto">
               <div className="text-center mb-12 md:mb-16">
                 <span className="text-firefox-orange font-mono text-[10px] md:text-xs tracking-widest uppercase mb-4 block">Leadership</span>
-                <h2 className="text-4xl md:text-5xl font-display font-black text-white">Words of Wisdom</h2>
+                <h2 className="text-2xl sm:text-3xl md:text-5xl font-display font-black text-white">Words of Wisdom</h2>
               </div>
               
               <div className="grid md:grid-cols-2 gap-6 md:gap-8">
@@ -194,7 +194,7 @@ const About = () => {
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-12 md:mb-16">
                 <span className="text-firefox-orange font-mono text-[10px] md:text-xs tracking-widest uppercase mb-4 block">Milestones</span>
-                <h2 className="text-4xl md:text-5xl font-display font-black text-white">Our Achievements</h2>
+                <h2 className="text-2xl sm:text-3xl md:text-5xl font-display font-black text-white">Our Achievements</h2>
               </div>
 
               <div className="space-y-8 md:space-y-12 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-zinc-800 before:to-transparent">
@@ -239,7 +239,7 @@ const About = () => {
             <div className="max-w-7xl mx-auto">
               <div className="text-center mb-12 md:mb-16">
                 <span className="text-firefox-orange font-mono text-[10px] md:text-xs tracking-widest uppercase mb-4 block">Memories</span>
-                <h2 className="text-4xl md:text-5xl font-display font-black text-white">Photo Gallery</h2>
+                <h2 className="text-2xl sm:text-3xl md:text-5xl font-display font-black text-white">Photo Gallery</h2>
               </div>
 
               {/* CSS columns for Masonry layout */}

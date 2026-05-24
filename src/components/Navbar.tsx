@@ -116,9 +116,9 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 overflow-x-clip ${scrolled ? 'glass-nav flex flex-col' : 'bg-transparent flex flex-col'}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 overflow-x-clip tour-step-navbar ${scrolled ? 'glass-nav flex flex-col' : 'bg-transparent flex flex-col'}`}>
       <LiveNotificationBar />
-      <div className={`max-w-[1920px] w-full mx-auto px-4 sm:px-6 md:px-12 flex items-center justify-between gap-3 transition-all duration-500 ${scrolled ? 'py-3 md:py-4' : 'py-4 md:py-8'}`}>
+      <div className={`max-w-[1920px] w-full mx-auto px-4 sm:px-6 md:px-12 flex items-center justify-between gap-3 transition-all duration-500 ${scrolled ? 'py-2 md:py-4' : 'py-2.5 md:py-8'}`}>
         
         {/* Logo Section */}
         <Link to="/" className="flex items-center gap-4 group cursor-pointer">
@@ -131,7 +131,7 @@ const Navbar = () => {
             <img loading="lazy" 
               src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png" 
               alt="MFC Logo" 
-              className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,106,0,0.5)]" 
+              className="w-10 h-10 sm:w-14 sm:h-14 md:w-20 md:h-20 object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,106,0,0.5)]" 
             />
           </motion.div>
           <div className="hidden lg:flex flex-col gap-0 text-left">
@@ -171,7 +171,7 @@ const Navbar = () => {
                 <Link
                   to={link.href}
                   onClick={(e) => handleNavClick(e, link)}
-                  className={`relative px-6 py-3 text-[11px] font-display font-black uppercase tracking-[0.2em] transition-all duration-300 ${isActive ? 'text-[#FF5C00]' : 'text-zinc-400 hover:text-white hover:drop-shadow-[0_0_10px_rgba(255,106,0,0.3)]'}`}
+                  className={`relative px-6 py-3 text-[11px] font-display font-black uppercase tracking-[0.2em] transition-all duration-300 ${link.name === 'Community' ? 'tour-step-community' : ''} ${isActive ? 'text-[#FF5C00]' : 'text-zinc-400 hover:text-white hover:drop-shadow-[0_0_10px_rgba(255,106,0,0.3)]'}`}
                 >
                   {content}
                 </Link>
@@ -188,7 +188,7 @@ const Navbar = () => {
                 whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(255, 106, 0, 0.4)' }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleJoinClick}
-                className="hidden md:flex px-10 py-5 bg-[#ff6a00] text-white rounded-none font-display font-black text-[10px] uppercase tracking-[0.4em] transition-all relative overflow-hidden group"
+                className="tour-step-join hidden md:flex px-10 py-5 bg-[#ff6a00] text-white rounded-none font-display font-black text-[10px] uppercase tracking-[0.4em] transition-all relative overflow-hidden group"
               >
                 <span className="relative z-10">Join Community</span>
                 <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 opacity-10" />
@@ -196,7 +196,7 @@ const Navbar = () => {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={handleJoinClick}
-                className="md:hidden h-10 px-4 bg-[#ff6a00] text-white rounded-full font-display font-black text-[10px] uppercase tracking-[0.16em] shadow-[0_0_18px_rgba(255,106,0,0.25)]"
+                className="tour-step-join-mobile md:hidden h-10 px-4 bg-[#ff6a00] text-white rounded-full font-display font-black text-[10px] uppercase tracking-[0.16em] shadow-[0_0_18px_rgba(255,106,0,0.25)]"
               >
                 Join
               </motion.button>
@@ -263,7 +263,7 @@ const Navbar = () => {
 
           <button 
             onClick={() => setIsOpen(!isOpen)}
-            className="xl:hidden w-11 h-11 sm:w-12 sm:h-12 flex shrink-0 items-center justify-center text-white"
+            className="tour-step-community-mobile xl:hidden w-11 h-11 sm:w-12 sm:h-12 flex shrink-0 items-center justify-center text-white"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -287,9 +287,9 @@ const Navbar = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-              className="fixed top-0 right-0 w-[85vw] max-w-md h-dvh bg-[#080808] border-l border-white/10 z-[100] flex flex-col p-6 sm:p-8 pt-24 overflow-y-auto xl:hidden shadow-2xl"
+              className="fixed top-0 right-0 w-[65vw] sm:w-[50vw] max-w-[280px] h-dvh bg-[#080808] border-l border-white/10 z-[100] flex flex-col p-5 sm:p-6 pt-20 overflow-y-auto xl:hidden shadow-2xl"
             >
-              <div className="flex flex-col gap-6 sm:gap-8">
+              <div className="flex flex-col gap-4 sm:gap-5">
                 {navLinks.map((link, i) => {
                   const isAnchorActive = link.type === 'anchor' && activeHash === link.href.replace('/', '');
                   const isLinkActive = link.type === 'link' && location.pathname === link.href;
@@ -305,10 +305,10 @@ const Navbar = () => {
                       <Link
                         to={link.href}
                         onClick={(e) => handleNavClick(e, link)}
-                        className={`text-2xl sm:text-3xl leading-tight font-display font-black uppercase tracking-tight transition-colors flex items-center justify-between gap-4 group break-words min-h-[44px] ${isActive ? 'text-[#FF5C00]' : 'text-white hover:text-[#FF5C00]'}`}
+                        className={`text-sm sm:text-base leading-none font-display font-black uppercase tracking-[0.2em] transition-colors flex items-center justify-between gap-4 group break-words min-h-[38px] ${isActive ? 'text-[#FF5C00]' : 'text-zinc-300 hover:text-white'}`}
                       >
-                        {link.name}
-                        <ChevronRight size={24} className={`shrink-0 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+                        <span>{link.name}</span>
+                        <ChevronRight size={16} className={`shrink-0 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
                       </Link>
                     </motion.div>
                   );
@@ -319,7 +319,7 @@ const Navbar = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                     onClick={handleJoinClick}
-                    className="mt-4 sm:mt-8 w-full py-5 bg-[#ff6a00] text-white font-display font-black uppercase tracking-[0.2em] rounded-xl shadow-[0_0_20px_rgba(255,106,0,0.3)] min-h-[44px]"
+                    className="mt-2 sm:mt-4 w-full py-3.5 bg-[#ff6a00] text-white font-display font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs rounded-xl shadow-[0_0_20px_rgba(255,106,0,0.3)] min-h-[40px]"
                   >
                     Join Community
                   </motion.button>
