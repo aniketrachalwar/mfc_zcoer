@@ -7,7 +7,6 @@ import { collection, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ArrowLeft, Image as ImageIcon, Send, Link as LinkIcon, Sparkles } from 'lucide-react';
 import { Blog } from '../../types/blog';
 import MDEditor from '@uiw/react-md-editor';
-import { GoogleGenAI } from '@google/genai';
 
 const WriteBlog = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,10 +15,6 @@ const WriteBlog = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(!!id);
   const [blogData, setBlogData] = useState<Blog | null>(null);
-  const [generatingMcq, setGeneratingMcq] = useState(false);
-  const [trendingTopics, setTrendingTopics] = useState<string>('');
-  const [fetchingTrends, setFetchingTrends] = useState(false);
-  
   const [isExternal, setIsExternal] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -94,66 +89,6 @@ const WriteBlog = () => {
       </div>
     );
   }
-
-  const handleGenerateMCQ = async () => {
-    if (!formData.content || formData.content.length < 50) {
-      setError("Please write some content first so the AI can generate a question.");
-      return;
-    }
-    setGeneratingMcq(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey: 'AIzaSyCJ6kN-OCeb65dRwMqK4hJQPh55DBYXhoI' });
-      const prompt = `Based on the following blog content, generate one multiple choice question with exactly 4 options. Return ONLY a JSON object in this exact format, nothing else:
-{
-  "question": "The question text here?",
-  "options": ["Option A", "Option B", "Option C", "Option D"],
-  "correctOptionIndex": 0
-}
-
-Blog Content:
-${formData.content.substring(0, 5000)}
-`;
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt
-      });
-      const text = response.text || '';
-      // Extract json if wrapped in markdown
-      const jsonMatch = text.match(/```(?:json)?\n?([\s\S]*?)```/);
-      const jsonStr = jsonMatch ? jsonMatch[1] : text;
-      
-      const parsed = JSON.parse(jsonStr);
-      if (parsed.question && parsed.options && parsed.options.length === 4) {
-        setFormData(prev => ({ ...prev, mcq: parsed }));
-        setSuccess("MCQ generated successfully!");
-      } else {
-        throw new Error("Invalid format from AI");
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError("Failed to generate MCQ. Please try again or write manually.");
-    } finally {
-      setGeneratingMcq(false);
-    }
-  };
-
-  const handleGetTrendingTopics = async () => {
-    setFetchingTrends(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey: 'AIzaSyCJ6kN-OCeb65dRwMqK4hJQPh55DBYXhoI' });
-      const prompt = `Give me a list of 5 currently trending topics in Technology and Software Engineering that would make great blog posts. For each topic, provide a short 1-sentence idea for what the blog could cover. Format the output as a simple Markdown list. Do not include any conversational text.`;
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt
-      });
-      setTrendingTopics(response.text || 'Failed to generate topics.');
-    } catch (err: any) {
-      console.error(err);
-      setError("Failed to fetch trending topics. Please try again.");
-    } finally {
-      setFetchingTrends(false);
-    }
-  };
 
   const handleMcqOptionChange = (index: number, value: string) => {
     const newOptions = [...formData.mcq.options];
@@ -301,36 +236,6 @@ ${formData.content.substring(0, 5000)}
           )}
         </div>
 
-        {/* Trending Topics Inspiration Block */}
-        {!id && (
-          <div className="mb-10 p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h3 className="text-white font-black text-xl flex items-center gap-2 mb-1">
-                  <Sparkles size={20} className="text-firefox-orange" /> Need Inspiration?
-                </h3>
-                <p className="text-zinc-400 text-sm">Get AI-generated trending topics in Tech to write about.</p>
-              </div>
-              <button
-                type="button"
-                onClick={handleGetTrendingTopics}
-                disabled={fetchingTrends}
-                className="px-6 py-3 bg-white/5 hover:bg-firefox-orange text-white rounded-full text-xs font-black uppercase tracking-widest transition-colors disabled:opacity-50 shrink-0"
-              >
-                {fetchingTrends ? 'Fetching...' : 'Show Trends'}
-              </button>
-            </div>
-            
-            {trendingTopics && (
-              <div className="mt-6 pt-6 border-t border-zinc-800">
-                <div className="prose prose-invert prose-zinc max-w-none text-sm leading-relaxed" data-color-mode="dark">
-                  <MDEditor.Markdown source={trendingTopics} style={{ backgroundColor: 'transparent' }} />
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Blog Title</label>
@@ -425,15 +330,6 @@ ${formData.content.substring(0, 5000)}
                 <h3 className="text-white font-bold mb-1">Read-to-Earn Question</h3>
                 <p className="text-zinc-400 text-sm">Add a multiple choice question to let readers earn points!</p>
               </div>
-              <button
-                type="button"
-                onClick={handleGenerateMCQ}
-                disabled={generatingMcq || !formData.content}
-                className="flex items-center gap-2 px-4 py-2 bg-firefox-orange/10 hover:bg-firefox-orange/20 text-firefox-orange rounded-full text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Sparkles size={14} />
-                {generatingMcq ? 'Generating...' : 'Auto-Generate'}
-              </button>
             </div>
 
             <div className="space-y-4">

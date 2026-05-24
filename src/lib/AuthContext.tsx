@@ -168,7 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else if (err.code === 'auth/blocked-at-popup-request') {
         setError("Login popup was blocked by your browser. Please allow popups for this site or open the app in a new tab.");
       } else {
-        setError("Login failed. Please try again or open the app in a new tab.");
+        setError(`Login failed: ${err.message || err.code || "Unknown error"}`);
       }
       console.error("Login failed:", err);
       throw err;
@@ -206,7 +206,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
         setError("Invalid email or password. Please try again.");
       } else {
-        setError("Login failed: " + err.message);
+        setError(`Login failed: ${err.message || err.code || "Unknown error"}`);
       }
       console.error("Login failed:", err);
       throw err;
