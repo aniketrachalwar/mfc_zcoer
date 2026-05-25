@@ -1,4 +1,5 @@
 rules_version = '2';
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
@@ -21,6 +22,14 @@ service cloud.firestore {
         );
     }
 
+    function isStaff() {
+      return isAdmin() ||
+        (
+          isSignedIn() &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'president', 'core_team', 'volunteer']
+        );
+    }
+
     match /projects/{projectId} {
       allow read: if true;
       allow write: if canManageContent();
@@ -28,12 +37,12 @@ service cloud.firestore {
 
     match /events/{eventId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if canManageContent();
     }
 
     match /team/{memberId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if canManageContent();
     }
     
     match /admins/{adminId} {
@@ -46,35 +55,61 @@ service cloud.firestore {
     }
 
     match /tickets/{ticketId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow write: if canManageContent();
+      allow read: if (isSignedIn() && (resource.data.userId == request.auth.uid || isStaff()));
+      allow create: if isSignedIn() && 
+                    request.resource.data.userId == request.auth.uid && 
+                    request.resource.data.get('verified', false) == false;
+      allow update: if isStaff() ||
+                       (
+                         isSignedIn() &&
+                         resource.data.userId == request.auth.uid &&
+                         request.resource.data.userId == request.auth.uid &&
+                         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'customCertificate'])
+                       );
+      allow delete: if isStaff();
     }
 
     match /users/{userId} {
       allow read: if true;
-      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId &&
+                    !request.resource.data.keys().hasAny(['role', 'membershipTier', 'subscriptionStart', 'subscriptionEnd', 'paymentStatus']) &&
+                    request.resource.data.get('membershipStatus', 'public') == 'public' &&
+                    request.resource.data.get('isFoundingMember', false) == false;
       allow update: if (isSignedIn() && request.auth.uid == userId && 
-                       (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'membershipStatus', 'isFoundingMember', 'membershipTier', 'subscriptionStart', 'subscriptionEnd', 'paymentStatus']) || 
-                        request.resource.data.membershipStatus == 'pending')) || 
-                       canManageContent();
-      allow delete: if canManageContent();
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'membershipStatus', 'isFoundingMember', 'membershipTier', 'subscriptionStart', 'subscriptionEnd', 'paymentStatus']) &&
+                       (
+                         request.resource.data.get('points', 0) == resource.data.get('points', 0) ||
+                         (request.resource.data.get('points', 0) == resource.data.get('points', 0) + 20 && !resource.data.get('profileCompletedRewarded', false) && request.resource.data.get('profileCompletedRewarded', false)) ||
+                         (request.resource.data.get('points', 0) == resource.data.get('points', 0) + 5) ||
+                         ((request.resource.data.get('points', 0) == resource.data.get('points', 0) + 3 || request.resource.data.get('points', 0) == resource.data.get('points', 0) + 5) && request.resource.data.get('answeredBlogs', []).size() == resource.data.get('answeredBlogs', []).size() + 1)
+                       )) ||
+                       (isSignedIn() && 
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['points']) &&
+                        request.resource.data.get('points', 0) == resource.data.get('points', 0) + 20) ||
+                       isStaff();
+      allow delete: if isStaff();
     }
 
     match /blogs/{blogId} {
       allow read: if resource.data.status == 'approved' ||
         (isSignedIn() && resource.data.authorId == request.auth.uid) ||
-        canManageContent();
+        isStaff();
       allow create: if isSignedIn() &&
         request.resource.data.authorId == request.auth.uid &&
-        (request.resource.data.status == 'pending' || canManageContent());
-      allow update: if canManageContent() ||
+        (request.resource.data.status == 'pending' || isStaff());
+      allow update: if isStaff() ||
         (
           isSignedIn() &&
           resource.data.authorId == request.auth.uid &&
           request.resource.data.authorId == request.auth.uid &&
           request.resource.data.status == 'pending'
+        ) ||
+        (
+          isSignedIn() &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['engagementScore']) &&
+          (request.resource.data.engagementScore == resource.data.get('engagementScore', 0) + 1 || request.resource.data.engagementScore == resource.data.get('engagementScore', 0) + 5)
         );
-      allow delete: if canManageContent() ||
+      allow delete: if isStaff() ||
         (isSignedIn() && resource.data.authorId == request.auth.uid);
     }
     
@@ -89,9 +124,33 @@ service cloud.firestore {
     }
 
     match /payments/{paymentId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid || canManageContent();
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if canManageContent();
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid || isStaff();
+      allow create: if isSignedIn() && 
+                    request.resource.data.userId == request.auth.uid &&
+                    request.resource.data.get('status', 'pending') == 'pending' &&
+                    request.resource.data.get('paymentStatus', 'pending') == 'pending';
+      allow update, delete: if isStaff();
+    }
+
+    match /contacts/{contactId} {
+      allow create: if true;
+      allow read, update, delete: if isStaff();
+    }
+
+    match /team_applications/{appId} {
+      allow create: if isSignedIn() && 
+                    request.resource.data.userId == request.auth.uid && 
+                    request.resource.data.get('status', 'pending') == 'pending';
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isStaff());
+      allow update, delete: if isStaff();
+    }
+
+    match /workshopProposals/{proposalId} {
+      allow create: if isSignedIn() && 
+                    request.resource.data.userId == request.auth.uid && 
+                    request.resource.data.get('status', 'pending') == 'pending';
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isStaff());
+      allow update, delete: if isStaff();
     }
   }
 }

@@ -471,6 +471,30 @@ const EventsManager = () => {
                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
                           />
                         </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Why Attend? (Reason for hosting)</label>
+                          <textarea 
+                            name="why"
+                            value={formData.why}
+                            onChange={handleChange}
+                            required
+                            rows={3}
+                            placeholder="Why should students attend this event?"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Key Outcomes (What will they get?)</label>
+                          <textarea 
+                            name="outcomes"
+                            value={formData.outcomes}
+                            onChange={handleChange}
+                            required
+                            rows={3}
+                            placeholder="Certificates, knowledge, swags..."
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
+                          />
+                        </div>
                       </motion.div>
                     )}
 
@@ -666,28 +690,6 @@ const EventsManager = () => {
                               <option value="Winner">Winner</option>
                               <option value="Excellence">Excellence</option>
                             </select>
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block ml-4">Why is this event happening?</label>
-                            <textarea 
-                              required
-                              name="why"
-                              value={formData.why}
-                              onChange={handleChange}
-                              className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-firefox-orange text-sm resize-none h-24"
-                              placeholder="Reason for hosting the event..."
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block ml-4">What will attendees get? (Outcomes)</label>
-                            <textarea 
-                              required
-                              name="outcomes"
-                              value={formData.outcomes}
-                              onChange={handleChange}
-                              className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-firefox-orange text-sm resize-none h-24"
-                              placeholder="Certificates, knowledge, swags..."
-                            />
                           </div>
                         </div>
                       </div>

@@ -15,7 +15,7 @@ const WriteBlog = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(!!id);
   const [blogData, setBlogData] = useState<Blog | null>(null);
-  const [isExternal, setIsExternal] = useState(false);
+  const [isExternal, setIsExternal] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     excerpt: '',
@@ -191,7 +191,7 @@ const WriteBlog = () => {
     <div className="min-h-screen pt-32 pb-20 px-4 bg-zinc-950">
       <div className="max-w-4xl mx-auto">
         <button 
-          onClick={() => navigate('/blogs')}
+          onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-8 text-[10px] font-black uppercase tracking-widest"
         >
           <ArrowLeft size={14} /> Back
@@ -215,25 +215,6 @@ const WriteBlog = () => {
             )}
           </div>
           
-          {/* Toggle Type */}
-          {!id && (
-            <div className="flex bg-zinc-900 p-1 rounded-full border border-zinc-800 self-start">
-              <button 
-                type="button"
-                onClick={() => setIsExternal(false)}
-                className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${!isExternal ? 'bg-firefox-orange text-white' : 'text-zinc-500 hover:text-white'}`}
-              >
-                Write Post
-              </button>
-              <button 
-                type="button"
-                onClick={() => setIsExternal(true)}
-                className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${isExternal ? 'bg-firefox-orange text-white' : 'text-zinc-500 hover:text-white'}`}
-              >
-                External Link
-              </button>
-            </div>
-          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -301,16 +282,18 @@ const WriteBlog = () => {
             )}
           </div>
 
-          <div className="space-y-2" data-color-mode="dark">
-            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Content</label>
-            <MDEditor
-              value={formData.content}
-              onChange={(val) => setFormData({...formData, content: val || ''})}
-              preview="edit"
-              height={400}
-              className="!bg-zinc-900 !border-zinc-800 rounded-2xl overflow-hidden"
-            />
-          </div>
+          {!isExternal && (
+            <div className="space-y-2" data-color-mode="dark">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Content</label>
+              <MDEditor
+                value={formData.content}
+                onChange={(val) => setFormData({...formData, content: val || ''})}
+                preview="edit"
+                height={400}
+                className="!bg-zinc-900 !border-zinc-800 rounded-2xl overflow-hidden"
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Tags (comma separated)</label>

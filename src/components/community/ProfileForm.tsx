@@ -95,7 +95,7 @@ const ProfileForm: React.FC = () => {
          completedRewarded = true;
       }
 
-      const cleanData = {
+      const cleanData: any = {
         ...formData,
         memberId: memberId || '',
         skills: typeof formData.skills === 'string' ? formData.skills.split(',').map((s: string) => s.trim()).filter((s: string) => s !== '') : (Array.isArray(formData.skills) ? formData.skills : []),
@@ -103,10 +103,13 @@ const ProfileForm: React.FC = () => {
         updatedAt: new Date().toISOString(),
         points: awardedPoints || 0,
         referralCode: newReferralCode || '',
-        profileCompletedRewarded: completedRewarded || false,
-        membershipStatus: data.membershipStatus || 'public',
-        isFoundingMember: data.isFoundingMember || false
+        profileCompletedRewarded: completedRewarded || false
       };
+
+      if (isNewUser) {
+        cleanData.membershipStatus = 'public';
+        cleanData.isFoundingMember = false;
+      }
 
       // Strip any undefined values to prevent Firebase errors
       Object.keys(cleanData).forEach(key => {

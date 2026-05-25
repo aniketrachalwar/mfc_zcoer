@@ -145,8 +145,8 @@ const BlogDetails = () => {
       <article className="min-h-screen pt-32 pb-20 px-4 bg-zinc-950">
         <div className="max-w-3xl mx-auto">
           <button
-            onClick={() => navigate('/blogs')}
-            className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-12 text-[10px] font-black uppercase tracking-widest min-h-[44px]"
+            onClick={() => window.history.state && window.history.state.idx > 0 ? navigate(-1) : navigate('/blogs')}
+            className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-12 text-[10px] font-black uppercase tracking-widest min-h-[44px] bg-transparent border-none outline-none cursor-pointer"
           >
             <ArrowLeft size={14} /> Back
           </button>

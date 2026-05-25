@@ -7,7 +7,9 @@ import {
   signOut,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  deleteUser
+  deleteUser,
+  signInWithRedirect,
+  getRedirectResult
 } from 'firebase/auth';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from './firebase';
@@ -42,6 +44,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
+    // Process redirect result if any
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          setSuccess("Successfully logged in with Google!");
+        }
+      })
+      .catch((err: any) => {
+        console.error("Redirect sign-in error:", err);
+        setError(`Redirect sign-in failed: ${err.message || err.code}`);
+      });
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
 
@@ -159,6 +173,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = async () => {
     setError(null);
     const provider = new GoogleAuthProvider();
+
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+
+    if (isMobile || isStandalone) {
+      try {
+        await signInWithRedirect(auth, provider);
+      } catch (err: any) {
+        setError(`Redirect failed: ${err.message || err.code}`);
+        console.error("Redirect failed:", err);
+        throw err;
+      }
+      return;
+    }
+
     try {
       await signInWithPopup(auth, provider);
       setSuccess("Successfully logged in with Google!");
