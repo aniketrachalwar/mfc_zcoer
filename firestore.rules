@@ -1,5 +1,4 @@
 rules_version = '2';
-rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
@@ -150,6 +149,23 @@ service cloud.firestore {
                     request.resource.data.userId == request.auth.uid && 
                     request.resource.data.get('status', 'pending') == 'pending';
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isStaff());
+      allow update, delete: if isStaff();
+    }
+
+    match /tasks/{taskId} {
+      allow read: if true;
+      allow create, delete: if canManageContent();
+      allow update: if isSignedIn();
+    }
+
+    match /merchandise/{merchId} {
+      allow read: if true;
+      allow write: if canManageContent();
+    }
+
+    match /orders/{orderId} {
+      allow create: if true;
+      allow read: if isStaff() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow update, delete: if isStaff();
     }
   }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Users, UserCheck, Calendar, Briefcase, FileCheck, Activity, Plus, ShoppingBag, CheckSquare, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -28,8 +28,10 @@ const AdminDashboard = () => {
     totalProjects: 0,
     upcomingEvents: 0,
     pendingApprovals: 0,
+    pendingApprovals: 0,
     recentActivity: 0
   });
+  const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,8 +40,27 @@ const AdminDashboard = () => {
         const usersSnap = await getDocs(collection(db, 'users'));
         const totalMembers = usersSnap.size;
         
-        // This is a simplified fetch, you can expand it with actual queries 
-        // depending on your firestore data structure.
+        const paymentsQuery = query(collection(db, 'payments'), orderBy('timestamp', 'desc'), limit(5));
+        const paymentsSnap = await getDocs(paymentsQuery);
+        
+        const recentActs = paymentsSnap.docs.map(doc => {
+          const data = doc.data();
+          let timeAgo = "Just now";
+          if (data.timestamp) {
+            const date = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+            const diff = Math.floor((new Date().getTime() - date.getTime()) / 60000);
+            if (diff < 60) timeAgo = `${Math.max(1, diff)} mins ago`;
+            else if (diff < 1440) timeAgo = `${Math.floor(diff/60)} hours ago`;
+            else timeAgo = `${Math.floor(diff/1440)} days ago`;
+          }
+          return {
+             id: doc.id,
+             message: `New membership application from ${data.userName || 'Unknown'} (₹${data.amount || 0})`,
+             timeAgo
+          };
+        });
+        
+        setActivities(recentActs);
         
         setStats({
           totalMembers,
@@ -47,7 +68,7 @@ const AdminDashboard = () => {
           totalProjects: 5, // Placeholder
           upcomingEvents: 2, // Placeholder
           pendingApprovals: 3, // Placeholder
-          recentActivity: 12 // Placeholder
+          recentActivity: recentActs.length 
         });
       } catch (error) {
         console.error("Error fetching stats:", error);
@@ -137,15 +158,19 @@ const AdminDashboard = () => {
       <div className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6">
         <h2 className="text-[10px] font-black text-white uppercase tracking-widest mb-4">Recent System Activity</h2>
         <div className="space-y-3">
-          {[1, 2, 3].map((_, i) => (
-            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:bg-white/5 transition-colors">
-              <div className="w-2 h-2 rounded-full bg-firefox-orange shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm text-white truncate">System update placeholder</p>
-                <p className="text-[10px] text-zinc-500">2 hours ago</p>
+          {activities.length === 0 ? (
+            <p className="text-zinc-500 text-xs">No recent activity.</p>
+          ) : (
+            activities.map((act) => (
+              <div key={act.id} className="flex items-center gap-3 p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:bg-white/5 transition-colors">
+                <div className="w-2 h-2 rounded-full bg-firefox-orange shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm text-white truncate">{act.message}</p>
+                  <p className="text-[10px] text-zinc-500">{act.timeAgo}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

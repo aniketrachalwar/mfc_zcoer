@@ -57,6 +57,7 @@ const Navbar = () => {
     { name: 'Events', href: '/events', type: 'link' },
     { name: 'Projects', href: '/projects', type: 'link' },
     { name: 'Team', href: '/team', type: 'link' },
+    { name: 'Shop', href: '/shop', type: 'link' },
     { name: 'Community', href: '/community', type: 'link' }
   ];
 
@@ -116,7 +117,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 overflow-x-clip tour-step-navbar ${scrolled ? 'glass-nav flex flex-col' : 'bg-transparent flex flex-col'}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 overflow-x-clip tour-step-navbar pt-[env(safe-area-inset-top)] ${scrolled ? 'glass-nav flex flex-col' : 'bg-transparent flex flex-col'}`}>
       <LiveNotificationBar />
       <div className={`max-w-[1920px] w-full mx-auto px-4 sm:px-6 md:px-12 flex items-center justify-between gap-3 transition-all duration-500 ${scrolled ? 'py-2 md:py-4' : 'py-2.5 md:py-8'}`}>
         

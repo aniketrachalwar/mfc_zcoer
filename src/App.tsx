@@ -26,6 +26,7 @@ const ProfileCard = React.lazy(() => import('./components/community/ProfileCard'
 const ProfileForm = React.lazy(() => import('./components/community/ProfileForm'));
 const PublicProfile = React.lazy(() => import('./components/community/PublicProfile'));
 const VerifyProfile = React.lazy(() => import('./components/community/VerifyProfile'));
+const TasksBoard = React.lazy(() => import('./components/community/TasksBoard'));
 const EventDetails = React.lazy(() => import('./components/events/EventDetails'));
 const EventsPage = React.lazy(() => import('./components/events/EventsPage'));
 const MemberProfilePage = React.lazy(() => import('./components/progression').then(m => ({ default: m.MemberProfilePage })));
@@ -57,6 +58,8 @@ const MembershipHistory = React.lazy(() => import('./components/student/Membersh
 
 // Leaderboard will be lazy loaded
 const LeaderboardPage = React.lazy(() => import('./components/leaderboard/LeaderboardPage'));
+
+const ShopPage = React.lazy(() => import('./components/shop/ShopPage'));
 
 const PageLoader = () => (
   <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -252,6 +255,7 @@ export default function App() {
                   <Route path="projects" element={<RunningProjects />} />
                   <Route path="purchases" element={<PurchasedItems />} />
                   <Route path="membership" element={<MembershipApply />} />
+                  <Route path="tasks" element={<TasksBoard />} />
                   <Route path="id-card" element={<ProfileCard />} />
                   <Route path="settings" element={<ProfileForm />} />
                   <Route path="membership-history" element={<MembershipHistory />} />
@@ -267,6 +271,7 @@ export default function App() {
                 <Route path="/write-blog" element={<WriteBlog />} />
                 <Route path="/edit-blog/:id" element={<WriteBlog />} />
                 <Route path="/leaderboard" element={<LeaderboardPage />} />
+                <Route path="/shop" element={<ShopPage />} />
                 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminLayout />}>

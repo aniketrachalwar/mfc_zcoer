@@ -174,20 +174,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     const provider = new GoogleAuthProvider();
 
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
-
-    if (isMobile || isStandalone) {
-      try {
-        await signInWithRedirect(auth, provider);
-      } catch (err: any) {
-        setError(`Redirect failed: ${err.message || err.code}`);
-        console.error("Redirect failed:", err);
-        throw err;
-      }
-      return;
-    }
-
     try {
       await signInWithPopup(auth, provider);
       setSuccess("Successfully logged in with Google!");
@@ -195,12 +181,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (err.code === 'auth/popup-closed-by-user') {
         setError("The login popup was closed before completion. Please try again and keep the window open.");
       } else if (err.code === 'auth/blocked-at-popup-request') {
-        setError("Login popup was blocked by your browser. Please allow popups for this site or open the app in a new tab.");
+        console.warn("Popup blocked, falling back to redirect...");
+        try {
+          await signInWithRedirect(auth, provider);
+        } catch (redirectErr: any) {
+          setError(`Redirect failed: ${redirectErr.message || redirectErr.code}`);
+        }
       } else {
         setError(`Login failed: ${err.message || err.code || "Unknown error"}`);
       }
       console.error("Login failed:", err);
-      throw err;
     }
   };
 

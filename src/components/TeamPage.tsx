@@ -51,7 +51,8 @@ const TeamPage = () => {
               img: user.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`,
               github: user.githubUrl || '#',
               linkedin: user.linkedinUrl || '#',
-              instagram: user.instagramUrl || '#'
+              instagram: user.instagramUrl || '#',
+              points: user.points || 0
             };
 
             const category = tm.category;
@@ -94,9 +95,14 @@ const TeamPage = () => {
         if (sortedCohorts.length > 0) {
           const defaultCohort = sortedCohorts.includes('25-26') ? '25-26' : sortedCohorts[0];
           setSelectedCohort(defaultCohort);
+          
+          // Sort Department Leads and Active Contributors by points (highest first)
+          const sortedLeads = [...dataMap[defaultCohort].leads].sort((a, b) => b.points - a.points);
+          const sortedContributors = [...dataMap[defaultCohort].contributors].sort((a, b) => b.points - a.points);
+          
           setCoreLeadership(dataMap[defaultCohort].core);
-          setDepartmentLeads(dataMap[defaultCohort].leads);
-          setActiveContributors(dataMap[defaultCohort].contributors);
+          setDepartmentLeads(sortedLeads);
+          setActiveContributors(sortedContributors);
         }
       } catch (err) {
         console.error("Error fetching team", err);
@@ -146,9 +152,17 @@ const TeamPage = () => {
                   {member.name.split(' ').slice(1).join(' ')}
                 </span>
               </h3>
-              <p className="text-firefox-orange font-bold text-[9px] sm:text-[10px] uppercase tracking-widest line-clamp-2 mt-2">
-                {member.role}
-              </p>
+              <div className="flex flex-col items-center justify-center">
+                <p className="text-firefox-orange font-bold text-[9px] sm:text-[10px] uppercase tracking-widest line-clamp-2 mt-2 mb-1">
+                  {member.role}
+                </p>
+                {/* Only show points if they aren't in Core Leadership (which doesn't use the points system) */}
+                {member.points > 0 && !coreLeadership.find(c => c.id === member.id) && (
+                  <p className="text-zinc-500 font-bold text-[8px] uppercase tracking-widest">
+                    {member.points} Points
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="flex gap-2 sm:gap-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transform sm:translate-y-4 sm:group-hover:translate-y-0 transition-all duration-500 ease-out items-center mt-auto pt-4 border-t border-white/5 w-full justify-center">
@@ -230,9 +244,14 @@ const TeamPage = () => {
                       onChange={(e) => {
                         const cohort = e.target.value;
                         setSelectedCohort(cohort);
+                        
+                        // Sort by points
+                        const sortedLeads = [...cohortData[cohort].leads].sort((a, b) => b.points - a.points);
+                        const sortedContributors = [...cohortData[cohort].contributors].sort((a, b) => b.points - a.points);
+
                         setCoreLeadership(cohortData[cohort].core);
-                        setDepartmentLeads(cohortData[cohort].leads);
-                        setActiveContributors(cohortData[cohort].contributors);
+                        setDepartmentLeads(sortedLeads);
+                        setActiveContributors(sortedContributors);
                       }}
                       className="appearance-none px-6 py-3 pr-10 bg-zinc-900 border border-white/10 rounded-xl font-display font-black text-sm uppercase tracking-widest text-white focus:outline-none focus:border-firefox-orange transition-colors shadow-lg cursor-pointer"
                     >

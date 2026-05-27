@@ -50,6 +50,29 @@ const PublicProfile = () => {
             if (latestTeam.category === 'Core Leadership' || latestTeam.category === 'Department Leads') {
               userData.isLeadership = true;
             }
+
+            if (latestTeam.category !== 'Core Leadership') {
+              try {
+                const categoryQ = query(collection(db, 'team'), where('category', '==', latestTeam.category), where('cohort', '==', latestTeam.cohort));
+                const categorySnap = await getDocs(categoryQ);
+                const userIds = categorySnap.docs.map(d => d.data().userId);
+                
+                if (userIds.length > 0) {
+                  const allUsersSnap = await getDocs(collection(db, 'users'));
+                  const categoryUsers = allUsersSnap.docs
+                    .map(d => ({ id: d.id, points: d.data().points || 0 }))
+                    .filter(u => userIds.includes(u.id))
+                    .sort((a, b) => b.points - a.points);
+                  
+                  const rankIndex = categoryUsers.findIndex(u => u.id === userDoc.id);
+                  if (rankIndex !== -1) {
+                    userData.rank = rankIndex + 1;
+                  }
+                }
+              } catch (e) {
+                console.error("Error computing rank:", e);
+              }
+            }
           }
 
           setProfile(userData);
@@ -223,6 +246,26 @@ const PublicProfile = () => {
               </div>
             </div>
 
+            {/* Rank Display */}
+            {profile.rank && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-firefox-orange/20 to-transparent border border-firefox-orange/20 p-6 rounded-[2rem] flex items-center justify-between relative overflow-hidden group"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-firefox-orange/10 blur-2xl group-hover:bg-firefox-orange/20 transition-colors pointer-events-none" />
+                <div className="relative z-10">
+                   <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-1">Ecosystem Standing</h4>
+                   <p className="text-2xl md:text-3xl font-display font-black text-white uppercase">
+                     Rank #{profile.rank} <span className="text-firefox-orange text-sm md:text-base ml-2 tracking-widest">{profile.department}</span>
+                   </p>
+                </div>
+                <div className="relative z-10 w-16 h-16 rounded-full bg-firefox-orange/20 border border-firefox-orange/30 flex items-center justify-center text-firefox-orange shadow-[0_0_20px_rgba(255,92,0,0.3)]">
+                   <Award size={32} />
+                </div>
+              </motion.div>
+            )}
+
             <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] backdrop-blur-xl relative group">
               <div className="absolute inset-0 bg-firefox-orange/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-[2rem]" />
               <div className="relative z-10 flex items-center gap-6">
@@ -237,6 +280,8 @@ const PublicProfile = () => {
                 </div>
               </div>
             </div>
+
+
 
             {/* Attended Events History & Badges */}
             {attendedEvents.length > 0 && (

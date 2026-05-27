@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from 'motion/react';
 const DashboardLayout = () => {
   const { user, loading: authLoading, logout } = useAuth();
   const [profile, setProfile] = useState<any>(null);
+  const [isTeamPageMember, setIsTeamPageMember] = useState(false);
   const [dashboardConfig, setDashboardConfig] = useState<any>({
     enableProjectsTab: true,
     enablePurchasesTab: true,
@@ -46,6 +47,14 @@ const DashboardLayout = () => {
         getDoc(doc(db, 'users', user.uid)),
         getDoc(doc(db, 'config', 'membersDashboard'))
       ]);
+      
+      // Check if user is in the team collection (Active Contributors, Leads, etc.)
+      import('firebase/firestore').then(async ({ collection, query, where, getDocs }) => {
+        const teamQ = query(collection(db, 'team'), where('userId', '==', user.uid));
+        const teamSnap = await getDocs(teamQ);
+        setIsTeamPageMember(!teamSnap.empty);
+      });
+
       if (profileSnap.exists()) {
         setProfile(profileSnap.data());
       }
@@ -71,9 +80,13 @@ const DashboardLayout = () => {
 
   if (!user) return <Navigate to="/" />;
 
+  const isAdmin = profile && (profile.role === 'admin' || profile.role === 'president' || profile.role === 'core_team');
+  const isTeamMember = isTeamPageMember || (profile && (profile.role === 'admin' || profile.role === 'president' || profile.role === 'core_team'));
+
   const primaryTabs = [
     { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
     ...(dashboardConfig.enableProjectsTab ? [{ name: 'Projects', path: '/dashboard/projects', icon: Code }] : []),
+    ...(isTeamMember ? [{ name: 'Tasks', path: '/dashboard/tasks', icon: Shield }] : []),
     ...(dashboardConfig.enablePurchasesTab ? [{ name: 'Purchases', path: '/dashboard/purchases', icon: ShoppingBag }] : []),
     ...(dashboardConfig.enableMembershipHistory ? [{ name: 'History', path: '/dashboard/membership-history', icon: Shield }] : []),
     { name: 'ID Card', path: '/dashboard/id-card', icon: IdCard },
@@ -91,13 +104,13 @@ const DashboardLayout = () => {
   ];
 
   const mobileSecondaryTabs = [
+    ...(isTeamMember ? [{ name: 'Tasks', path: '/dashboard/tasks', icon: Shield }] : []),
     ...(dashboardConfig.enablePurchasesTab ? [{ name: 'Purchases', path: '/dashboard/purchases', icon: ShoppingBag }] : []),
     ...(dashboardConfig.enableMembershipHistory ? [{ name: 'History', path: '/dashboard/membership-history', icon: Shield }] : []),
     ...secondaryTabs,
   ];
 
   const allTabs = [...primaryTabs, ...secondaryTabs];
-  const isAdmin = profile && (profile.role === 'admin' || profile.role === 'president' || profile.role === 'core_team');
 
   return (
     <div className="pt-24 md:pt-32 pb-24 md:pb-20 px-2 sm:px-4 min-h-screen">
@@ -163,14 +176,14 @@ const DashboardLayout = () => {
           {/* Main Content Area */}
           <div className="flex-1 bg-zinc-900/40 border border-white/5 rounded-3xl md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 backdrop-blur-xl relative overflow-hidden min-h-[600px]">
             <div className="absolute top-0 right-0 w-96 h-96 bg-firefox-orange/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-            <Outlet context={{ profile, setProfile, refreshProfile: fetchData }} />
+            <Outlet context={{ profile, setProfile, refreshProfile: fetchData, isTeamMember }} />
           </div>
           
         </div>
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#080808]/90 backdrop-blur-xl border-t border-white/5 z-50 px-2 pb-safe pt-2">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#080808]/90 backdrop-blur-xl border-t border-white/5 z-50 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         <div className="flex items-center justify-around relative">
           {mobilePrimaryTabs.map((item) => {
             const isActive = location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
@@ -204,60 +217,75 @@ const DashboardLayout = () => {
         <AnimatePresence>
           {isMoreOpen && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="absolute bottom-full left-0 right-0 bg-[#121212] border-t border-white/10 overflow-hidden rounded-t-3xl"
+              key="drawer-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMoreOpen(false)}
+              className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
+            />
+          )}
+          {isMoreOpen && (
+            <motion.div
+              key="drawer-content"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="md:hidden fixed bottom-0 left-0 right-0 bg-zinc-950 border-t border-white/10 z-[70] rounded-t-3xl max-h-[85vh] flex flex-col"
             >
-              <div className="p-4 space-y-2 pb-6">
-                <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-6" />
-                
+              <div className="flex items-center justify-between p-6 border-b border-white/5 shrink-0">
+                <h2 className="text-sm font-black uppercase tracking-widest text-white">More Options</h2>
+                <button onClick={() => setIsMoreOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-zinc-400 hover:text-white transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="p-4 overflow-y-auto grid grid-cols-2 gap-3 pb-24">
                 {mobileSecondaryTabs.map((item) => {
                   const isActive = location.pathname.startsWith(item.path);
                   return (
                     <Link
                       key={item.path}
                       to={item.path}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                      onClick={() => setIsMoreOpen(false)}
+                      className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all ${
                         isActive 
-                          ? 'bg-firefox-orange text-white shadow-lg shadow-firefox-orange/20' 
-                          : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                          ? 'bg-firefox-orange/10 border-firefox-orange/30 text-firefox-orange' 
+                          : 'bg-white/5 border-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
                       }`}
                     >
-                      <item.icon size={18} />
-                      <span className="text-[10px] font-black uppercase tracking-widest">{item.name}</span>
+                      <item.icon size={24} />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-center">{item.name}</span>
                     </Link>
                   );
                 })}
 
-                <div className="h-px bg-white/10 my-4" />
-
                 {isAdmin && (
                   <Link 
                     to="/admin"
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-firefox-orange hover:bg-firefox-orange/10 transition-all font-bold"
+                    onClick={() => setIsMoreOpen(false)}
+                    className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-firefox-orange/30 bg-firefox-orange/10 text-firefox-orange hover:bg-firefox-orange/20 transition-all col-span-2"
                   >
-                    <Shield size={18} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Admin Portal</span>
+                    <Shield size={24} />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-center">Admin Portal</span>
                   </Link>
                 )}
 
-
-
                 <Link 
                   to={`/profile/${profile?.username}`}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:bg-white/5 transition-all"
+                  onClick={() => setIsMoreOpen(false)}
+                  className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-white/5 bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white transition-all"
                 >
-                  <Share2 size={18} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Public Profile</span>
+                  <Share2 size={24} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-center">Public Profile</span>
                 </Link>
 
                 <button 
-                  onClick={logout}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 transition-all font-bold"
+                  onClick={() => { setIsMoreOpen(false); logout(); }}
+                  className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all"
                 >
-                  <LogOut size={18} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Logout</span>
+                  <LogOut size={24} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-center">Logout</span>
                 </button>
               </div>
             </motion.div>
