@@ -48,18 +48,28 @@ const EcosystemTour = () => {
       target: 'body',
       content: (
         <div className="text-left">
-          <h3 className="text-base md:text-lg font-black uppercase tracking-tight text-zinc-900 mb-2">Welcome to Ecosystem</h3>
-          <p className="text-xs md:text-sm text-zinc-600 leading-relaxed font-medium">A smooth introduction into an active modern technical ecosystem. Let's explore.</p>
+          <h3 className="text-base md:text-lg font-black uppercase tracking-tight text-zinc-900 mb-2">Welcome to MFC Open Web</h3>
+          <p className="text-xs md:text-sm text-zinc-600 leading-relaxed font-medium">Step into a premium student startup ecosystem. Let us give you a quick tour of our digital headquarters.</p>
         </div>
       ),
       placement: 'center',
     },
     {
+      target: '.tour-step-notifications',
+      content: (
+        <div className="text-left">
+          <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-firefox-orange mb-1">Live Broadcasts</h3>
+          <p className="text-xs md:text-sm text-zinc-600 leading-relaxed font-medium">Stay updated with real-time announcements, critical events, and fast-moving ecosystem updates directly from this ticker.</p>
+        </div>
+      ),
+      placement: 'bottom',
+    },
+    {
       target: '.tour-step-navbar',
       content: (
         <div className="text-left">
-          <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-firefox-orange mb-1">Ecosystem Hub</h3>
-          <p className="text-xs md:text-sm text-zinc-600 leading-relaxed font-medium">Explore events, blogs, community, and opportunities from here.</p>
+          <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-firefox-orange mb-1">Command Center</h3>
+          <p className="text-xs md:text-sm text-zinc-600 leading-relaxed font-medium">Navigate effortlessly between events, projects, blogs, and the leaderboard using our newly designed dynamic navigation pills.</p>
         </div>
       ),
       placement: 'bottom',
@@ -68,21 +78,21 @@ const EcosystemTour = () => {
       target: isMobile ? '.tour-step-community-mobile' : '.tour-step-community',
       content: (
         <div className="text-left">
-          <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-firefox-orange mb-1">The People</h3>
-          <p className="text-xs md:text-sm text-zinc-600 leading-relaxed font-medium">Meet contributors, builders, and active ecosystem members.</p>
+          <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-firefox-orange mb-1">The Builder Network</h3>
+          <p className="text-xs md:text-sm text-zinc-600 leading-relaxed font-medium">Connect with the elite contributors, builders, and leaders who drive this ecosystem forward.</p>
         </div>
       ),
-      placement: isMobile ? 'bottom-end' : 'bottom',
+      placement: isMobile ? 'top' : 'bottom',
     },
     {
       target: isMobile ? '.tour-step-join-mobile' : '.tour-step-join',
       content: (
         <div className="text-left">
-          <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-firefox-orange mb-1">Get Access</h3>
-          <p className="text-xs md:text-sm text-zinc-600 leading-relaxed font-medium">Create your profile and unlock your ecosystem journey.</p>
+          <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-firefox-orange mb-1">Claim Your Spot</h3>
+          <p className="text-xs md:text-sm text-zinc-600 leading-relaxed font-medium">Ready to dive in? Create your profile, unlock exclusive member tools, and start building with us today.</p>
         </div>
       ),
-      placement: 'bottom-end',
+      placement: isMobile ? 'top' : 'bottom-end',
     }
   ];
 

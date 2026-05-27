@@ -52,14 +52,14 @@ const ProfileForm: React.FC = () => {
 
     try {
       // Auto-generate member ID if not present
-      const memberId = data.memberId || `MFCZ-${Math.floor(1000 + Math.random() * 9000)}`;
+      const memberId = data.memberId || `MFC-${Math.floor(1000 + Math.random() * 9000)}`;
       
       // Points and Gamification
       let awardedPoints = data.points || 0;
       let newReferralCode = data.referralCode;
 
       if (!newReferralCode) {
-        const baseName = formData.username || 'MFCZ';
+        const baseName = formData.username || 'MFC';
         const prefix = baseName.length >= 4 ? baseName.substring(0, 4).toUpperCase() : baseName.padEnd(4, 'X').toUpperCase();
         newReferralCode = `${prefix}${Math.floor(1000 + Math.random() * 9000)}`;
       }

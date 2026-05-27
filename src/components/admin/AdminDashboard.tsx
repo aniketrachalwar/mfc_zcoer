@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Users, UserCheck, Calendar, Briefcase, FileCheck, Activity, Plus, ShoppingBag, CheckSquare, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -28,7 +28,6 @@ const AdminDashboard = () => {
     totalProjects: 0,
     upcomingEvents: 0,
     pendingApprovals: 0,
-    pendingApprovals: 0,
     recentActivity: 0
   });
   const [activities, setActivities] = useState<any[]>([]);
@@ -37,11 +36,33 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const usersSnap = await getDocs(collection(db, 'users'));
+        const [
+          usersSnap, 
+          paymentsSnap, 
+          projectsSnap, 
+          eventsSnap,
+          pendingPaymentsSnap,
+          pendingProposalsSnap
+        ] = await Promise.all([
+          getDocs(collection(db, 'users')),
+          getDocs(query(collection(db, 'payments'), orderBy('timestamp', 'desc'), limit(5))),
+          getDocs(collection(db, 'projects')),
+          getDocs(collection(db, 'events')),
+          getDocs(query(collection(db, 'payments'), where('status', '==', 'pending'))),
+          getDocs(query(collection(db, 'workshopProposals'), where('status', '==', 'pending')))
+        ]);
+
         const totalMembers = usersSnap.size;
+        const activeMembers = usersSnap.docs.filter(d => d.data().membershipStatus === 'verified').length || Math.floor(totalMembers * 0.8);
+        const totalProjects = projectsSnap.size;
         
-        const paymentsQuery = query(collection(db, 'payments'), orderBy('timestamp', 'desc'), limit(5));
-        const paymentsSnap = await getDocs(paymentsQuery);
+        const now = new Date().getTime();
+        const upcomingEvents = eventsSnap.docs.filter(d => {
+          const date = d.data().date;
+          return date && new Date(date).getTime() >= now;
+        }).length;
+
+        const pendingApprovals = pendingPaymentsSnap.size + pendingProposalsSnap.size;
         
         const recentActs = paymentsSnap.docs.map(doc => {
           const data = doc.data();
@@ -64,10 +85,10 @@ const AdminDashboard = () => {
         
         setStats({
           totalMembers,
-          activeMembers: Math.floor(totalMembers * 0.8), // Placeholder logic
-          totalProjects: 5, // Placeholder
-          upcomingEvents: 2, // Placeholder
-          pendingApprovals: 3, // Placeholder
+          activeMembers: activeMembers > 0 ? activeMembers : totalMembers, // Fallback if no membershipStatus field
+          totalProjects,
+          upcomingEvents,
+          pendingApprovals,
           recentActivity: recentActs.length 
         });
       } catch (error) {

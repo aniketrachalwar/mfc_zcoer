@@ -95,6 +95,7 @@ const AdminLayout = () => {
     { name: 'Merchandise', path: '/admin/merch', icon: ShoppingBag },
     { name: 'Notifications', path: '/admin/notifications', icon: Bell },
     { name: 'About Page', path: '/admin/about', icon: Globe },
+    { name: 'Site Navigation', path: '/admin/navigation', icon: Globe },
     { name: 'Members Dashboard', path: '/admin/members-dashboard', icon: LayoutDashboard },
     { name: 'Workshop Proposals', path: '/admin/proposals', icon: Lightbulb },
     { name: 'Coupons', path: '/admin/coupons', icon: Ticket },
@@ -122,7 +123,7 @@ const AdminLayout = () => {
 
 
   return (
-    <div className="pt-24 md:pt-32 pb-24 md:pb-20 px-2 sm:px-4 min-h-screen">
+    <div className="pt-24 md:pt-32 pb-24 md:pb-20 px-0 md:px-4 min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row gap-4 md:gap-8">
           
@@ -155,7 +156,7 @@ const AdminLayout = () => {
             <div>
               <h3 className="px-4 text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Content</h3>
               <div className="space-y-1">
-                {visibleNavItems.filter(item => ['Events', 'Projects', 'Blogs', 'About Page', 'Members Dashboard'].includes(item.name)).map(item => (
+                {visibleNavItems.filter(item => ['Events', 'Projects', 'Blogs', 'About Page', 'Site Navigation', 'Members Dashboard'].includes(item.name)).map(item => (
                   <Link
                     key={item.path}
                     to={item.path}
@@ -214,8 +215,8 @@ const AdminLayout = () => {
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 bg-zinc-900/40 border border-white/5 rounded-3xl md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 backdrop-blur-xl relative overflow-hidden min-h-[600px]">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-firefox-orange/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          <div className="flex-1 bg-transparent md:bg-zinc-900/40 border-0 md:border md:border-white/5 rounded-none md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 md:backdrop-blur-xl relative overflow-hidden min-h-[600px]">
+            <div className="hidden md:block absolute top-0 right-0 w-96 h-96 bg-firefox-orange/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
             {(() => {
               // Find the current nav item to check if it's visible to this user
               const currentItem = navItems.find(item => location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path)));

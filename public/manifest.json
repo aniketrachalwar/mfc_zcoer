@@ -1,0 +1,17 @@
+{
+  "name": "MFC Open Web",
+  "short_name": "MFC Portal",
+  "description": "A student startup ecosystem, technical community, and builder network.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#ff6a00",
+  "icons": [
+    {
+      "src": "https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -53,7 +53,7 @@ export default function ProposeWorkshopModal({ isOpen, onClose, profile }: { isO
       const results = qSnap.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
         .filter((u: any) => {
-          if (u.uid === profile.uid) return false;
+          if (u.id === profile.uid) return false;
           const memberIdMatch = u.memberId ? u.memberId.toUpperCase().includes(qUpper) : false;
           const usernameMatch = u.username ? u.username.toLowerCase().includes(qLower) : false;
           const fullNameMatch = u.fullName ? u.fullName.toLowerCase().includes(qLower) : false;
@@ -70,15 +70,15 @@ export default function ProposeWorkshopModal({ isOpen, onClose, profile }: { isO
   };
 
   const addCohost = (user: any) => {
-    if (!selectedCohosts.find(c => c.uid === user.uid)) {
-      setSelectedCohosts([...selectedCohosts, { uid: user.uid, fullName: user.fullName, username: user.username }]);
+    if (!selectedCohosts.find(c => c.id === user.id)) {
+      setSelectedCohosts([...selectedCohosts, { id: user.id, fullName: user.fullName, username: user.username }]);
     }
     setSearchQuery('');
     setSearchResults([]);
   };
 
-  const removeCohost = (uid: string) => {
-    setSelectedCohosts(selectedCohosts.filter(c => c.uid !== uid));
+  const removeCohost = (id: string) => {
+    setSelectedCohosts(selectedCohosts.filter(c => c.id !== id));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -135,8 +135,9 @@ export default function ProposeWorkshopModal({ isOpen, onClose, profile }: { isO
           <div className="absolute top-0 right-0 w-64 h-64 bg-firefox-orange/10 blur-[80px] rounded-full pointer-events-none" />
           
           <button 
+            type="button"
             onClick={onClose}
-            className="absolute top-6 right-6 w-8 h-8 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+            className="absolute top-6 right-6 w-8 h-8 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition-colors z-50 cursor-pointer"
           >
             <X size={16} />
           </button>
@@ -223,7 +224,7 @@ export default function ProposeWorkshopModal({ isOpen, onClose, profile }: { isO
                       type="text"
                       value={searchQuery}
                       onChange={handleSearch}
-                      placeholder="Search community by name or serial no. (MFCZ-)..."
+                      placeholder="Search community by name or serial no. (MFC-)..."
                       className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
                     />
                     {searchLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-zinc-500" size={14} />}
@@ -232,7 +233,7 @@ export default function ProposeWorkshopModal({ isOpen, onClose, profile }: { isO
                   {searchResults.length > 0 && (
                     <div className="bg-zinc-800 rounded-xl border border-white/10 overflow-hidden shadow-xl max-h-40 overflow-y-auto">
                       {searchResults.map(user => (
-                        <div key={user.uid} className="flex justify-between items-center p-3 hover:bg-white/5 border-b border-white/5 last:border-0">
+                        <div key={user.id} className="flex justify-between items-center p-3 hover:bg-white/5 border-b border-white/5 last:border-0">
                           <div>
                             <p className="text-sm font-bold text-white">{user.fullName}</p>
                             <p className="text-[10px] text-zinc-500 font-mono">@{user.username}</p>
@@ -252,11 +253,11 @@ export default function ProposeWorkshopModal({ isOpen, onClose, profile }: { isO
                   {selectedCohosts.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-2">
                       {selectedCohosts.map(cohost => (
-                        <div key={cohost.uid} className="flex items-center gap-2 bg-white/10 border border-white/10 rounded-full pl-3 pr-1 py-1">
+                        <div key={cohost.id} className="flex items-center gap-2 bg-white/10 border border-white/10 rounded-full pl-3 pr-1 py-1">
                           <span className="text-xs text-white font-bold">{cohost.fullName}</span>
                           <button
                             type="button"
-                            onClick={() => removeCohost(cohost.uid)}
+                            onClick={() => removeCohost(cohost.id)}
                             className="w-5 h-5 bg-black/50 hover:bg-red-500/20 hover:text-red-500 rounded-full flex items-center justify-center text-zinc-400 transition-colors"
                           >
                             <X size={10} />

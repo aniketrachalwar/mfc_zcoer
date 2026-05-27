@@ -64,8 +64,8 @@ const LeaderboardPage = () => {
       <main className="min-h-screen pt-24 md:pt-32 pb-20 relative bg-zinc-950 overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
         
-        <div className="absolute left-0 top-1/4 w-96 h-96 bg-firefox-yellow/5 blur-[80px] rounded-full mix-blend-screen pointer-events-none" />
-        <div className="absolute right-0 bottom-1/4 w-96 h-96 bg-firefox-orange/5 blur-[80px] rounded-full mix-blend-screen pointer-events-none" />
+        <div className="hidden md:block absolute left-0 top-1/4 w-96 h-96 bg-firefox-yellow/5 blur-[80px] rounded-full mix-blend-screen pointer-events-none" />
+        <div className="hidden md:block absolute right-0 bottom-1/4 w-96 h-96 bg-firefox-orange/5 blur-[80px] rounded-full mix-blend-screen pointer-events-none" />
 
         <div className="max-w-5xl mx-auto px-4 relative z-10">
           

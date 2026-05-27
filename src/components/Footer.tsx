@@ -1,33 +1,72 @@
 import { motion } from 'motion/react';
-import { Mail, Instagram, Linkedin, Github, Twitter, Youtube, Sparkles } from 'lucide-react';
+import { Mail, Instagram, Linkedin, Github, Twitter, Youtube, Sparkles, Globe, MessageSquare, Facebook, Send, MessageCircle, PenTool, Headphones } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 const Footer = () => {
+  const [socialLinks, setSocialLinks] = useState<any[]>([
+    { platform: 'Email', url: 'mailto:mfc@zcoer.edu.in', enabled: true },
+    { platform: 'Instagram', url: 'https://www.instagram.com/mfc.zcoer/', enabled: true },
+    { platform: 'Youtube', url: '#', enabled: true },
+    { platform: 'Github', url: 'https://github.com/mfczcoer/', enabled: true },
+    { platform: 'Linkedin', url: '#', enabled: true },
+    { platform: 'Twitter', url: '#', enabled: true },
+  ]);
+
+  useEffect(() => {
+    const fetchSocials = async () => {
+      try {
+        const docSnap = await getDoc(doc(db, 'config', 'navigation'));
+        if (docSnap.exists() && docSnap.data().socialLinks) {
+          const links = docSnap.data().socialLinks.filter((l: any) => l.enabled !== false);
+          if (links.length > 0) setSocialLinks(links);
+        }
+      } catch (err) {
+        console.error("Failed to fetch footer socials:", err);
+      }
+    };
+    fetchSocials();
+  }, []);
+
+  const IconMap: Record<string, any> = {
+    'Email': Mail,
+    'Instagram': Instagram,
+    'Facebook': Facebook,
+    'Twitter': Twitter,
+    'Linkedin': Linkedin,
+    'Youtube': Youtube,
+    'WhatsApp': MessageCircle,
+    'Telegram': Send,
+    'Discord': MessageSquare,
+    'Github': Github,
+    'Medium': PenTool,
+    'Spotify': Headphones,
+    'Globe': Globe,
+  };
+
   return (
     <footer className="relative bg-zinc-950 pt-32 pb-12 px-6 overflow-hidden border-t border-white/5">
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Contact Form Link / CTA */}
 
         {/* Social Bar */}
-        <div className="flex justify-center gap-8 mb-32">
-          {[
-            { icon: Mail, label: 'Email', url: 'mailto:mfc@zcoer.edu.in' },
-            { icon: Instagram, label: 'Instagram', url: 'https://www.instagram.com/mfc.zcoer/' },
-            { icon: Youtube, label: 'Youtube', url: '#' },
-            { icon: Github, label: 'Github', url: 'https://github.com/mfczcoer/' },
-            { icon: Linkedin, label: 'Linkedin', url: '#' },
-            { icon: Twitter, label: 'X', url: '#' },
-          ].map((social, i) => (
-            <motion.a
-                key={i}
-                href={social.url}
-                target={social.url !== '#' && !social.url.startsWith('mailto:') ? '_blank' : undefined}
-                rel={social.url !== '#' && !social.url.startsWith('mailto:') ? 'noopener noreferrer' : undefined}
-                whileHover={{ y: -5 }}
-                className="text-zinc-500 hover:text-firefox-orange transition-colors"
-            >
-                <social.icon size={32} strokeWidth={1.5} />
-            </motion.a>
-          ))}
+        <div className="flex justify-center gap-8 mb-32 flex-wrap">
+          {socialLinks.map((social, i) => {
+            const IconComponent = IconMap[social.platform] || Globe;
+            return (
+              <motion.a
+                  key={social.id || i}
+                  href={social.url}
+                  target={social.url !== '#' && !social.url.startsWith('mailto:') ? '_blank' : undefined}
+                  rel={social.url !== '#' && !social.url.startsWith('mailto:') ? 'noopener noreferrer' : undefined}
+                  whileHover={{ y: -5 }}
+                  className="text-zinc-500 hover:text-firefox-orange transition-colors"
+              >
+                  <IconComponent size={32} strokeWidth={1.5} />
+              </motion.a>
+            );
+          })}
         </div>
 
         {/* Huge Text Backdrop */}
@@ -41,7 +80,7 @@ const Footer = () => {
         {/* Legal Grid */}
         <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-white/5 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 gap-6 md:gap-0">
            <div className="flex flex-col items-center md:items-start gap-4">
-               <p className="text-center md:text-left">© {new Date().getFullYear()} MOZILLA FIREFOX CLUB ZCOER. ALL RIGHTS RESERVED.</p>
+               <p className="text-center md:text-left">© {new Date().getFullYear()} MOZILLA FIREFOX CLUB. ALL RIGHTS RESERVED.</p>
                <p className="text-center md:text-left text-firefox-orange/80">DEVELOPED BY ANIKET RACHALWAR</p>
            </div>
            <div className="flex items-center gap-8 md:gap-12 mt-6 md:mt-0">

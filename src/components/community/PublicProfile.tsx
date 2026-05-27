@@ -129,7 +129,7 @@ const PublicProfile = () => {
   }
 
   const shareUrl = window.location.href;
-  const title = `Check out my Mozilla ZCOER Member Card! ${profile.fullName}`;
+  const title = `Check out my Mozilla Firefox Club Member Card! ${profile.fullName}`;
 
   return (
     <div className="pt-32 pb-20 px-4 min-h-screen">
@@ -275,7 +275,7 @@ const PublicProfile = () => {
                 <div>
                    <h4 className="text-sm font-black uppercase tracking-widest text-white mb-1">Verify Authenticity</h4>
                    <p className="text-xs text-zinc-500 uppercase tracking-wider font-bold">
-                     {profile.isFoundingMember ? 'Founding Member' : 'Official Member'} • MFCZ Verified
+                     {profile.isFoundingMember ? 'Founding Member' : 'Official Member'} • MFC Verified
                    </p>
                 </div>
               </div>

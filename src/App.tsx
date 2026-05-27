@@ -13,6 +13,9 @@ import ErrorBoundary from './components/ErrorBoundary';
 import NotFound from './components/NotFound';
 import EcosystemTour from './components/EcosystemTour';
 import InstallPwaBanner from './components/InstallPwaBanner';
+import RequireAuth from './components/RequireAuth';
+import NavigationManager from './components/admin/NavigationManager';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 // Lazy loaded components
 const About = React.lazy(() => import('./components/About'));
@@ -210,20 +213,6 @@ const Layout = ({ children, scaleX }: { children: React.ReactNode; scaleX: any }
       <EcosystemTour />
       <InstallPwaBanner />
 
-      {/* Member Portal Overlay - Floating Action if logged in */}
-      {user && !location.pathname.startsWith('/dashboard') && !location.pathname.startsWith('/admin') && (
-        <Link to="/dashboard" className="fixed bottom-8 right-8 z-50 block">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            whileHover={{ scale: 1.1 }}
-            className="w-16 h-16 bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-full flex items-center justify-center shadow-2xl group overflow-hidden relative"
-          >
-            <div className="absolute inset-0 bg-gradient-to-tr from-firefox-orange to-firefox-yellow opacity-0 group-hover:opacity-20 transition-opacity" />
-            <LayoutDashboard size={24} className="relative z-10" />
-          </motion.div>
-        </Link>
-      )}
     </div>
   );
 };
@@ -245,52 +234,58 @@ export default function App() {
           <ErrorBoundary>
             <React.Suspense fallback={<PageLoader />}>
               <Routes>
+                {/* Public Routes */}
                 <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/projects" element={<Projects />} />
-                <Route path="/team" element={<TeamPage />} />
-                <Route path="/community" element={<CommunityPage />} />
-                <Route path="/dashboard" element={<DashboardLayout />}>
-                  <Route index element={<DashboardOverview />} />
-                  <Route path="projects" element={<RunningProjects />} />
-                  <Route path="purchases" element={<PurchasedItems />} />
-                  <Route path="membership" element={<MembershipApply />} />
-                  <Route path="tasks" element={<TasksBoard />} />
-                  <Route path="id-card" element={<ProfileCard />} />
-                  <Route path="settings" element={<ProfileForm />} />
-                  <Route path="membership-history" element={<MembershipHistory />} />
-                </Route>
-                <Route path="/profile" element={<MemberProfilePage />} />
-                <Route path="/profile/:username" element={<PublicProfile />} />
-                <Route path="/events" element={<EventsPage />} />
-                <Route path="/event/:id" element={<EventDetails />} />
-                <Route path="/verify" element={<VerifyProfile />} />
-                <Route path="/verify/:username" element={<VerifyProfile />} />
-                <Route path="/blogs" element={<BlogsPage />} />
-                <Route path="/blog/:id" element={<BlogDetails />} />
-                <Route path="/write-blog" element={<WriteBlog />} />
-                <Route path="/edit-blog/:id" element={<WriteBlog />} />
-                <Route path="/leaderboard" element={<LeaderboardPage />} />
-                <Route path="/shop" element={<ShopPage />} />
                 
-                {/* Admin Routes */}
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="members" element={<MembersManager />} />
-                  <Route path="contributions" element={<ContributionsManager />} />
-                  <Route path="events" element={<EventsManager />} />
-                  <Route path="projects" element={<ProjectsManager />} />
-                  <Route path="merch" element={<MerchandiseManager />} />
-                  <Route path="notifications" element={<NotificationsManager />} />
-                  <Route path="team" element={<TeamManager />} />
-                  <Route path="blogs" element={<BlogsManager />} />
-                  <Route path="settings" element={<SettingsManager />} />
-                  <Route path="about" element={<AboutManager />} />
-                  <Route path="access" element={<AdminAccessManager />} />
-                  <Route path="applications" element={<ApplicationsManager />} />
-                  <Route path="coupons" element={<CouponManager />} />
-                  <Route path="members-dashboard" element={<MembersDashboardManager />} />
-                  <Route path="proposals" element={<WorkshopProposalsManager />} />
+                {/* Protected Routes (Everything Else) */}
+                <Route element={<RequireAuth />}>
+                  <Route path="/about" element={<About />} />
+                  <Route path="/projects" element={<Projects />} />
+                  <Route path="/team" element={<TeamPage />} />
+                  <Route path="/community" element={<CommunityPage />} />
+                  <Route path="/dashboard" element={<DashboardLayout />}>
+                    <Route index element={<DashboardOverview />} />
+                    <Route path="projects" element={<RunningProjects />} />
+                    <Route path="purchases" element={<PurchasedItems />} />
+                    <Route path="membership" element={<MembershipApply />} />
+                    <Route path="tasks" element={<TasksBoard />} />
+                    <Route path="id-card" element={<ProfileCard />} />
+                    <Route path="settings" element={<ProfileForm />} />
+                    <Route path="membership-history" element={<MembershipHistory />} />
+                  </Route>
+                  <Route path="/profile" element={<MemberProfilePage />} />
+                  <Route path="/profile/:username" element={<PublicProfile />} />
+                  <Route path="/events" element={<EventsPage />} />
+                  <Route path="/event/:id" element={<EventDetails />} />
+                  <Route path="/verify" element={<VerifyProfile />} />
+                  <Route path="/verify/:username" element={<VerifyProfile />} />
+                  <Route path="/blogs" element={<BlogsPage />} />
+                  <Route path="/blog/:id" element={<BlogDetails />} />
+                  <Route path="/write-blog" element={<WriteBlog />} />
+                  <Route path="/edit-blog/:id" element={<WriteBlog />} />
+                  <Route path="/leaderboard" element={<LeaderboardPage />} />
+                  <Route path="/shop" element={<ShopPage />} />
+                  
+                  {/* Admin Routes */}
+                  <Route path="/admin" element={<AdminLayout />}>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="members" element={<MembersManager />} />
+                    <Route path="contributions" element={<ContributionsManager />} />
+                    <Route path="events" element={<EventsManager />} />
+                    <Route path="projects" element={<ProjectsManager />} />
+                    <Route path="merch" element={<MerchandiseManager />} />
+                    <Route path="notifications" element={<NotificationsManager />} />
+                    <Route path="team" element={<TeamManager />} />
+                    <Route path="blogs" element={<BlogsManager />} />
+                    <Route path="settings" element={<SettingsManager />} />
+                    <Route path="about" element={<AboutManager />} />
+                    <Route path="access" element={<AdminAccessManager />} />
+                    <Route path="applications" element={<ApplicationsManager />} />
+                    <Route path="coupons" element={<CouponManager />} />
+                    <Route path="members-dashboard" element={<MembersDashboardManager />} />
+                    <Route path="proposals" element={<WorkshopProposalsManager />} />
+                    <Route path="navigation" element={<NavigationManager />} />
+                  </Route>
                 </Route>
 
                 {/* 404 Catch All Route */}
@@ -298,6 +293,7 @@ export default function App() {
               </Routes>
             </React.Suspense>
           </ErrorBoundary>
+          <PWAInstallPrompt />
         </Layout>
       </Router>
     </HelmetProvider>

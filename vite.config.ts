@@ -22,14 +22,10 @@ export default defineConfig(({mode}) => {
           display: 'standalone',
           icons: [
             {
-              src: 'icon-192x192.png',
-              sizes: '192x192',
-              type: 'image/png'
-            },
-            {
-              src: 'icon-512x512.png',
-              sizes: '512x512',
-              type: 'image/png'
+              src: 'https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png',
+              sizes: '192x192 512x512',
+              type: 'image/png',
+              purpose: 'any maskable'
             }
           ]
         },

@@ -72,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           let memberId = data.memberId;
           if (!memberId) {
-            memberId = `MFCZ-${Math.floor(1000 + Math.random() * 9000)}`;
+            memberId = `MFC-${Math.floor(1000 + Math.random() * 9000)}`;
             try {
               await updateDoc(doc(db, 'users', currentUser.uid), { memberId });
             } catch (e) {
@@ -122,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const data = profileSnap.data();
         let memberId = data.memberId;
         if (!memberId) {
-          memberId = `MFCZ-${Math.floor(1000 + Math.random() * 9000)}`;
+          memberId = `MFC-${Math.floor(1000 + Math.random() * 9000)}`;
           try {
             await updateDoc(doc(db, 'users', user.uid), { memberId });
           } catch (e) {

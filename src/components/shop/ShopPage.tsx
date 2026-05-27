@@ -80,7 +80,7 @@ const ShopPage = () => {
   return (
     <div className="pt-32 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen">
       <div className="text-center mb-16 relative">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-firefox-orange/20 blur-[120px] rounded-full pointer-events-none" />
+        <div className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-firefox-orange/20 blur-[120px] rounded-full pointer-events-none" />
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-firefox-orange/10 border border-firefox-orange/20 text-firefox-orange text-xs font-black uppercase tracking-widest mb-6">
           <Sparkles size={14} /> Exclusive Gear
         </div>

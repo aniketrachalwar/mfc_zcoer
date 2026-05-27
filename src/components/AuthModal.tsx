@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Chrome, Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
@@ -64,7 +65,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
@@ -195,7 +196,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

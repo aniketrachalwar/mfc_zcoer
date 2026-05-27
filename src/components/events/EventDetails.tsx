@@ -56,9 +56,9 @@ const EventDetails = () => {
           id: 'hackathon-2026',
           title: "Open Source Hackathon 2026",
           type: "Upcoming Event",
-          desc: "Join the brightest minds at ZCOER for a 48-hour coding marathon. Build innovative open-source tools, collaborate with peers, and win exciting prizes. Whether you are a beginner or a pro, there's a place for you here.",
+          desc: "Join the brightest minds at MFC Open Web for a 48-hour coding marathon. Build innovative open-source tools, collaborate with peers, and win exciting prizes. Whether you are a beginner or a pro, there's a place for you here.",
           date: "2026-05-25T09:00:00",
-          location: "Innovation Hub, ZCOER Pune",
+          location: "Innovation Hub, Pune",
           prizes: "₹50,000 Pool + Exclusive Swags"
         });
         setLoading(false);
@@ -375,7 +375,7 @@ const EventDetails = () => {
 
   return (
     <div className="pt-32 pb-20 px-4 min-h-screen relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-firefox-orange/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className="hidden md:block absolute top-0 right-0 w-[800px] h-[800px] bg-firefox-orange/10 blur-[150px] rounded-full pointer-events-none" />
       
       <div className="max-w-6xl mx-auto relative z-10">
         <button 
@@ -588,7 +588,7 @@ const EventDetails = () => {
                       <form onSubmit={submitRegistration} className="space-y-4">
                         <div>
                           <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 block">ZPRN No.</label>
-                          <input type="text" required value={registrationData.zprn} onChange={e => setRegistrationData({...registrationData, zprn: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors" placeholder="e.g. ZCOER/2026/001" />
+                          <input type="text" required value={registrationData.zprn} onChange={e => setRegistrationData({...registrationData, zprn: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors" placeholder="e.g. MFC/2026/001" />
                         </div>
                         <div>
                           <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 block">Department</label>
@@ -766,7 +766,7 @@ const EventDetails = () => {
                <img loading="lazy" src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png" className="w-32 h-32 drop-shadow-[0_0_25px_rgba(255,106,0,0.4)]" crossOrigin="anonymous" alt="Logo" />
                <div className="text-left border-l-2 border-white/10 pl-6">
                  <h2 className="text-4xl font-display font-black text-white tracking-widest uppercase mb-1">Mozilla Firefox Club</h2>
-                 <p className="text-firefox-orange tracking-[0.4em] uppercase text-lg font-bold">ZCOER Chapter</p>
+                 <p className="text-firefox-orange tracking-[0.4em] uppercase text-lg font-bold">MFC Open Web</p>
                </div>
             </div>
 

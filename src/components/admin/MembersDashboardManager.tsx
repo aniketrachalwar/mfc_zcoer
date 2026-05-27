@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Save, Settings, Users, Code, ShoppingBag } from 'lucide-react';
+import { Shield, Save, Settings, Users, Code, ShoppingBag, Plus, Trash2, Link as LinkIcon, Edit2, CheckCircle2 } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { motion } from 'motion/react';
@@ -9,6 +9,10 @@ export default function MembersDashboardManager() {
     enableProjectsTab: true,
     enablePurchasesTab: true,
     enableMembershipHistory: true,
+    nextActions: [
+      { id: '1', title: 'Browse Events', link: '/events', enabled: true },
+      { id: '2', title: 'Explore Projects', link: '/projects', enabled: true },
+    ]
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -22,7 +26,14 @@ export default function MembersDashboardManager() {
       const docRef = doc(db, 'config', 'membersDashboard');
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        setConfig(docSnap.data());
+        const data = docSnap.data();
+        setConfig({
+          ...data,
+          nextActions: data.nextActions || [
+            { id: '1', title: 'Browse Events', link: '/events', enabled: true },
+            { id: '2', title: 'Explore Projects', link: '/projects', enabled: true }
+          ]
+        });
       }
     } catch (error) {
       console.error("Error fetching members dashboard config:", error);
@@ -45,6 +56,32 @@ export default function MembersDashboardManager() {
 
   const toggleFeature = (feature: string) => {
     setConfig((prev: any) => ({ ...prev, [feature]: !prev[feature] }));
+  };
+
+  const addNextAction = () => {
+    setConfig((prev: any) => ({
+      ...prev,
+      nextActions: [
+        ...prev.nextActions,
+        { id: Date.now().toString(), title: 'New Action', link: '/', enabled: true }
+      ]
+    }));
+  };
+
+  const updateNextAction = (id: string, field: string, value: any) => {
+    setConfig((prev: any) => ({
+      ...prev,
+      nextActions: prev.nextActions.map((action: any) => 
+        action.id === id ? { ...action, [field]: value } : action
+      )
+    }));
+  };
+
+  const deleteNextAction = (id: string) => {
+    setConfig((prev: any) => ({
+      ...prev,
+      nextActions: prev.nextActions.filter((action: any) => action.id !== id)
+    }));
   };
 
   if (loading) return (
@@ -127,6 +164,69 @@ export default function MembersDashboardManager() {
               <p className="text-xs text-zinc-500 mt-1">Allow members to view their membership timeline and current tier perks.</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2"><LinkIcon size={20} className="text-firefox-orange" /> Manage Next Actions</h3>
+          <button 
+            onClick={addNextAction}
+            className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-white/20 transition-colors"
+          >
+            <Plus size={14} /> Add Action
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          {config.nextActions?.map((action: any) => (
+            <div key={action.id} className={`bg-black/40 border ${action.enabled ? 'border-firefox-orange/30' : 'border-white/10 opacity-70'} p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between transition-all`}>
+              <div className="flex-1 w-full space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 w-12">Title</span>
+                  <input
+                    type="text"
+                    value={action.title}
+                    onChange={(e) => updateNextAction(action.id, 'title', e.target.value)}
+                    className="flex-1 bg-transparent border-b border-white/10 px-2 py-1 text-sm font-bold text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                    placeholder="Action Title"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 w-12">Link</span>
+                  <input
+                    type="text"
+                    value={action.link}
+                    onChange={(e) => updateNextAction(action.id, 'link', e.target.value)}
+                    className="flex-1 bg-transparent border-b border-white/10 px-2 py-1 text-sm text-zinc-300 focus:outline-none focus:border-firefox-orange transition-colors"
+                    placeholder="e.g. /events or https://..."
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 pt-2 sm:pt-0">
+                <button
+                  onClick={() => updateNextAction(action.id, 'enabled', !action.enabled)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${action.enabled ? 'bg-firefox-orange/20 text-firefox-orange hover:bg-firefox-orange/30' : 'bg-white/5 text-zinc-400 hover:bg-white/10'}`}
+                >
+                  <CheckCircle2 size={14} />
+                  {action.enabled ? 'Active' : 'Hidden'}
+                </button>
+                <button
+                  onClick={() => deleteNextAction(action.id)}
+                  className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20 transition-colors"
+                  title="Delete Action"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+          ))}
+          {(!config.nextActions || config.nextActions.length === 0) && (
+            <div className="text-center py-8 bg-black/20 rounded-2xl border border-dashed border-white/10">
+              <p className="text-zinc-500 text-sm">No Next Actions defined.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

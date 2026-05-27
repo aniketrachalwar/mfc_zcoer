@@ -1,15 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Settings as SettingsIcon, Save, Loader2, Sparkles } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Loader2, Sparkles, Plus, X } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
 
 export default function SettingsManager() {
-  const [config, setConfig] = useState({ silverFee: 99, platinumFee: 199, upiId: 'mfc.zcoer@upi' });
+  const [config, setConfig] = useState({ 
+    silverFee: 99, 
+    platinumFee: 199, 
+    upiId: 'mfc.zcoer@upi',
+    freeBenefits: ['Basic Ecosystem Access', 'Public Profile Creation', 'Limited Event Registration'],
+    silverBenefits: ['Official Member ID Card', 'Access to Member Directory', 'Standard Event Discounts', 'Access to Roadmaps & Resources'],
+    platinumBenefits: ['Everything in Silver', 'Free Access to Premium Events', 'Eligible for Core Team/Leadership', 'Project Incubation & Mentorship']
+  });
+  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { setSuccessMessage, setError } = useAuth();
+  
+  // Temp states for new items
+  const [newFree, setNewFree] = useState('');
+  const [newSilver, setNewSilver] = useState('');
+  const [newPlatinum, setNewPlatinum] = useState('');
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -18,11 +31,14 @@ export default function SettingsManager() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setConfig({
-            silverFee: data.silverFee || 99,
-            platinumFee: data.platinumFee || 199,
-            upiId: data.upiId || 'mfc.zcoer@upi'
-          });
+          setConfig(prev => ({
+            silverFee: data.silverFee || prev.silverFee,
+            platinumFee: data.platinumFee || prev.platinumFee,
+            upiId: data.upiId || prev.upiId,
+            freeBenefits: data.freeBenefits || prev.freeBenefits,
+            silverBenefits: data.silverBenefits || prev.silverBenefits,
+            platinumBenefits: data.platinumBenefits || prev.platinumBenefits
+          }));
         }
       } catch (err) {
         console.error("Error fetching settings", err);
@@ -41,6 +57,9 @@ export default function SettingsManager() {
         silverFee: Number(config.silverFee),
         platinumFee: Number(config.platinumFee),
         upiId: config.upiId,
+        freeBenefits: config.freeBenefits,
+        silverBenefits: config.silverBenefits,
+        platinumBenefits: config.platinumBenefits,
         updatedAt: new Date().toISOString()
       }, { merge: true });
       setSuccessMessage('Settings updated successfully!');
@@ -52,6 +71,23 @@ export default function SettingsManager() {
     }
   };
 
+  const addBenefit = (tier: 'free' | 'silver' | 'platinum', value: string, setter: any) => {
+    if (!value.trim()) return;
+    setConfig(prev => ({
+      ...prev,
+      [`${tier}Benefits`]: [...prev[`${tier}Benefits` as keyof typeof prev] as string[], value.trim()]
+    }));
+    setter('');
+  };
+
+  const removeBenefit = (tier: 'free' | 'silver' | 'platinum', index: number) => {
+    setConfig(prev => {
+      const arr = [...prev[`${tier}Benefits` as keyof typeof prev] as string[]];
+      arr.splice(index, 1);
+      return { ...prev, [`${tier}Benefits`]: arr };
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -59,6 +95,41 @@ export default function SettingsManager() {
       </div>
     );
   }
+
+  const renderBenefitsList = (tier: 'free' | 'silver' | 'platinum', label: string, newValue: string, setter: any) => (
+    <div className="mb-6">
+      <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">
+        {label} Benefits
+      </label>
+      <div className="space-y-2 mb-2">
+        {(config[`${tier}Benefits` as keyof typeof config] as string[]).map((benefit, i) => (
+          <div key={i} className="flex items-center justify-between bg-black/30 border border-white/5 rounded-lg px-3 py-2">
+            <span className="text-sm text-zinc-300">{benefit}</span>
+            <button type="button" onClick={() => removeBenefit(tier, i)} className="text-zinc-600 hover:text-red-400 transition-colors">
+              <X size={14} />
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <input 
+          type="text" 
+          value={newValue}
+          onChange={(e) => setter(e.target.value)}
+          onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); addBenefit(tier, newValue, setter); }}}
+          placeholder="Add a new benefit..."
+          className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm focus:border-firefox-orange outline-none transition-colors text-white"
+        />
+        <button 
+          type="button" 
+          onClick={() => addBenefit(tier, newValue, setter)}
+          className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl transition-colors"
+        >
+          <Plus size={18} />
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div>
@@ -72,11 +143,11 @@ export default function SettingsManager() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+      <div className="grid lg:grid-cols-2 gap-8">
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 h-fit">
           <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
             <Sparkles className="text-firefox-orange" size={18} />
-            Membership Configuration
+            Pricing Configuration
           </h3>
           <form onSubmit={handleSave} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
@@ -120,18 +191,30 @@ export default function SettingsManager() {
             </div>
 
             <p className="text-xs text-zinc-500 mt-2">
-              These settings control global membership pricing and manual payment processing details.
+              Save your changes to update both Pricing and Benefits lists globally.
             </p>
 
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-3 bg-firefox-orange hover:bg-orange-600 text-white rounded-xl font-bold transition-all disabled:opacity-50 flex items-center gap-2 text-sm uppercase tracking-wider"
+              className="w-full px-6 py-4 bg-firefox-orange hover:bg-orange-600 text-white rounded-xl font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(255,106,0,0.3)]"
             >
-              {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              {saving ? 'Saving...' : 'Save Settings'}
+              {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+              {saving ? 'Saving Changes...' : 'Save All Settings'}
             </button>
           </form>
+        </div>
+
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+            <Sparkles className="text-firefox-orange" size={18} />
+            Tier Benefits Configuration
+          </h3>
+          <div className="space-y-2">
+            {renderBenefitsList('free', 'Free', newFree, setNewFree)}
+            {renderBenefitsList('silver', 'Silver', newSilver, setNewSilver)}
+            {renderBenefitsList('platinum', 'Platinum', newPlatinum, setNewPlatinum)}
+          </div>
         </div>
       </div>
     </div>

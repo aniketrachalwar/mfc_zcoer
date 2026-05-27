@@ -1,8 +1,10 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X, Rocket, Zap, Users, Code, Info, LogOut, ChevronDown, ChevronRight, LayoutDashboard, User as UserIcon, ScanLine, Sparkles } from 'lucide-react';
+import { Menu, X, Rocket, Zap, Users, Code, Info, LogOut, ChevronDown, ChevronRight, LayoutDashboard, User as UserIcon, ScanLine, Sparkles, Home, Globe, BookOpen, Trophy, Calendar, ShoppingBag, MessageSquare } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import AuthModal from './AuthModal';
 import LiveNotificationBar from './LiveNotificationBar';
 
@@ -13,7 +15,7 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [activeHash, setActiveHash] = useState(window.location.hash || '#about');
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(window.location.hash === '#login');
   const { user, logout } = useAuth();
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -28,6 +30,7 @@ const Navbar = () => {
   }, []);
 
   const handleJoinClick = () => {
+    setIsOpen(false);
     if (user) {
       navigate('/dashboard');
     } else {
@@ -49,17 +52,48 @@ const Navbar = () => {
     }
   };
 
-  const navLinks = [
-    { name: 'Home', href: '/', type: 'link' },
-    { name: 'About', href: '/about', type: 'link' },
-    { name: 'Blogs', href: '/blogs', type: 'link' },
-    { name: 'Leaderboard', href: '/leaderboard', type: 'link' },
-    { name: 'Events', href: '/events', type: 'link' },
-    { name: 'Projects', href: '/projects', type: 'link' },
-    { name: 'Team', href: '/team', type: 'link' },
-    { name: 'Shop', href: '/shop', type: 'link' },
-    { name: 'Community', href: '/community', type: 'link' }
+  const defaultNavLinks = [
+    { id: '1', name: 'Home', href: '/', type: 'link', icon: 'Home', enabled: true },
+    { id: '2', name: 'About', href: '/about', type: 'link', icon: 'Info', enabled: true },
+    { id: '3', name: 'Blogs', href: '/blogs', type: 'link', icon: 'BookOpen', enabled: true },
+    { id: '4', name: 'Leaderboard', href: '/leaderboard', type: 'link', icon: 'Trophy', enabled: true },
+    { id: '5', name: 'Events', href: '/events', type: 'link', icon: 'Calendar', enabled: true },
+    { id: '6', name: 'Projects', href: '/projects', type: 'link', icon: 'Rocket', enabled: true },
+    { id: '7', name: 'Team', href: '/team', type: 'link', icon: 'Users', enabled: true },
+    { id: '8', name: 'Shop', href: '/shop', type: 'link', icon: 'ShoppingBag', enabled: true },
+    { id: '9', name: 'Community', href: '/community', type: 'link', icon: 'Zap', enabled: true },
   ];
+
+  const IconMap: Record<string, any> = {
+    'Globe': Globe,
+    'Home': Home,
+    'Info': Info,
+    'BookOpen': BookOpen,
+    'Trophy': Trophy,
+    'Calendar': Calendar,
+    'Rocket': Rocket,
+    'Users': Users,
+    'ShoppingBag': ShoppingBag,
+    'Zap': Zap,
+    'MessageSquare': MessageSquare,
+  };
+
+  const [navLinks, setNavLinks] = useState<any[]>(defaultNavLinks);
+
+  useEffect(() => {
+    const fetchNavLinks = async () => {
+      try {
+        const docSnap = await getDoc(doc(db, 'config', 'navigation'));
+        if (docSnap.exists() && docSnap.data().links) {
+          const links = docSnap.data().links.filter((l: any) => l.enabled !== false);
+          setNavLinks(links.length > 0 ? links : defaultNavLinks);
+        }
+      } catch (err) {
+        console.error("Failed to load navigation links", err);
+      }
+    };
+    fetchNavLinks();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -93,7 +127,14 @@ const Navbar = () => {
       window.removeEventListener('hashchange', handleHashChange);
       observer.disconnect();
     };
-  }, []);
+  }, [navLinks]);
+
+  // Listen to React Router location changes for the login modal
+  useEffect(() => {
+    if (location.hash === '#login') {
+      setIsAuthModalOpen(true);
+    }
+  }, [location.hash]);
 
   useEffect(() => {
     if (isOpen) {
@@ -117,7 +158,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 overflow-x-clip tour-step-navbar pt-[env(safe-area-inset-top)] ${scrolled ? 'glass-nav flex flex-col' : 'bg-transparent flex flex-col'}`}>
+    <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 overflow-x-clip tour-step-navbar pt-[env(safe-area-inset-top)] bg-transparent flex flex-col pointer-events-auto">
       <LiveNotificationBar />
       <div className={`max-w-[1920px] w-full mx-auto px-4 sm:px-6 md:px-12 flex items-center justify-between gap-3 transition-all duration-500 ${scrolled ? 'py-2 md:py-4' : 'py-2.5 md:py-8'}`}>
         
@@ -148,33 +189,18 @@ const Navbar = () => {
             const isLinkActive = link.type === 'link' && location.pathname === link.href;
             const isActive = isAnchorActive || (link.name === 'Home' ? isLinkActive && !activeHash && location.pathname === '/' : isLinkActive);
 
-            const content = (
-              <>
-                {isActive && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-12 h-12 glow-orb animate-pulse-glow" />
-                    <div className="absolute inset-x-2 inset-y-1">
-                      <Bracket position="tl" />
-                      <Bracket position="tr" />
-                      <Bracket position="bl" />
-                      <Bracket position="br" />
-                    </div>
-                  </div>
-                )}
-                <span className="relative z-10">{link.name}</span>
-              </>
-            );
-
-
-
             return (
-              <motion.div key={link.name} whileHover={{ y: -2 }}>
+              <motion.div key={link.name} whileHover={{ y: -2, scale: 1.05 }}>
                 <Link
                   to={link.href}
                   onClick={(e) => handleNavClick(e, link)}
-                  className={`relative px-6 py-3 text-[11px] font-display font-black uppercase tracking-[0.2em] transition-all duration-300 ${link.name === 'Community' ? 'tour-step-community' : ''} ${isActive ? 'text-[#FF5C00]' : 'text-zinc-400 hover:text-white hover:drop-shadow-[0_0_10px_rgba(255,106,0,0.3)]'}`}
+                  className={`group relative px-4 py-2 flex items-center gap-2 rounded-full transition-all duration-300 ${link.name === 'Community' ? 'tour-step-community' : ''} ${isActive ? 'bg-firefox-orange/15 text-[#FF5C00] shadow-[0_0_15px_rgba(255,92,0,0.15)] border border-firefox-orange/20' : 'text-zinc-400 hover:bg-white/10 hover:text-white border border-transparent'}`}
                 >
-                  {content}
+                  {link.icon && IconMap[link.icon] && React.createElement(IconMap[link.icon], { 
+                    size: 14,
+                    className: `transition-colors duration-300 ${isActive ? 'text-[#FF5C00]' : 'text-zinc-500 group-hover:text-white'}`
+                  })}
+                  <span className="text-[10px] font-display font-black uppercase tracking-[0.15em] pt-[1px]">{link.name}</span>
                 </Link>
               </motion.div>
             );
@@ -189,31 +215,24 @@ const Navbar = () => {
                 whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(255, 106, 0, 0.4)' }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleJoinClick}
-                className="tour-step-join hidden md:flex px-10 py-5 bg-[#ff6a00] text-white rounded-none font-display font-black text-[10px] uppercase tracking-[0.4em] transition-all relative overflow-hidden group"
+                className="tour-step-join hidden sm:flex px-6 sm:px-8 py-3 sm:py-4 bg-[#ff6a00] text-white rounded-full font-display font-black text-[9px] sm:text-[10px] uppercase tracking-[0.3em] sm:tracking-[0.4em] transition-all relative overflow-hidden group"
               >
                 <span className="relative z-10">Join Community</span>
                 <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 opacity-10" />
-              </motion.button>
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={handleJoinClick}
-                className="tour-step-join-mobile md:hidden h-10 px-4 bg-[#ff6a00] text-white rounded-full font-display font-black text-[10px] uppercase tracking-[0.16em] shadow-[0_0_18px_rgba(255,106,0,0.25)]"
-              >
-                Join
               </motion.button>
             </>
           ) : (
             <div className="relative" ref={profileDropdownRef}>
               <button 
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-2 border border-white/10 px-4 py-2 rounded-full hover:bg-white/5 transition-colors"
+                className="hidden sm:flex items-center gap-2 border border-white/10 px-4 py-2 rounded-full hover:bg-white/5 transition-colors"
               >
                 <img loading="lazy" 
                   src={user.photoURL || ''} 
                   alt="Avatar" 
                   className="w-6 h-6 rounded-full border border-white/20"
                 />
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#f5f5f5] hidden lg:block">{user.displayName?.split(' ')[0]}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#f5f5f5]">{user.displayName?.split(' ')[0]}</span>
                 <ChevronDown size={14} className={`transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -226,7 +245,7 @@ const Navbar = () => {
                     className="absolute right-0 mt-2 w-56 glass rounded-2xl p-2 shadow-2xl border border-white/5"
                   >
                     <div className="p-3 border-b border-white/5 mb-1">
-                      <p className="text-[9px] font-black text-[#ff6a00] uppercase tracking-widest">MFCZ Portal</p>
+                      <p className="text-[9px] font-black text-[#ff6a00] uppercase tracking-widest">MFC Portal</p>
                       <p className="text-[10px] font-semibold truncate text-[#f5f5f5]">{user.email}</p>
                     </div>
                     
@@ -261,17 +280,10 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
           )}
-
-          <button 
-            onClick={() => setIsOpen(!isOpen)}
-            className="tour-step-community-mobile xl:hidden w-11 h-11 sm:w-12 sm:h-12 flex shrink-0 items-center justify-center text-white"
-          >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
         </div>
       </div>
 
-      {/* Mobile Menu Backdrop and Drawer */}
+      {/* Mobile Menu Backdrop and Bottom Sheet Drawer */}
       <AnimatePresence>
         {isOpen && (
           <>
@@ -284,73 +296,86 @@ const Navbar = () => {
               className="fixed inset-0 bg-black/60 backdrop-blur-md z-[90] xl:hidden"
             />
             <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-              className="fixed top-0 right-0 w-[65vw] sm:w-[50vw] max-w-[280px] h-dvh bg-[#080808] border-l border-white/10 z-[100] flex flex-col p-5 sm:p-6 pt-20 overflow-y-auto xl:hidden shadow-2xl"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-[#080808]/95 backdrop-blur-3xl border-t border-white/10 z-[100] flex flex-col p-6 rounded-t-[2rem] overflow-hidden xl:hidden shadow-[0_-20px_50px_rgba(0,0,0,0.5)]"
             >
-              <div className="flex flex-col gap-4 sm:gap-5">
-                {navLinks.map((link, i) => {
-                  const isAnchorActive = link.type === 'anchor' && activeHash === link.href.replace('/', '');
-                  const isLinkActive = link.type === 'link' && location.pathname === link.href;
-                  const isActive = isAnchorActive || (link.name === 'Home' ? isLinkActive && !activeHash && location.pathname === '/' : isLinkActive);
+              <div className="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-8 shrink-0" />
+              
+              <div className="flex-1 overflow-y-auto scrollbar-hide pb-24">
+                <div className="flex flex-col gap-5">
+                  {navLinks.map((link, i) => {
+                    const isAnchorActive = link.type === 'anchor' && activeHash === link.href.replace('/', '');
+                    const isLinkActive = link.type === 'link' && location.pathname === link.href;
+                    const isActive = isAnchorActive || (link.name === 'Home' ? isLinkActive && !activeHash && location.pathname === '/' : isLinkActive);
 
-                  return (
-                    <motion.div
-                      key={link.name}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                    >
-                      <Link
-                        to={link.href}
-                        onClick={(e) => handleNavClick(e, link)}
-                        className={`text-sm sm:text-base leading-none font-display font-black uppercase tracking-[0.2em] transition-colors flex items-center justify-between gap-4 group break-words min-h-[38px] ${isActive ? 'text-[#FF5C00]' : 'text-zinc-300 hover:text-white'}`}
+                    return (
+                      <motion.div
+                        key={link.name}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 + 0.1 }}
                       >
-                        <span>{link.name}</span>
-                        <ChevronRight size={16} className={`shrink-0 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-                {!user ? (
-                  <motion.button
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    onClick={handleJoinClick}
-                    className="mt-2 sm:mt-4 w-full py-3.5 bg-[#ff6a00] text-white font-display font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs rounded-xl shadow-[0_0_20px_rgba(255,106,0,0.3)] min-h-[40px]"
-                  >
-                    Join Community
-                  </motion.button>
-                ) : (
-                  <motion.div
-                     initial={{ opacity: 0, y: 10 }}
-                     animate={{ opacity: 1, y: 0 }}
-                     transition={{ delay: 0.4 }}
-                  >
-                    <Link
-                      to="/dashboard"
-                      onClick={() => setIsOpen(false)}
-                      className="mt-4 sm:mt-8 w-full py-5 bg-white/5 border border-white/10 text-white font-display font-black uppercase tracking-[0.2em] rounded-xl flex items-center justify-center gap-3 hover:bg-white/10 transition-colors min-h-[44px]"
-                    >
-                      <LayoutDashboard size={20} />
-                      Dashboard
-                    </Link>
-                  </motion.div>
-                )}
+                        <Link
+                          to={link.href}
+                          onClick={(e) => handleNavClick(e, link)}
+                          className={`text-lg sm:text-xl leading-none font-display font-black uppercase tracking-[0.2em] transition-colors flex items-center justify-between gap-4 group break-words py-2 ${isActive ? 'text-[#FF5C00]' : 'text-zinc-300 hover:text-white'}`}
+                        >
+                          <div className="flex items-center gap-4">
+                            {link.icon && IconMap[link.icon] && React.createElement(IconMap[link.icon], { size: 24, className: isActive ? 'text-firefox-orange' : 'text-zinc-500 group-hover:text-white transition-colors' })}
+                            <span>{link.name}</span>
+                          </div>
+                          <ChevronRight size={20} className={`shrink-0 transition-opacity ${isActive ? 'opacity-100 text-firefox-orange' : 'opacity-0 group-hover:opacity-100 text-zinc-600'}`} />
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
+                </div>
               </div>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="absolute top-6 right-6 w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/30 transition-all min-h-[44px]"
-              >
-                <X size={24} />
-              </button>
             </motion.div>
           </>
         )}
       </AnimatePresence>
+
+      {/* Mobile Floating Action Pill */}
+      <div className="xl:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[110]">
+        <div className="bg-zinc-950/90 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 flex items-center gap-8 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+          <button 
+            onClick={() => {
+              setIsOpen(false);
+              navigate('/');
+            }}
+            className={`flex flex-col items-center gap-1 transition-colors ${location.pathname === '/' && !activeHash ? 'text-firefox-orange' : 'text-zinc-400 hover:text-white'}`}
+          >
+            <Home size={22} />
+          </button>
+          
+          {!user ? (
+            <button 
+              onClick={handleJoinClick}
+              className="tour-step-join-mobile bg-firefox-orange text-white px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(255,106,0,0.4)] active:scale-95 transition-all"
+            >
+              Join
+            </button>
+          ) : (
+            <button 
+              onClick={handleJoinClick}
+              className="flex flex-col items-center gap-1 transition-colors text-firefox-orange"
+            >
+              <img loading="lazy" src={user.photoURL || ''} alt="User" className="w-[26px] h-[26px] rounded-full border-2 border-firefox-orange shadow-[0_0_10px_rgba(255,106,0,0.3)]" />
+            </button>
+          )}
+
+          <button 
+            onClick={() => setIsOpen(!isOpen)}
+            className={`flex flex-col items-center gap-1 transition-colors ${isOpen ? 'text-firefox-orange' : 'text-zinc-400 hover:text-white'}`}
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+      </div>
 
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </nav>

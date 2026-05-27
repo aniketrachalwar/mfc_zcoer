@@ -10,6 +10,7 @@ import DashboardTour from './DashboardTour';
 export default function DashboardOverview() {
   const { profile } = useOutletContext<{ profile: any }>();
   const [config, setConfig] = useState<any>(null);
+  const [memberConfig, setMemberConfig] = useState<any>(null);
   const [isProposeModalOpen, setIsProposeModalOpen] = useState(false);
   
   useEffect(() => {
@@ -19,6 +20,12 @@ export default function DashboardOverview() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setConfig(docSnap.data());
+        }
+
+        const memberDocRef = doc(db, 'config', 'membersDashboard');
+        const memberDocSnap = await getDoc(memberDocRef);
+        if (memberDocSnap.exists()) {
+          setMemberConfig(memberDocSnap.data());
         }
       } catch (err) {
         console.error('Error fetching dashboard config:', err);
@@ -44,7 +51,6 @@ export default function DashboardOverview() {
 
   const widgets = config?.widgets || [
     { id: 'stats', enabled: true },
-    { id: 'quick_actions', enabled: true },
     { id: 'recent_events', enabled: true }
   ];
 
@@ -75,33 +81,7 @@ export default function DashboardOverview() {
             </div>
           </div>
         );
-      case 'quick_actions':
-        return (
-          <div key="quick_actions" className="bg-zinc-900 border border-white/10 rounded-3xl p-6 group hover:border-firefox-orange/30 transition-colors h-full">
-            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-firefox-orange mb-4">
-              <Rocket size={20} />
-            </div>
-            <h3 className="text-lg font-bold text-white mb-4">Next Actions</h3>
-            
-            <div className="space-y-3">
-              <Link to="/events" className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
-                <span className="text-sm font-medium text-zinc-300">Browse Events</span>
-                <ArrowRight size={14} className="text-zinc-500" />
-              </Link>
-              <Link to="/projects" className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
-                <span className="text-sm font-medium text-zinc-300">Explore Projects</span>
-                <ArrowRight size={14} className="text-zinc-500" />
-              </Link>
-              <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 opacity-60 cursor-not-allowed">
-                <span className="text-sm font-medium text-zinc-300">Project Incubation</span>
-                <div className="flex items-center gap-2">
-                   <span className="text-[8px] font-black uppercase tracking-widest text-yellow-500">Platinum</span>
-                   <Shield size={14} className="text-zinc-500" />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+
       case 'recent_events':
         return (
           <div key="recent_events" className="bg-zinc-900 border border-white/10 rounded-3xl p-6 md:col-span-2 lg:col-span-1 group hover:border-firefox-orange/30 transition-colors h-full">
@@ -161,22 +141,53 @@ export default function DashboardOverview() {
         </div>
       </div>
 
-      {/* Propose Workshop Banner */}
-      <button 
-        onClick={() => setIsProposeModalOpen(true)}
-        className="w-full bg-zinc-900 border border-white/10 hover:border-firefox-orange/30 rounded-3xl p-6 flex items-center justify-between group transition-all"
-      >
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-firefox-orange/10 rounded-xl flex items-center justify-center text-firefox-orange group-hover:scale-110 transition-transform">
-            <Rocket size={24} />
+      {/* Dynamic Next Actions */}
+      {(memberConfig?.nextActions || [
+        { id: '1', title: 'Browse Events', link: '/events', enabled: true },
+        { id: '2', title: 'Explore Projects', link: '/projects', enabled: true }
+      ]).filter((a: any) => a.enabled).length > 0 && (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <div className="col-span-full">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <Rocket size={20} className="text-firefox-orange" /> Next Actions
+            </h3>
+            <p className="text-sm text-zinc-400 mb-4">Recommended steps for you to take right now.</p>
           </div>
-          <div className="text-left">
-            <h3 className="text-lg font-bold text-white mb-1 group-hover:text-firefox-orange transition-colors">Propose a Workshop</h3>
-            <p className="text-sm text-zinc-400">Share your expertise! Propose an event or workshop and co-host it with the community.</p>
-          </div>
+          {(memberConfig?.nextActions || [
+            { id: '1', title: 'Browse Events', link: '/events', enabled: true },
+            { id: '2', title: 'Explore Projects', link: '/projects', enabled: true }
+          ]).filter((a: any) => a.enabled).map((action: any) => {
+            const isExternal = action.link.startsWith('http');
+            const linkClasses = "flex items-center justify-between p-5 rounded-2xl bg-zinc-900 border border-white/10 hover:border-firefox-orange/50 hover:bg-white/5 transition-all group";
+            const innerContent = (
+              <>
+                <span className="text-sm font-bold text-white group-hover:text-firefox-orange transition-colors">{action.title}</span>
+                <ArrowRight size={16} className="text-zinc-500 group-hover:text-firefox-orange group-hover:translate-x-1 transition-all" />
+              </>
+            );
+
+            return isExternal ? (
+              <a 
+                key={action.id} 
+                href={action.link} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={linkClasses}
+              >
+                {innerContent}
+              </a>
+            ) : (
+              <Link 
+                key={action.id} 
+                to={action.link} 
+                className={linkClasses}
+              >
+                {innerContent}
+              </Link>
+            );
+          })}
         </div>
-        <ArrowRight className="text-zinc-500 group-hover:text-firefox-orange group-hover:translate-x-1 transition-all" />
-      </button>
+      )}
 
       {activeAnnouncements.length > 0 && (
         <div className="space-y-3">
@@ -190,8 +201,25 @@ export default function DashboardOverview() {
       )}
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {widgets.filter((w: any) => w.enabled).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)).map((w: any) => renderWidget(w.id))}
+        {widgets.filter((w: any) => w.enabled && w.id !== 'quick_actions').sort((a: any, b: any) => (a.order || 0) - (b.order || 0)).map((w: any) => renderWidget(w.id))}
       </div>
+
+      {/* Propose Workshop Banner - Moved to bottom */}
+      <button 
+        onClick={() => setIsProposeModalOpen(true)}
+        className="w-full bg-zinc-900 border border-white/10 hover:border-firefox-orange/30 rounded-3xl p-6 flex items-center justify-between group transition-all mt-8"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-firefox-orange/10 rounded-xl flex items-center justify-center text-firefox-orange group-hover:scale-110 transition-transform">
+            <Rocket size={24} />
+          </div>
+          <div className="text-left">
+            <h3 className="text-lg font-bold text-white mb-1 group-hover:text-firefox-orange transition-colors">Propose a Workshop</h3>
+            <p className="text-sm text-zinc-400">Share your expertise! Propose an event or workshop and co-host it with the community.</p>
+          </div>
+        </div>
+        <ArrowRight className="text-zinc-500 group-hover:text-firefox-orange group-hover:translate-x-1 transition-all" />
+      </button>
 
       <ProposeWorkshopModal 
         isOpen={isProposeModalOpen} 

@@ -255,7 +255,7 @@ const EventsPage = () => {
                  <img loading="lazy" src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png" className="w-32 h-32 drop-shadow-[0_0_25px_rgba(255,106,0,0.4)]" crossOrigin="anonymous" alt="Logo" />
                  <div className="text-left border-l-2 border-white/10 pl-6">
                    <h2 className="text-4xl font-display font-black text-white tracking-widest uppercase mb-1">Mozilla Firefox Club</h2>
-                   <p className="text-firefox-orange tracking-[0.4em] uppercase text-lg font-bold">ZCOER Chapter</p>
+                   <p className="text-firefox-orange tracking-[0.4em] uppercase text-lg font-bold">MFC Open Web</p>
                  </div>
               </div>
 

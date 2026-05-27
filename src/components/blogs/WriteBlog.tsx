@@ -218,6 +218,24 @@ const WriteBlog = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Toggle for External vs Native Blog */}
+          <div className="flex p-1 bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-sm mb-8">
+            <button
+              type="button"
+              onClick={() => setIsExternal(true)}
+              className={`flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${isExternal ? 'bg-firefox-orange text-white' : 'text-zinc-500 hover:text-white'}`}
+            >
+              External Link
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsExternal(false)}
+              className={`flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${!isExternal ? 'bg-firefox-orange text-white' : 'text-zinc-500 hover:text-white'}`}
+            >
+              Write on Site
+            </button>
+          </div>
+
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Blog Title</label>
             <input 

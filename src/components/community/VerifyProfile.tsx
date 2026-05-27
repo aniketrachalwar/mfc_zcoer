@@ -20,7 +20,7 @@ const VerifyProfile = () => {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchInput, setSearchInput] = useState('MFCZ-');
+  const [searchInput, setSearchInput] = useState('MFC-');
   const [searchLoading, setSearchLoading] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
 
@@ -266,7 +266,7 @@ const VerifyProfile = () => {
         <p className="text-zinc-500 mb-8 max-w-md">{error || "The provided identifier is invalid."}</p>
         
         <div className="flex gap-4">
-          <button onClick={() => { setError(null); setSearchInput('MFCZ-'); setIsScanning(false); setShowAttendanceForm(false); window.history.replaceState(null, '', '/verify'); }} className="px-8 py-3 bg-white/5 border border-white/10 rounded-full text-white font-display text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
+          <button onClick={() => { setError(null); setSearchInput('MFC-'); setIsScanning(false); setShowAttendanceForm(false); window.history.replaceState(null, '', '/verify'); }} className="px-8 py-3 bg-white/5 border border-white/10 rounded-full text-white font-display text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
             Scan Another
           </button>
         </div>
@@ -288,7 +288,7 @@ const VerifyProfile = () => {
           animate={{ scale: 1, opacity: 1 }}
           className="max-w-md w-full bg-zinc-900 border border-firefox-orange/30 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_50px_rgba(255,92,0,0.1)] relative overflow-y-auto overflow-x-hidden max-h-[90vh]"
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-firefox-orange/10 to-transparent pointer-events-none" />
+          <div className="hidden md:block absolute inset-0 bg-gradient-to-b from-firefox-orange/10 to-transparent pointer-events-none" />
           
           <div className="relative z-10 flex flex-col items-center mb-6">
             <h1 className="text-2xl font-display font-black uppercase text-white mb-2">Mark Attendance</h1>
@@ -362,7 +362,7 @@ const VerifyProfile = () => {
     const handleReset = () => {
       setTicket(null); 
       setProfile(null); 
-      setSearchInput('MFCZ-');
+      setSearchInput('MFC-');
       window.history.replaceState(null, '', '/verify');
       // If we were scanning, we can just immediately drop back to scan mode.
       setIsScanning(true); 
@@ -383,7 +383,7 @@ const VerifyProfile = () => {
           animate={{ scale: 1, opacity: 1 }}
           className="max-w-md w-full bg-zinc-900 border border-blue-500/30 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_50px_rgba(59,130,246,0.1)] relative overflow-y-auto overflow-x-hidden max-h-[90vh] text-center"
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent pointer-events-none" />
+          <div className="hidden md:block absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent pointer-events-none" />
           
           <div className="relative z-10 flex flex-col items-center">
             <div className="w-24 h-24 bg-blue-500/20 rounded-full flex items-center justify-center mb-6">
@@ -441,7 +441,7 @@ const VerifyProfile = () => {
   if (profile && !ticket) {
     const handleReset = () => {
       setProfile(null); 
-      setSearchInput('MFCZ-');
+      setSearchInput('MFC-');
       window.history.replaceState(null, '', '/verify');
       setIsScanning(true);
     };
@@ -461,7 +461,7 @@ const VerifyProfile = () => {
           animate={{ scale: 1, opacity: 1 }}
           className="max-w-md w-full bg-zinc-900 border border-[#22c55e]/30 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_50px_rgba(34,197,94,0.1)] relative overflow-y-auto overflow-x-hidden max-h-[90vh] text-center"
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-[#22c55e]/10 to-transparent pointer-events-none" />
+          <div className="hidden md:block absolute inset-0 bg-gradient-to-b from-[#22c55e]/10 to-transparent pointer-events-none" />
           
           <div className="relative z-10 flex flex-col items-center">
             <div className="w-24 h-24 bg-[#22c55e]/20 rounded-full flex items-center justify-center mb-6">
@@ -520,7 +520,7 @@ const VerifyProfile = () => {
         animate={{ scale: 1, opacity: 1 }}
         className="max-w-md w-full bg-zinc-900 border border-white/10 rounded-[2rem] p-6 sm:p-8 shadow-2xl relative overflow-y-auto overflow-x-hidden max-h-[90vh]"
       >
-        <div className="absolute top-0 right-0 w-32 h-32 bg-firefox-orange/10 blur-[80px] rounded-full pointer-events-none" />
+        <div className="hidden md:block absolute top-0 right-0 w-32 h-32 bg-firefox-orange/10 blur-[80px] rounded-full pointer-events-none" />
         
         <div className="relative z-10 flex flex-col items-center text-center mb-8">
           <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 text-firefox-orange border border-white/10">

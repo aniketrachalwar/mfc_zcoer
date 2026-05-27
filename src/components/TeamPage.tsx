@@ -3,13 +3,20 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Github, Linkedin, Instagram, User, ArrowRight } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import TeamApplicationModal from './TeamApplicationModal';
 
 const TeamPage = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (location.search.includes('apply=true')) {
+      setIsApplicationModalOpen(true);
+    }
+  }, [location.search]);
 
   const [coreLeadership, setCoreLeadership] = useState<any[]>([]);
   const [departmentLeads, setDepartmentLeads] = useState<any[]>([]);
@@ -201,7 +208,7 @@ const TeamPage = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white relative">
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-firefox-orange/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      <div className="hidden md:block absolute top-0 right-0 w-[600px] h-[600px] bg-firefox-orange/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-4 relative z-10 text-center">

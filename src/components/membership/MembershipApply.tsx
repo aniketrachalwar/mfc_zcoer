@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Shield, Sparkles, CheckCircle2, Crown, Rocket, Zap, BookOpen, Loader2, ArrowRight, UploadCloud, Image as ImageIcon, Ticket, Copy } from 'lucide-react';
+import { Shield, Sparkles, CheckCircle2, Crown, Rocket, Zap, BookOpen, Loader2, ArrowRight, UploadCloud, Image as ImageIcon, Ticket, Copy, User } from 'lucide-react';
 import { doc, getDoc, addDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
@@ -15,6 +15,11 @@ export default function MembershipApply() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [fees, setFees] = useState({ silver: 99, platinum: 199 });
+  const [benefits, setBenefits] = useState({
+    free: ['Basic Ecosystem Access', 'Public Profile Creation', 'Limited Event Registration'],
+    silver: ['Official Member ID Card', 'Access to Member Directory', 'Standard Event Discounts', 'Access to Roadmaps & Resources'],
+    platinum: ['Everything in Silver', 'Free Access to Premium Events', 'Eligible for Core Team/Leadership', 'Project Incubation & Mentorship']
+  });
   const [upiId, setUpiId] = useState('mfc.zcoer@upi');
   
   const [step, setStep] = useState(1);
@@ -42,6 +47,11 @@ export default function MembershipApply() {
           setFees({
             silver: data.silverFee || 99,
             platinum: data.platinumFee || 199
+          });
+          setBenefits({
+            free: data.freeBenefits || ['Basic Ecosystem Access', 'Public Profile Creation', 'Limited Event Registration'],
+            silver: data.silverBenefits || ['Official Member ID Card', 'Access to Member Directory', 'Standard Event Discounts', 'Access to Roadmaps & Resources'],
+            platinum: data.platinumBenefits || ['Everything in Silver', 'Free Access to Premium Events', 'Eligible for Core Team/Leadership', 'Project Incubation & Mentorship']
           });
           if (data.upiId) {
             setUpiId(data.upiId);
@@ -229,7 +239,29 @@ export default function MembershipApply() {
               <p className="text-zinc-400">Choose the membership that best fits your goals.</p>
             </div>
 
-            <div className={`grid ${currentTier === 'silver' ? 'max-w-md mx-auto grid-cols-1' : 'md:grid-cols-2'} gap-6`}>
+            <div className={`grid ${currentTier === 'silver' ? 'max-w-3xl mx-auto grid-cols-2' : 'lg:grid-cols-3 md:grid-cols-2'} gap-6`}>
+              {/* Free Tier */}
+              {currentTier === 'free' && (
+                <div 
+                  className={`relative bg-zinc-900 border-2 rounded-3xl p-8 cursor-default border-white/5 opacity-80`}
+                >
+                  <div className="mb-6">
+                    <User size={32} className="text-zinc-500 mb-4" />
+                    <h4 className="text-2xl font-display font-black uppercase text-white mb-1">Free</h4>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-black text-zinc-500">₹0</span>
+                      <span className="text-zinc-600 text-sm font-bold uppercase">/forever</span>
+                    </div>
+                  </div>
+                  <ul className="space-y-3 mb-8">
+                    {benefits.free.map((b, i) => (
+                      <li key={i} className="flex items-start gap-2 text-zinc-400 text-sm"><CheckCircle2 size={16} className="text-zinc-600 shrink-0 mt-0.5" /> {b}</li>
+                    ))}
+                  </ul>
+                  <div className="absolute top-4 right-4 bg-zinc-800 text-zinc-400 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md">Current Plan</div>
+                </div>
+              )}
+
               {/* Silver Tier */}
               {currentTier !== 'silver' && (
                 <div 
@@ -250,10 +282,9 @@ export default function MembershipApply() {
                     </div>
                   </div>
                   <ul className="space-y-3 mb-8">
-                    <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Official Member ID Card</li>
-                    <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Access to Member Directory</li>
-                    <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Standard Event Discounts</li>
-                    <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> Access to Roadmaps & Resources</li>
+                    {benefits.silver.map((b, i) => (
+                      <li key={i} className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-zinc-500 shrink-0 mt-0.5" /> {b}</li>
+                    ))}
                   </ul>
                 </div>
               )}
@@ -282,10 +313,9 @@ export default function MembershipApply() {
                   </div>
                 </div>
                 <ul className="space-y-3 mb-8">
-                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-[#FF5C00] shrink-0 mt-0.5" /> Everything in Silver</li>
-                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-[#FF5C00] shrink-0 mt-0.5" /> Free Access to Premium Events</li>
-                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-[#FF5C00] shrink-0 mt-0.5" /> Eligible for Core Team/Leadership</li>
-                  <li className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-[#FF5C00] shrink-0 mt-0.5" /> Project Incubation & Mentorship</li>
+                  {benefits.platinum.map((b, i) => (
+                    <li key={i} className="flex items-start gap-2 text-zinc-300 text-sm"><CheckCircle2 size={16} className="text-[#FF5C00] shrink-0 mt-0.5" /> {b}</li>
+                  ))}
                 </ul>
               </div>
             </div>
