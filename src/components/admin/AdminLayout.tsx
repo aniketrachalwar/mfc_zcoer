@@ -23,8 +23,7 @@ import {
   MoreHorizontal,
   X,
   Plus,
-  Lightbulb,
-  ScanLine
+  Lightbulb
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -101,7 +100,6 @@ const AdminLayout = () => {
     { name: 'Workshop Proposals', path: '/admin/proposals', icon: Lightbulb },
     { name: 'Coupons', path: '/admin/coupons', icon: Ticket },
     { name: 'Settings', path: '/admin/settings', icon: SettingsIcon },
-    { name: 'Scanner', path: '/verify', icon: ScanLine },
   ];
 
   const visibleNavItems = navItems.filter(item => {
@@ -116,7 +114,7 @@ const AdminLayout = () => {
     }
     
     // Default legacy permissions for non-admins if array is missing
-    if (['Access Control', 'Members', 'Team', 'Applications', 'Settings', 'About Page', 'Coupons', 'Scanner'].includes(item.name)) return false;
+    if (['Access Control', 'Members', 'Team', 'Applications', 'Settings', 'About Page', 'Coupons'].includes(item.name)) return false;
     return true;
   });
 

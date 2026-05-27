@@ -15,7 +15,8 @@ import {
   ShoppingBag,
   MoreHorizontal,
   X,
-  User as UserIcon
+  User as UserIcon,
+  ScanLine
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -93,6 +94,7 @@ const DashboardLayout = () => {
   ];
 
   const secondaryTabs = [
+    ...(profile && ['admin', 'president', 'core_team', 'volunteer'].includes(profile.role) ? [{ name: 'Scanner', path: '/verify', icon: ScanLine }] : []),
     { name: 'Upgrade Tier', path: '/dashboard/membership', icon: Sparkles },
     { name: 'Settings', path: '/dashboard/settings', icon: Settings },
   ];
