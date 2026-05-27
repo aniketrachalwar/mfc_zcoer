@@ -53,5 +53,8 @@ export default defineConfig(({mode}) => {
         'Cross-Origin-Embedder-Policy': 'unsafe-none',
       },
     },
+    build: {
+      chunkSizeWarningLimit: 1600,
+    },
   };
 });

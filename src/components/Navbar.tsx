@@ -230,7 +230,7 @@ const Navbar = () => {
                 <img loading="lazy" 
                   src={user.photoURL || ''} 
                   alt="Avatar" 
-                  className="w-6 h-6 rounded-full border border-white/20"
+                  className="w-6 h-6 rounded-full border border-white/20 object-cover shrink-0"
                 />
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#f5f5f5]">{user.displayName?.split(' ')[0]}</span>
                 <ChevronDown size={14} className={`transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
@@ -340,14 +340,14 @@ const Navbar = () => {
       </AnimatePresence>
 
       {/* Mobile Floating Action Pill */}
-      <div className="xl:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[110]">
-        <div className="bg-zinc-950/90 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 flex items-center gap-8 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+      <div className="xl:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] w-max max-w-[95vw]">
+        <div className="bg-zinc-950/90 backdrop-blur-2xl border border-white/10 rounded-full px-5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-center gap-6 sm:gap-8 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
           <button 
             onClick={() => {
               setIsOpen(false);
               navigate('/');
             }}
-            className={`flex flex-col items-center gap-1 transition-colors ${location.pathname === '/' && !activeHash ? 'text-firefox-orange' : 'text-zinc-400 hover:text-white'}`}
+            className={`shrink-0 flex flex-col items-center gap-1 transition-colors ${location.pathname === '/' && !activeHash ? 'text-firefox-orange' : 'text-zinc-400 hover:text-white'}`}
           >
             <Home size={22} />
           </button>
@@ -355,22 +355,22 @@ const Navbar = () => {
           {!user ? (
             <button 
               onClick={handleJoinClick}
-              className="tour-step-join-mobile bg-firefox-orange text-white px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(255,106,0,0.4)] active:scale-95 transition-all"
+              className="tour-step-join-mobile shrink-0 bg-firefox-orange text-white px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(255,106,0,0.4)] active:scale-95 transition-all whitespace-nowrap"
             >
               Join
             </button>
           ) : (
             <button 
               onClick={handleJoinClick}
-              className="flex flex-col items-center gap-1 transition-colors text-firefox-orange"
+              className="shrink-0 flex flex-col items-center gap-1 transition-colors text-firefox-orange"
             >
-              <img loading="lazy" src={user.photoURL || ''} alt="User" className="w-[26px] h-[26px] rounded-full border-2 border-firefox-orange shadow-[0_0_10px_rgba(255,106,0,0.3)]" />
+              <img loading="lazy" src={user.photoURL || ''} alt="User" className="w-[26px] h-[26px] rounded-full border-2 border-firefox-orange shadow-[0_0_10px_rgba(255,106,0,0.3)] object-cover shrink-0" />
             </button>
           )}
 
           <button 
             onClick={() => setIsOpen(!isOpen)}
-            className={`flex flex-col items-center gap-1 transition-colors ${isOpen ? 'text-firefox-orange' : 'text-zinc-400 hover:text-white'}`}
+            className={`shrink-0 flex flex-col items-center gap-1 transition-colors ${isOpen ? 'text-firefox-orange' : 'text-zinc-400 hover:text-white'}`}
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
