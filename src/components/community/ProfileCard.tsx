@@ -18,6 +18,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: propProfile, isPubli
   const cardRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center h-64 bg-zinc-900/50 rounded-[2.5rem] border border-white/5">
+        <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Profile not found</p>
+      </div>
+    );
+  }
+
   const tier = (profile?.membershipTier || 'free').toLowerCase();
   const isPremium = tier === 'silver' || tier === 'platinum';
   const isExpired = profile?.membershipStatus === 'expired';
