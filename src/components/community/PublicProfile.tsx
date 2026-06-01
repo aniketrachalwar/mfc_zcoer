@@ -137,7 +137,9 @@ const PublicProfile = () => {
         <button 
           onClick={() => {
             window.scrollTo(0, 0);
-            if (fromTeamPage) {
+            if (window.history.length > 2) {
+              navigate(-1);
+            } else if (fromTeamPage) {
               navigate('/team');
             } else {
               navigate('/community');

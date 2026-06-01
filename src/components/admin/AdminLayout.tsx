@@ -9,14 +9,11 @@ import {
   Award, 
   Calendar, 
   Briefcase, 
-  ShoppingBag, 
   Bell, 
   LogOut,
   ShieldAlert,
   Star,
   FileText,
-  Settings as SettingsIcon,
-  CheckSquare,
   MonitorSmartphone,
   Globe,
   Ticket,
@@ -84,22 +81,12 @@ const AdminLayout = () => {
 
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
-    { name: 'Access Control', path: '/admin/access', icon: ShieldAlert },
     { name: 'Members', path: '/admin/members', icon: Users },
-    { name: 'Applications', path: '/admin/applications', icon: CheckSquare },
     { name: 'Team', path: '/admin/team', icon: Star },
-    { name: 'Tasks & Bounties', path: '/admin/contributions', icon: Award },
     { name: 'Events', path: '/admin/events', icon: Calendar },
+    { name: 'Certificates', path: '/admin/certificates', icon: FileText },
     { name: 'Projects', path: '/admin/projects', icon: Briefcase },
-    { name: 'Blogs', path: '/admin/blogs', icon: FileText },
-    { name: 'Merchandise', path: '/admin/merch', icon: ShoppingBag },
-    { name: 'Notifications', path: '/admin/notifications', icon: Bell },
-    { name: 'About Page', path: '/admin/about', icon: Globe },
-    { name: 'Site Navigation', path: '/admin/navigation', icon: Globe },
-    { name: 'Members Dashboard', path: '/admin/members-dashboard', icon: LayoutDashboard },
-    { name: 'Workshop Proposals', path: '/admin/proposals', icon: Lightbulb },
-    { name: 'Coupons', path: '/admin/coupons', icon: Ticket },
-    { name: 'Settings', path: '/admin/settings', icon: SettingsIcon },
+    { name: 'Blogs', path: '/admin/blogs', icon: FileText }
   ];
 
   const visibleNavItems = navItems.filter(item => {
@@ -114,12 +101,12 @@ const AdminLayout = () => {
     }
     
     // Default legacy permissions for non-admins if array is missing
-    if (['Access Control', 'Members', 'Team', 'Applications', 'Settings', 'About Page', 'Coupons'].includes(item.name)) return false;
+    if (['Access Control', 'Members', 'Team', 'About Page'].includes(item.name)) return false;
     return true;
   });
 
-  const primaryTabs = visibleNavItems.filter(item => ['Dashboard', 'Members', 'Events', 'Applications'].includes(item.name));
-  const secondaryTabs = visibleNavItems.filter(item => !['Dashboard', 'Members', 'Events', 'Applications'].includes(item.name));
+  const primaryTabs = visibleNavItems.filter(item => ['Dashboard', 'Members', 'Events'].includes(item.name));
+  const secondaryTabs = visibleNavItems.filter(item => !['Dashboard', 'Members', 'Events'].includes(item.name));
 
 
   return (
@@ -136,7 +123,7 @@ const AdminLayout = () => {
               </div>
               
               <div className="space-y-1">
-                {visibleNavItems.filter(item => ['Dashboard', 'Members', 'Applications', 'Team'].includes(item.name)).map(item => (
+                {visibleNavItems.map(item => (
                   <Link
                     key={item.path}
                     to={item.path}
@@ -148,66 +135,6 @@ const AdminLayout = () => {
                   >
                     <item.icon size={18} />
                     <span className="text-[10px] font-black uppercase tracking-widest">{item.name}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="px-4 text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Content</h3>
-              <div className="space-y-1">
-                {visibleNavItems.filter(item => ['Events', 'Projects', 'Blogs', 'About Page', 'Site Navigation', 'Members Dashboard'].includes(item.name)).map(item => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center gap-3 px-4 py-2 rounded-xl transition-all ${
-                      (location.pathname === item.path || (location.pathname.startsWith(item.path) && item.path !== '/admin'))
-                        ? 'bg-firefox-orange/10 text-firefox-orange' 
-                        : 'text-zinc-400 hover:bg-white/5 hover:text-white'
-                    }`}
-                  >
-                    <item.icon size={16} />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">{item.name}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="px-4 text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Commerce & Activity</h3>
-              <div className="space-y-1">
-                {visibleNavItems.filter(item => ['Merchandise', 'Coupons', 'Workshop Proposals', 'Tasks & Bounties'].includes(item.name)).map(item => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center gap-3 px-4 py-2 rounded-xl transition-all ${
-                      (location.pathname === item.path || (location.pathname.startsWith(item.path) && item.path !== '/admin'))
-                        ? 'bg-firefox-orange/10 text-firefox-orange' 
-                        : 'text-zinc-400 hover:bg-white/5 hover:text-white'
-                    }`}
-                  >
-                    <item.icon size={16} />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">{item.name}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="px-4 text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">System</h3>
-              <div className="space-y-1">
-                {visibleNavItems.filter(item => ['Notifications', 'Access Control', 'Settings'].includes(item.name)).map(item => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center gap-3 px-4 py-2 rounded-xl transition-all ${
-                      (location.pathname === item.path || (location.pathname.startsWith(item.path) && item.path !== '/admin'))
-                        ? 'bg-firefox-orange/10 text-firefox-orange' 
-                        : 'text-zinc-400 hover:bg-white/5 hover:text-white'
-                    }`}
-                  >
-                    <item.icon size={16} />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">{item.name}</span>
                   </Link>
                 ))}
               </div>

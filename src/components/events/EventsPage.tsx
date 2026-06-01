@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { Calendar, MapPin, ArrowRight, Download } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Calendar, MapPin, ArrowRight, Download, Search, Filter, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -8,10 +8,14 @@ import { useAuth } from '../../lib/AuthContext';
 import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
 import AdSenseBlock from '../AdSenseBlock';
+import UniversalEventBanner from './UniversalEventBanner';
 
 const EventsPage = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState("All");
+  const [activeTab, setActiveTab] = useState("upcoming"); // upcoming, past
 
   const { user } = useAuth();
   const [userTickets, setUserTickets] = useState<any[]>([]);
@@ -24,8 +28,10 @@ const EventsPage = () => {
       try {
         const snap = await getDocs(collection(db, 'events'));
         const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
-        list.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        setEvents(list);
+        // Filter out pending events
+        const approvedEvents = list.filter(e => e.status === 'approved' || !e.status);
+        approvedEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        setEvents(approvedEvents);
       } catch (err) {
         console.error(err);
       } finally {
@@ -87,6 +93,16 @@ const EventsPage = () => {
     }, 100);
   };
 
+  // Memoized filtering
+  const filteredEvents = useMemo(() => {
+    return events.filter(e => {
+      const matchesSearch = e.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            e.desc.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = selectedType === 'All' || e.type === selectedType;
+      return matchesSearch && matchesType;
+    });
+  }, [events, searchQuery, selectedType]);
+
   if (loading) {
     return (
       <div className="pt-32 pb-20 px-4 min-h-screen flex items-center justify-center">
@@ -96,9 +112,12 @@ const EventsPage = () => {
   }
 
   const now = new Date().getTime();
-  const upcomingEvents = events.filter(e => new Date(e.date).getTime() >= now);
-  const pastEvents = events.filter(e => new Date(e.date).getTime() < now)
+  
+  const upcomingEvents = filteredEvents.filter(e => new Date(e.date).getTime() >= now);
+  const pastEvents = filteredEvents.filter(e => new Date(e.date).getTime() < now)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+  const eventTypes = ["All", ...Array.from(new Set(events.map(e => e.type || "Other")))];
 
   const EventCard: React.FC<{ event: any }> = ({ event }) => {
     const isPast = new Date(event.date).getTime() < now;
@@ -191,50 +210,98 @@ const EventsPage = () => {
   return (
     <div className="pt-32 pb-20 px-4 min-h-screen relative">
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="mb-16">
-          <span className="text-firefox-orange font-bold uppercase tracking-widest text-xs">Sessions</span>
-          <h1 className="text-fluid-h1 font-display font-black uppercase tracking-tight mt-2 mb-4">
-            All <span className="text-firefox-orange">Events</span>
+        <div className="mb-12">
+          <span className="text-firefox-orange font-bold uppercase tracking-widest text-xs mb-2 block">Discovery</span>
+          <h1 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tight mb-8">
+            Explore <span className="text-firefox-orange">Events</span>
           </h1>
-          <p className="text-zinc-400 max-w-2xl text-lg">
-            Join our upcoming hackathons, workshops, and open-source sprints. Or browse our past events to see what we've been up to.
-          </p>
+
+          <UniversalEventBanner />
+
+          {/* Search and Filter Bar */}
+          <div id="explore" className="flex flex-col md:flex-row gap-4 mb-8 scroll-mt-32">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={20} />
+              <input 
+                type="text"
+                placeholder="Search events by title or description..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white focus:outline-none focus:border-firefox-orange transition-colors"
+              />
+            </div>
+            <div className="relative min-w-[200px]">
+              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={20} />
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="w-full bg-zinc-900 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white focus:outline-none focus:border-firefox-orange transition-colors appearance-none"
+              >
+                {eventTypes.map((type: any) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-4 border-b border-white/10 pb-4 mb-8 overflow-x-auto no-scrollbar">
+            <button 
+              onClick={() => setActiveTab('upcoming')}
+              className={`whitespace-nowrap px-6 py-2 rounded-full font-bold text-sm uppercase tracking-widest transition-all ${activeTab === 'upcoming' ? 'bg-firefox-orange text-white' : 'bg-white/5 text-zinc-400 hover:text-white'}`}
+            >
+              Upcoming Events ({upcomingEvents.length})
+            </button>
+            <button 
+              onClick={() => setActiveTab('past')}
+              className={`whitespace-nowrap px-6 py-2 rounded-full font-bold text-sm uppercase tracking-widest transition-all ${activeTab === 'past' ? 'bg-zinc-800 text-white' : 'bg-white/5 text-zinc-400 hover:text-white'}`}
+            >
+              Past Events ({pastEvents.length})
+            </button>
+          </div>
         </div>
 
-        {upcomingEvents.length > 0 && (
-          <div className="mb-20">
-            <h2 className="text-2xl font-display font-black uppercase text-white mb-8 flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              Upcoming Sessions
-            </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {upcomingEvents.map(event => <EventCard key={event.id} event={event} />)}
-            </div>
-            
-            <AdSenseBlock adSlot="events_upcoming_bottom" className="mt-16" />
-          </div>
-        )}
-
-        {pastEvents.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-display font-black uppercase text-zinc-500 mb-8">
-              Completed Sessions
-            </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 opacity-75 hover:opacity-100 transition-opacity">
-              {pastEvents.map(event => <EventCard key={event.id} event={event} />)}
-            </div>
-            
-            <AdSenseBlock adSlot="events_past_bottom" className="mt-16" />
-          </div>
-        )}
-        
-        {events.length === 0 && (
-          <div className="text-center py-20 bg-white/5 border border-white/10 rounded-3xl">
-            <Calendar size={48} className="mx-auto text-zinc-600 mb-4" />
-            <h3 className="text-xl font-display font-bold text-white mb-2">No Events Found</h3>
-            <p className="text-zinc-400">We are planning some exciting sessions. Check back soon!</p>
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {activeTab === 'upcoming' ? (
+              upcomingEvents.length > 0 ? (
+                <div className="mb-20">
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {upcomingEvents.map(event => <EventCard key={event.id} event={event} />)}
+                  </div>
+                  <AdSenseBlock adSlot="events_upcoming_bottom" className="mt-16" />
+                </div>
+              ) : (
+                <div className="text-center py-20 bg-white/5 border border-white/10 rounded-3xl">
+                  <Calendar size={48} className="mx-auto text-zinc-600 mb-4" />
+                  <h3 className="text-xl font-display font-bold text-white mb-2">No Upcoming Events</h3>
+                  <p className="text-zinc-400">Try adjusting your search or filter criteria.</p>
+                </div>
+              )
+            ) : (
+              pastEvents.length > 0 ? (
+                <div className="mb-20">
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 opacity-90 hover:opacity-100 transition-opacity">
+                    {pastEvents.map(event => <EventCard key={event.id} event={event} />)}
+                  </div>
+                  <AdSenseBlock adSlot="events_past_bottom" className="mt-16" />
+                </div>
+              ) : (
+                <div className="text-center py-20 bg-white/5 border border-white/10 rounded-3xl">
+                  <Calendar size={48} className="mx-auto text-zinc-600 mb-4" />
+                  <h3 className="text-xl font-display font-bold text-white mb-2">No Past Events</h3>
+                  <p className="text-zinc-400">Try adjusting your search or filter criteria.</p>
+                </div>
+              )
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Hidden Certificate Element for PDF Generation */}

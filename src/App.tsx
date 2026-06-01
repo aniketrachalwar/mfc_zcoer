@@ -24,7 +24,7 @@ const TeamPage = React.lazy(() => import('./components/TeamPage'));
 const CommunityPage = React.lazy(() => import('./components/community/CommunityPage'));
 const DashboardLayout = React.lazy(() => import('./components/community/DashboardLayout'));
 const DashboardOverview = React.lazy(() => import('./components/community/DashboardOverview'));
-const MembershipApply = React.lazy(() => import('./components/membership/MembershipApply'));
+
 const ProfileCard = React.lazy(() => import('./components/community/ProfileCard'));
 const ProfileForm = React.lazy(() => import('./components/community/ProfileForm'));
 const PublicProfile = React.lazy(() => import('./components/community/PublicProfile'));
@@ -32,6 +32,7 @@ const VerifyProfile = React.lazy(() => import('./components/community/VerifyProf
 const TasksBoard = React.lazy(() => import('./components/community/TasksBoard'));
 const EventDetails = React.lazy(() => import('./components/events/EventDetails'));
 const EventsPage = React.lazy(() => import('./components/events/EventsPage'));
+const HostEvent = React.lazy(() => import('./components/events/HostEvent'));
 const MemberProfilePage = React.lazy(() => import('./components/progression').then(m => ({ default: m.MemberProfilePage })));
 const AdminLayout = React.lazy(() => import('./components/admin/AdminLayout'));
 const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard'));
@@ -39,25 +40,23 @@ const MembersManager = React.lazy(() => import('./components/admin/MembersManage
 const ContributionsManager = React.lazy(() => import('./components/admin/ContributionsManager'));
 const EventsManager = React.lazy(() => import('./components/admin/EventsManager'));
 const ProjectsManager = React.lazy(() => import('./components/admin/ProjectsManager'));
-const MerchandiseManager = React.lazy(() => import('./components/admin/MerchandiseManager'));
 const NotificationsManager = React.lazy(() => import('./components/admin/NotificationsManager'));
 const TeamManager = React.lazy(() => import('./components/admin/TeamManager'));
+const CertificateManager = React.lazy(() => import('./components/admin/CertificateManager'));
 const BlogsManager = React.lazy(() => import('./components/admin/BlogsManager'));
-const SettingsManager = React.lazy(() => import('./components/admin/SettingsManager'));
-const ApplicationsManager = React.lazy(() => import('./components/admin/ApplicationsManager'));
+
 const AboutManager = React.lazy(() => import('./components/admin/AboutManager'));
 const AdminAccessManager = React.lazy(() => import('./components/admin/AdminAccessManager'));
 
 const BlogsPage = React.lazy(() => import('./components/blogs/BlogsPage'));
 const BlogDetails = React.lazy(() => import('./components/blogs/BlogDetails'));
 const WriteBlog = React.lazy(() => import('./components/blogs/WriteBlog'));
-const CouponManager = React.lazy(() => import('./components/admin/CouponManager'));
-const MembersDashboardManager = React.lazy(() => import('./components/admin/MembersDashboardManager'));
+
 const WorkshopProposalsManager = React.lazy(() => import('./components/admin/WorkshopProposalsManager'));
 
 const RunningProjects = React.lazy(() => import('./components/student/RunningProjects'));
 const PurchasedItems = React.lazy(() => import('./components/student/PurchasedItems'));
-const MembershipHistory = React.lazy(() => import('./components/student/MembershipHistory'));
+
 
 // Leaderboard will be lazy loaded
 const LeaderboardPage = React.lazy(() => import('./components/leaderboard/LeaderboardPage'));
@@ -247,16 +246,17 @@ export default function App() {
                     <Route index element={<DashboardOverview />} />
                     <Route path="projects" element={<RunningProjects />} />
                     <Route path="purchases" element={<PurchasedItems />} />
-                    <Route path="membership" element={<MembershipApply />} />
+
                     <Route path="tasks" element={<TasksBoard />} />
                     <Route path="id-card" element={<ProfileCard />} />
                     <Route path="settings" element={<ProfileForm />} />
-                    <Route path="membership-history" element={<MembershipHistory />} />
+
                   </Route>
                   <Route path="/profile" element={<MemberProfilePage />} />
                   <Route path="/profile/:username" element={<PublicProfile />} />
                   <Route path="/events" element={<EventsPage />} />
                   <Route path="/event/:id" element={<EventDetails />} />
+                  <Route path="/host-event" element={<HostEvent />} />
                   <Route path="/verify" element={<VerifyProfile />} />
                   <Route path="/verify/:username" element={<VerifyProfile />} />
                   <Route path="/blogs" element={<BlogsPage />} />
@@ -264,7 +264,6 @@ export default function App() {
                   <Route path="/write-blog" element={<WriteBlog />} />
                   <Route path="/edit-blog/:id" element={<WriteBlog />} />
                   <Route path="/leaderboard" element={<LeaderboardPage />} />
-                  <Route path="/shop" element={<ShopPage />} />
                   
                   {/* Admin Routes */}
                   <Route path="/admin" element={<AdminLayout />}>
@@ -272,17 +271,14 @@ export default function App() {
                     <Route path="members" element={<MembersManager />} />
                     <Route path="contributions" element={<ContributionsManager />} />
                     <Route path="events" element={<EventsManager />} />
+                    <Route path="certificates" element={<CertificateManager />} />
                     <Route path="projects" element={<ProjectsManager />} />
-                    <Route path="merch" element={<MerchandiseManager />} />
                     <Route path="notifications" element={<NotificationsManager />} />
                     <Route path="team" element={<TeamManager />} />
                     <Route path="blogs" element={<BlogsManager />} />
-                    <Route path="settings" element={<SettingsManager />} />
+
                     <Route path="about" element={<AboutManager />} />
                     <Route path="access" element={<AdminAccessManager />} />
-                    <Route path="applications" element={<ApplicationsManager />} />
-                    <Route path="coupons" element={<CouponManager />} />
-                    <Route path="members-dashboard" element={<MembersDashboardManager />} />
                     <Route path="proposals" element={<WorkshopProposalsManager />} />
                     <Route path="navigation" element={<NavigationManager />} />
                   </Route>

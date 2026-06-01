@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Sparkles, ArrowRight, Target, Calendar, Rocket, Bell, Shield } from 'lucide-react';
 import { useOutletContext, Link } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { useAuth } from '../../lib/AuthContext';
 import ProposeWorkshopModal from './ProposeWorkshopModal';
 import DashboardTour from './DashboardTour';
 
@@ -12,6 +13,8 @@ export default function DashboardOverview() {
   const [config, setConfig] = useState<any>(null);
   const [memberConfig, setMemberConfig] = useState<any>(null);
   const [isProposeModalOpen, setIsProposeModalOpen] = useState(false);
+  const { user } = useAuth();
+  const [myEvents, setMyEvents] = useState<any[]>([]);
   
   useEffect(() => {
     const fetchConfig = async () => {
@@ -34,73 +37,91 @@ export default function DashboardOverview() {
     fetchConfig();
   }, []);
 
-  // Calculate profile completion percentage
-  const calculateProgress = () => {
-    let completed = 0;
-    const totalFields = 6;
-    if (profile?.fullName) completed++;
-    if (profile?.username) completed++;
-    if (profile?.bio) completed++;
-    if (profile?.department) completed++;
-    if (profile?.year) completed++;
-    if (profile?.githubProfile) completed++;
-    return Math.round((completed / totalFields) * 100);
-  };
-
-  const progress = calculateProgress();
+  useEffect(() => {
+    if (!user) return;
+    const fetchMyEvents = async () => {
+      try {
+        const q = query(collection(db, 'tickets'), where('userId', '==', user.uid), where('cancelled', '==', false));
+        const snap = await getDocs(q);
+        
+        const eventsData = await Promise.all(snap.docs.map(async (tDoc) => {
+          const tData = tDoc.data();
+          const eSnap = await getDoc(doc(db, 'events', tData.eventId));
+          if (eSnap.exists()) {
+            return { id: tDoc.id, ...tData, eventDetails: eSnap.data() };
+          }
+          return null;
+        }));
+        
+        setMyEvents(eventsData.filter(Boolean));
+      } catch (err) {
+        console.error("Error fetching my events:", err);
+      }
+    };
+    fetchMyEvents();
+  }, [user]);
 
   const widgets = config?.widgets || [
-    { id: 'stats', enabled: true },
     { id: 'recent_events', enabled: true }
   ];
 
   const renderWidget = (id: string) => {
-    switch (id) {
-      case 'stats':
-        return (
-          <div key="stats" className="bg-zinc-900 border border-white/10 rounded-3xl p-6 flex flex-col justify-between group hover:border-firefox-orange/30 transition-colors h-full">
-            <div>
-              <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-firefox-orange mb-4">
-                <Target size={20} />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">Profile Setup</h3>
-              <p className="text-zinc-400 text-sm mb-6">Complete your profile to unlock all community features and appear on the leaderboard.</p>
-            </div>
-            
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Progress</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-firefox-orange">{progress}%</span>
-              </div>
-              <div className="w-full h-2 bg-black/50 rounded-full overflow-hidden border border-white/5">
-                <div 
-                  className="h-full bg-firefox-orange rounded-full transition-all duration-1000"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
+    if (id === 'recent_events') {
+      return (
+        <div key="recent_events" className="bg-zinc-900 border border-white/10 rounded-3xl p-6 md:col-span-3 lg:col-span-3 group hover:border-firefox-orange/30 transition-colors">
+          <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-firefox-orange mb-4">
+            <Calendar size={20} />
           </div>
-        );
-
-      case 'recent_events':
-        return (
-          <div key="recent_events" className="bg-zinc-900 border border-white/10 rounded-3xl p-6 md:col-span-2 lg:col-span-1 group hover:border-firefox-orange/30 transition-colors h-full">
-            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-firefox-orange mb-4">
-              <Calendar size={20} />
-            </div>
-            <h3 className="text-lg font-bold text-white mb-4">Upcoming</h3>
-            
-            <div className="flex flex-col items-center justify-center h-40 text-center border-2 border-dashed border-white/5 rounded-2xl bg-black/20">
-              <p className="text-sm font-medium text-zinc-500 mb-2">Check the events page for the latest updates.</p>
+          <h3 className="text-lg font-bold text-white mb-4">My Events</h3>
+          
+          {myEvents.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed border-white/5 rounded-2xl bg-black/20">
+              <p className="text-sm font-medium text-zinc-500 mb-2">You haven't attended or registered for any events yet.</p>
               <Link to="/events" className="text-xs font-black uppercase tracking-widest text-firefox-orange hover:text-white transition-colors">
-                View Events
+                Browse Events
               </Link>
             </div>
-          </div>
-        );
-      default:
-        return null;
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {myEvents.map((evt) => {
+                const isUpcoming = evt.eventDetails.date && new Date(evt.eventDetails.date) > new Date();
+                let statusText = 'Registered';
+                let statusClass = 'bg-yellow-500/20 text-yellow-400';
+                
+                if (isUpcoming) {
+                  statusText = 'Reserved Spot';
+                  statusClass = 'bg-blue-500/20 text-blue-400';
+                } else if (evt.verified) {
+                  statusText = 'Attended';
+                  statusClass = 'bg-green-500/20 text-green-400';
+                } else {
+                  statusText = 'Missed';
+                  statusClass = 'bg-red-500/20 text-red-400';
+                }
+
+                return (
+                  <Link key={evt.id} to={`/event/${evt.eventId}`} className="bg-black/40 border border-white/5 p-4 rounded-2xl flex flex-col justify-between group hover:border-firefox-orange/50 transition-colors">
+                    <div>
+                      <h4 className="font-bold text-white mb-1 line-clamp-1 group-hover:text-firefox-orange transition-colors">{evt.eventDetails.title}</h4>
+                      <p className="text-xs text-zinc-400 mb-2">
+                        {evt.eventDetails.date ? new Date(evt.eventDetails.date).toLocaleDateString() : 'TBA'}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${statusClass}`}>
+                        {statusText}
+                      </span>
+                      <ArrowRight size={14} className="text-zinc-500 group-hover:text-firefox-orange group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
     }
+    return null;
   };
 
   const activeAnnouncements = config?.announcements?.filter((a: any) => a.active) || [];
@@ -118,16 +139,7 @@ export default function DashboardOverview() {
             </h2>
             <p className="text-zinc-400 font-medium">Your hub for community access, resources, and events.</p>
           </div>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/5">
-              <Shield className="text-firefox-orange" size={24} />
-              <div>
-                <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Current Tier</p>
-                <p className={`text-2xl font-display font-black capitalize ${profile?.membershipTier === 'platinum' ? 'text-yellow-500' : profile?.membershipTier === 'silver' ? 'text-zinc-300' : 'text-white'}`}>
-                  {profile?.membershipTier || 'Free'}
-                </p>
-              </div>
-            </div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             {!profile?.isLeadership && (
               <div className="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/5">
                 <Sparkles className="text-yellow-500" size={24} />
@@ -141,53 +153,7 @@ export default function DashboardOverview() {
         </div>
       </div>
 
-      {/* Dynamic Next Actions */}
-      {(memberConfig?.nextActions || [
-        { id: '1', title: 'Browse Events', link: '/events', enabled: true },
-        { id: '2', title: 'Explore Projects', link: '/projects', enabled: true }
-      ]).filter((a: any) => a.enabled).length > 0 && (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          <div className="col-span-full">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <Rocket size={20} className="text-firefox-orange" /> Next Actions
-            </h3>
-            <p className="text-sm text-zinc-400 mb-4">Recommended steps for you to take right now.</p>
-          </div>
-          {(memberConfig?.nextActions || [
-            { id: '1', title: 'Browse Events', link: '/events', enabled: true },
-            { id: '2', title: 'Explore Projects', link: '/projects', enabled: true }
-          ]).filter((a: any) => a.enabled).map((action: any) => {
-            const isExternal = action.link.startsWith('http');
-            const linkClasses = "flex items-center justify-between p-5 rounded-2xl bg-zinc-900 border border-white/10 hover:border-firefox-orange/50 hover:bg-white/5 transition-all group";
-            const innerContent = (
-              <>
-                <span className="text-sm font-bold text-white group-hover:text-firefox-orange transition-colors">{action.title}</span>
-                <ArrowRight size={16} className="text-zinc-500 group-hover:text-firefox-orange group-hover:translate-x-1 transition-all" />
-              </>
-            );
 
-            return isExternal ? (
-              <a 
-                key={action.id} 
-                href={action.link} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className={linkClasses}
-              >
-                {innerContent}
-              </a>
-            ) : (
-              <Link 
-                key={action.id} 
-                to={action.link} 
-                className={linkClasses}
-              >
-                {innerContent}
-              </Link>
-            );
-          })}
-        </div>
-      )}
 
       {activeAnnouncements.length > 0 && (
         <div className="space-y-3">

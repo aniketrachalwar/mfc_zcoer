@@ -21,12 +21,9 @@ const TeamPreview = () => {
         const usersList = usersSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
         const teamList = teamSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
         
-        // Find core members (e.g., Core, President, Founder, Lead)
+        // Find Core Leadership of year 25-26
         let coreMembers = teamList
-          .filter(tm => {
-            const role = (tm.role || '').toLowerCase();
-            return role.includes('president') || role.includes('core') || role.includes('founder') || role.includes('lead');
-          })
+          .filter(tm => tm.category === 'Core Leadership' && (tm.cohort || '25-26') === '25-26')
           .map(tm => {
             const user = usersList.find(u => u.id === tm.userId);
             return {
@@ -35,13 +32,20 @@ const TeamPreview = () => {
               name: user?.fullName || user?.username || 'Unknown',
               username: user?.username,
               role: tm.role,
-              img: user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username}`,
+              img: user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username)}&background=FF5C00&color=fff&bold=true`,
             };
           })
           .filter(m => m.username); // ensure valid user
 
-        // Take up to 3 members
-        setFeaturedMembers(coreMembers.slice(0, 3));
+        // Sort: President first
+        coreMembers.sort((a, b) => {
+          const aIsPres = (a.role || '').toLowerCase().includes('president') ? 1 : 0;
+          const bIsPres = (b.role || '').toLowerCase().includes('president') ? 1 : 0;
+          return bIsPres - aIsPres;
+        });
+
+        // Show all of them on the homepage
+        setFeaturedMembers(coreMembers);
       } catch (err) {
         console.error("Error fetching featured team", err);
       } finally {

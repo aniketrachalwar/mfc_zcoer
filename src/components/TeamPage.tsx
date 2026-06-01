@@ -55,7 +55,7 @@ const TeamPage = () => {
               name: user.fullName || user.username || 'Unknown',
               username: user.username || user.id,
               role: tm.role || 'Member',
-              img: user.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`,
+              img: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=FF5C00&color=fff&bold=true`,
               github: user.githubUrl || '#',
               linkedin: user.linkedinUrl || '#',
               instagram: user.instagramUrl || '#',
@@ -103,11 +103,15 @@ const TeamPage = () => {
           const defaultCohort = sortedCohorts.includes('25-26') ? '25-26' : sortedCohorts[0];
           setSelectedCohort(defaultCohort);
           
-          // Sort Department Leads and Active Contributors by points (highest first)
+          const sortedCore = [...dataMap[defaultCohort].core].sort((a, b) => {
+            const aIsPres = (a.role || '').toLowerCase().includes('president') ? 1 : 0;
+            const bIsPres = (b.role || '').toLowerCase().includes('president') ? 1 : 0;
+            return bIsPres - aIsPres;
+          });
           const sortedLeads = [...dataMap[defaultCohort].leads].sort((a, b) => b.points - a.points);
           const sortedContributors = [...dataMap[defaultCohort].contributors].sort((a, b) => b.points - a.points);
           
-          setCoreLeadership(dataMap[defaultCohort].core);
+          setCoreLeadership(sortedCore);
           setDepartmentLeads(sortedLeads);
           setActiveContributors(sortedContributors);
         }
@@ -252,11 +256,15 @@ const TeamPage = () => {
                         const cohort = e.target.value;
                         setSelectedCohort(cohort);
                         
-                        // Sort by points
+                        const sortedCore = [...cohortData[cohort].core].sort((a, b) => {
+                          const aIsPres = (a.role || '').toLowerCase().includes('president') ? 1 : 0;
+                          const bIsPres = (b.role || '').toLowerCase().includes('president') ? 1 : 0;
+                          return bIsPres - aIsPres;
+                        });
                         const sortedLeads = [...cohortData[cohort].leads].sort((a, b) => b.points - a.points);
                         const sortedContributors = [...cohortData[cohort].contributors].sort((a, b) => b.points - a.points);
 
-                        setCoreLeadership(cohortData[cohort].core);
+                        setCoreLeadership(sortedCore);
                         setDepartmentLeads(sortedLeads);
                         setActiveContributors(sortedContributors);
                       }}

@@ -18,7 +18,6 @@ const availableTabs = [
   'About Page',
   'Members Dashboard',
   'Workshop Proposals',
-  'Coupons',
   'Settings'
 ];
 
@@ -62,7 +61,7 @@ export default function AdminAccessManager() {
       if (user.role === 'admin') {
         setEditedPerms([...availableTabs, 'Access Control']);
       } else {
-        const legacyDefault = availableTabs.filter(t => !['Members', 'Team', 'Applications', 'Settings', 'About Page', 'Coupons'].includes(t));
+        const legacyDefault = availableTabs.filter(t => !['Members', 'Team', 'Applications', 'Settings', 'About Page'].includes(t));
         setEditedPerms(legacyDefault);
       }
     }
@@ -125,7 +124,7 @@ export default function AdminAccessManager() {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <img 
-                          src={leader.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${leader.username}`} 
+                          src={leader.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(leader.username)}&background=FF5C00&color=fff&bold=true`} 
                           alt="Avatar" 
                           className="w-10 h-10 rounded-full object-cover bg-black/50"
                         />

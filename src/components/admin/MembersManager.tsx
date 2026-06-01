@@ -8,7 +8,6 @@ const MembersManager = () => {
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterTab, setFilterTab] = useState('All');
 
   const [lastVisible, setLastVisible] = useState<any>(null);
   const [hasMore, setHasMore] = useState(true);
@@ -53,15 +52,6 @@ const MembersManager = () => {
       setMembers(members.map(m => m.id === userId ? { ...m, role: newRole } : m));
     } catch (error) {
       console.error("Error updating role:", error);
-    }
-  };
-
-  const handleStatusChange = async (userId: string, newStatus: string) => {
-    try {
-      await updateDoc(doc(db, 'users', userId), { membershipStatus: newStatus });
-      setMembers(members.map(m => m.id === userId ? { ...m, membershipStatus: newStatus } : m));
-    } catch (error) {
-      console.error("Error updating status:", error);
     }
   };
 
@@ -113,26 +103,11 @@ const MembersManager = () => {
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const handleTierChange = async (userId: string, newTier: string) => {
-    try {
-      await updateDoc(doc(db, 'users', userId), { membershipTier: newTier });
-      setMembers(members.map(m => m.id === userId ? { ...m, membershipTier: newTier } : m));
-    } catch (error) {
-      console.error("Error updating tier:", error);
-    }
-  };
-
   const filteredMembers = members.filter(m => {
-    const matchesSearch = (m.fullName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    return (m.fullName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (m.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (m.username?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-    
-    if (filterTab === 'All') return matchesSearch;
-    const status = m.membershipStatus || 'public';
-    return matchesSearch && status.toLowerCase() === filterTab.toLowerCase();
   });
-
-  const tabs = ['All', 'Pending', 'Active', 'Suspended', 'Alumni'];
 
   return (
     <div>
@@ -154,21 +129,6 @@ const MembersManager = () => {
             className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
           />
         </div>
-      </div>
-
-      {/* Mobile-friendly Tab Filters */}
-      <div className="flex overflow-x-auto gap-2 pb-4 mb-2 snap-x hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-        {tabs.map(tab => (
-          <button
-            key={tab}
-            onClick={() => setFilterTab(tab)}
-            className={`snap-start shrink-0 px-4 py-2 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${
-              filterTab === tab ? 'bg-white text-black' : 'bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
       </div>
 
       <div className="space-y-4">
@@ -219,13 +179,6 @@ const MembersManager = () => {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <div className={`flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold uppercase tracking-widest ${
-                    member.membershipStatus === 'active' ? 'text-green-400 bg-green-500/10' : 
-                    member.membershipStatus === 'pending' ? 'text-yellow-400 bg-yellow-500/10' : 
-                    'text-zinc-400 bg-zinc-500/10'
-                  }`}>
-                    {member.membershipStatus || 'public'}
-                  </div>
                   <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-transform ${expandedId === member.id ? 'rotate-180 bg-white/10' : 'bg-white/5'}`}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-zinc-400">
                       <path d="M6 9l6 6 6-6"/>
@@ -251,36 +204,6 @@ const MembersManager = () => {
                         <option value="core_team">Core Team</option>
                         <option value="president">President</option>
                         <option value="admin">Admin</option>
-                      </select>
-                    </div>
-
-                    {/* Status */}
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Status</label>
-                      <select 
-                        value={member.membershipStatus || 'public'}
-                        onChange={(e) => handleStatusChange(member.id, e.target.value)}
-                        className="w-full bg-black/50 border border-white/10 rounded-lg px-2 sm:px-3 py-2 text-xs text-white focus:outline-none focus:border-firefox-orange"
-                      >
-                        <option value="public">Public</option>
-                        <option value="pending">Pending</option>
-                        <option value="active">Active</option>
-                        <option value="suspended">Suspended</option>
-                        <option value="alumni">Alumni</option>
-                      </select>
-                    </div>
-
-                    {/* Tier */}
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Tier</label>
-                      <select 
-                        value={member.membershipTier || 'free'}
-                        onChange={(e) => handleTierChange(member.id, e.target.value)}
-                        className="w-full bg-black/50 border border-white/10 rounded-lg px-2 sm:px-3 py-2 text-xs text-white focus:outline-none focus:border-firefox-orange"
-                      >
-                        <option value="free">Free</option>
-                        <option value="silver">Silver</option>
-                        <option value="platinum">Platinum</option>
                       </select>
                     </div>
 

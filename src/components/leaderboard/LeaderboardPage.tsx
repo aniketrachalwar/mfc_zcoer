@@ -28,11 +28,7 @@ const LeaderboardPage = () => {
         );
 
         let data = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        data = data.filter((user: any) => 
-          user.isLeadership !== true && 
-          !['admin', 'president', 'core_team'].includes(user.role) &&
-          !leadershipUserIds.has(user.id)
-        ).slice(0, 50);
+        data = data.filter((user: any) => !leadershipUserIds.has(user.id)).slice(0, 50);
         setLeaders(data);
       } catch (err) {
         console.error("Failed to fetch leaderboard", err);
@@ -112,7 +108,7 @@ const LeaderboardPage = () => {
                     <Link to={`/profile/${top3[1].username}`} className="flex flex-col items-center group">
                       <div className="relative mb-3 md:mb-4">
                         <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full p-1 bg-gradient-to-b from-zinc-300 to-zinc-600 shadow-[0_0_30px_rgba(212,212,216,0.3)] group-hover:scale-105 transition-transform">
-                          <img loading="lazy" src={top3[1].photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${top3[1].username}`} alt={top3[1].fullName} className="w-full h-full rounded-full object-cover border-4 border-zinc-950 bg-zinc-900" />
+                          <img loading="lazy" src={top3[1].photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(top3[1].username)}&background=FF5C00&color=fff&bold=true`} alt={top3[1].fullName} className="w-full h-full rounded-full object-cover border-4 border-zinc-950 bg-zinc-900" />
                         </div>
                         <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 sm:w-8 sm:h-8 bg-zinc-300 text-black rounded-full flex items-center justify-center font-black text-xs sm:text-sm border-2 border-zinc-950">
                           2
@@ -138,7 +134,7 @@ const LeaderboardPage = () => {
                       <Trophy size={28} className="text-yellow-400 mb-2 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] animate-pulse" />
                       <div className="relative mb-4 md:mb-5">
                         <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full p-1.5 bg-gradient-to-b from-yellow-400 to-yellow-600 shadow-[0_0_40px_rgba(250,204,21,0.4)] group-hover:scale-105 transition-transform">
-                          <img loading="lazy" src={top3[0].photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${top3[0].username}`} alt={top3[0].fullName} className="w-full h-full rounded-full object-cover border-4 border-zinc-950 bg-zinc-900" />
+                          <img loading="lazy" src={top3[0].photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(top3[0].username)}&background=FF5C00&color=fff&bold=true`} alt={top3[0].fullName} className="w-full h-full rounded-full object-cover border-4 border-zinc-950 bg-zinc-900" />
                         </div>
                         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-yellow-400 text-black rounded-full flex items-center justify-center font-black text-sm sm:text-base border-4 border-zinc-950">
                           1
@@ -163,7 +159,7 @@ const LeaderboardPage = () => {
                     <Link to={`/profile/${top3[2].username}`} className="flex flex-col items-center group">
                       <div className="relative mb-3 md:mb-4">
                         <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full p-1 bg-gradient-to-b from-orange-700 to-orange-900 shadow-[0_0_30px_rgba(194,65,12,0.3)] group-hover:scale-105 transition-transform">
-                          <img loading="lazy" src={top3[2].photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${top3[2].username}`} alt={top3[2].fullName} className="w-full h-full rounded-full object-cover border-4 border-zinc-950 bg-zinc-900" />
+                          <img loading="lazy" src={top3[2].photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(top3[2].username)}&background=FF5C00&color=fff&bold=true`} alt={top3[2].fullName} className="w-full h-full rounded-full object-cover border-4 border-zinc-950 bg-zinc-900" />
                         </div>
                         <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 sm:w-8 sm:h-8 bg-orange-700 text-white rounded-full flex items-center justify-center font-black text-xs sm:text-sm border-2 border-zinc-950">
                           3
@@ -201,7 +197,7 @@ const LeaderboardPage = () => {
                                 #{rank}
                               </div>
                               <img loading="lazy" 
-                                src={leader.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${leader.username}`} 
+                                src={leader.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(leader.username)}&background=FF5C00&color=fff&bold=true`} 
                                 alt={leader.fullName} 
                                 className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border border-zinc-700 bg-zinc-950"
                               />

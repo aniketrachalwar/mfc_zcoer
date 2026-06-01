@@ -31,6 +31,7 @@ const EventDetails = () => {
   
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [registrationData, setRegistrationData] = useState({
+    collegeName: '',
     zprn: '',
     department: '',
     division: '',
@@ -97,8 +98,18 @@ const EventDetails = () => {
           // Fetch user full name for certificate
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
-             setUserFullName(userDoc.data().fullName || user.displayName || 'Participant');
-             setUserTier(userDoc.data().membershipTier || 'free');
+             const uData = userDoc.data();
+             setUserFullName(uData.fullName || user.displayName || 'Participant');
+             setUserTier(uData.membershipTier || 'free');
+             
+             // Pre-fill form from past registrations / profile
+             setRegistrationData({
+               collegeName: uData.collegeName || '',
+               zprn: uData.zprn || '',
+               department: uData.department || '',
+               division: uData.division || '',
+               rollNo: uData.rollNo || ''
+             });
           } else {
              setUserFullName(user.displayName || 'Participant');
              setUserTier('free');
@@ -248,6 +259,15 @@ const EventDetails = () => {
 
     const newTicketId = `${user.uid}_${id}`;
     try {
+      // Save details back to user profile for future auto-fill
+      await updateDoc(doc(db, 'users', user.uid), {
+        collegeName: registrationData.collegeName,
+        zprn: registrationData.zprn,
+        department: registrationData.department,
+        division: registrationData.division,
+        rollNo: registrationData.rollNo
+      });
+
       await setDoc(doc(db, 'tickets', newTicketId), {
         userId: user.uid,
         eventId: id,

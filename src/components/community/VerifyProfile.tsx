@@ -404,7 +404,7 @@ const VerifyProfile = () => {
 
             <div className="w-20 h-20 rounded-full border-2 border-white/10 p-1 mb-4 overflow-hidden bg-black">
               <img loading="lazy" 
-                src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`} 
+                src={profile.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.username)}&background=FF5C00&color=fff&bold=true`} 
                 alt={profile.fullName}
                 className="w-full h-full rounded-full object-cover" 
               />
@@ -475,7 +475,7 @@ const VerifyProfile = () => {
 
             <div className="w-24 h-24 rounded-full border-2 border-white/10 p-1 mb-4 overflow-hidden">
               <img loading="lazy" 
-                src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`} 
+                src={profile.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.username)}&background=FF5C00&color=fff&bold=true`} 
                 alt={profile.fullName}
                 className="w-full h-full rounded-full object-cover" 
               />

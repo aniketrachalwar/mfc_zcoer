@@ -11,7 +11,7 @@ import {
   signInWithRedirect,
   getRedirectResult
 } from 'firebase/auth';
-import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from './firebase';
 
 interface AuthContextType {
@@ -102,7 +102,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...data 
           });
         } else {
-          setUserProfile(null);
+          // Auto-onboard the user
+          const baseUsername = currentUser.email?.split('@')[0] || currentUser.displayName?.split(' ').join('').toLowerCase() || 'user';
+          const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+          const username = `${baseUsername}${randomSuffix}`;
+          const newMemberId = `MFC-${Math.floor(1000 + Math.random() * 9000)}`;
+          
+          const newProfile = {
+            fullName: currentUser.displayName || 'Participant',
+            username: username,
+            email: currentUser.email,
+            avatar: currentUser.photoURL || '',
+            role: 'member',
+            memberId: newMemberId,
+            points: 10,
+            createdAt: new Date().toISOString(),
+            profileCompleted: true,
+            onboardedAt: new Date().toISOString()
+          };
+          
+          await setDoc(doc(db, 'users', currentUser.uid), newProfile);
+          
+          setUserProfile({
+            id: currentUser.uid,
+            membershipStatus: 'public',
+            isFoundingMember: false,
+            membershipTier: 'free',
+            subscriptionStart: null,
+            subscriptionEnd: null,
+            paymentStatus: 'none',
+            isLeadership: false,
+            ...newProfile
+          });
         }
       } catch (err) {
         console.error('Failed to load user profile:', err);

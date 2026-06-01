@@ -173,8 +173,8 @@ const CommunityPage = () => {
                         <div className="absolute inset-0 bg-firefox-orange rounded-full blur-xl opacity-20 scale-125 animate-pulse" />
                       )}
                       <img loading="lazy" 
-                        src={profile.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username || 'unknown'}`} 
-                        onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username || 'error'}`; }}
+                        src={profile.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.fullName || profile.username || 'User')}&background=FF5C00&color=fff&bold=true`} 
+                        onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.fullName || profile.username || 'User')}&background=FF5C00&color=fff&bold=true`; }}
                         alt={profile.fullName || 'Unknown User'}
                         className="w-full h-full rounded-full object-cover aspect-square border-2 border-zinc-800 relative z-10"
                       />

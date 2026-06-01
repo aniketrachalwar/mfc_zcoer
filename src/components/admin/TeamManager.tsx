@@ -257,7 +257,7 @@ const TeamManager = () => {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <img loading="lazy" 
-                      src={user.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} 
+                      src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=FF5C00&color=fff&bold=true`} 
                       alt={user.fullName}
                       className="w-12 h-12 rounded-full bg-zinc-800 object-cover border border-white/10 shrink-0"
                     />

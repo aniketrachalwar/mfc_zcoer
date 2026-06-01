@@ -55,14 +55,14 @@ const Hero = () => {
             transition={{ delay: 1, duration: 1 }}
             className="mt-16 flex flex-col md:flex-row items-center gap-6 md:gap-12 text-[#A0A0A0] text-sm md:text-[1.1rem] tracking-[0.1em] md:tracking-[0.3em] font-bold uppercase font-display max-w-6xl px-4 text-center"
           >
-            <span className="order-1">Firefox Answers To No One</span>
+            <span className="order-1">Discover Exclusive Events</span>
 
             <div className="order-3 md:order-2 flex flex-col items-center gap-4 py-4 mt-8 md:mt-0">
               <span className="text-[9px] font-black uppercase tracking-[0.5em] rotate-90 mb-4 opacity-50 text-firefox-orange">SCROLL</span>
               <div className="w-[1px] h-12 bg-gradient-to-b from-firefox-orange to-transparent" />
             </div>
 
-            <span className="order-2 md:order-3">But To You</span>
+            <span className="order-2 md:order-3">Build The Open Web</span>
           </motion.div>
         </motion.div>
       </div>

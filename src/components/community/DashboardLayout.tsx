@@ -27,7 +27,6 @@ const DashboardLayout = () => {
   const [dashboardConfig, setDashboardConfig] = useState<any>({
     enableProjectsTab: true,
     enablePurchasesTab: true,
-    enableMembershipHistory: true,
   });
   const [loading, setLoading] = useState(true);
   const location = useLocation();
@@ -89,14 +88,12 @@ const DashboardLayout = () => {
     ...(dashboardConfig.enableProjectsTab ? [{ name: 'Projects', path: '/dashboard/projects', icon: Code }] : []),
     ...(isTeamMember ? [{ name: 'Tasks', path: '/dashboard/tasks', icon: Shield }] : []),
     ...(dashboardConfig.enablePurchasesTab ? [{ name: 'Purchases', path: '/dashboard/purchases', icon: ShoppingBag }] : []),
-    ...(dashboardConfig.enableMembershipHistory ? [{ name: 'History', path: '/dashboard/membership-history', icon: Shield }] : []),
     { name: 'ID Card', path: '/dashboard/id-card', icon: IdCard },
   ];
 
   const secondaryTabs = [
     ...(profile && ['admin', 'president', 'core_team', 'volunteer'].includes(profile.role) ? [{ name: 'Scanner', path: '/verify', icon: ScanLine }] : []),
-    { name: 'Upgrade Tier', path: '/dashboard/membership', icon: Sparkles },
-    { name: 'Settings', path: '/dashboard/settings', icon: Settings },
+    { name: 'Profile', path: '/dashboard/settings', icon: UserIcon },
   ];
 
   const mobilePrimaryTabs = [
@@ -108,7 +105,6 @@ const DashboardLayout = () => {
   const mobileSecondaryTabs = [
     ...(isTeamMember ? [{ name: 'Tasks', path: '/dashboard/tasks', icon: Shield }] : []),
     ...(dashboardConfig.enablePurchasesTab ? [{ name: 'Purchases', path: '/dashboard/purchases', icon: ShoppingBag }] : []),
-    ...(dashboardConfig.enableMembershipHistory ? [{ name: 'History', path: '/dashboard/membership-history', icon: Shield }] : []),
     ...secondaryTabs,
   ];
 

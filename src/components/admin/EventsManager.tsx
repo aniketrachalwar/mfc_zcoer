@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Edit2, Trash2, X, Image as ImageIcon, Download, User } from 'lucide-react';
+import { Calendar, Plus, Edit2, Trash2, X, Image as ImageIcon, Download, User, CheckCircle2 } from 'lucide-react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
+import MDEditor from '@uiw/react-md-editor';
 
 const EventsManager = () => {
   const [events, setEvents] = useState<any[]>([]);
@@ -13,6 +14,7 @@ const EventsManager = () => {
   const [attendees, setAttendees] = useState<any[]>([]);
   const [loadingAttendees, setLoadingAttendees] = useState(false);
   const [formStep, setFormStep] = useState(1);
+  const [activeTab, setActiveTab] = useState<'live' | 'pending'>('live');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -22,6 +24,9 @@ const EventsManager = () => {
     img: '',
     date: '',
     location: '',
+    organizer: '',
+    agenda: '',
+    speakerInfo: '',
     prizes: '',
     totalSeats: 30,
     certificateType: 'Participation',
@@ -56,6 +61,9 @@ const EventsManager = () => {
         img: event.img || '',
         date: event.date || '',
         location: event.location || '',
+        organizer: event.organizer || '',
+        agenda: event.agenda || '',
+        speakerInfo: event.speakerInfo || '',
         prizes: event.prizes || '',
         totalSeats: event.totalSeats || 30,
         certificateType: event.certificateType || 'Participation',
@@ -65,7 +73,7 @@ const EventsManager = () => {
       });
       setEditingId(event.id);
     } else {
-      setFormData({ title: '', type: 'Hackathon', desc: '', img: '', date: '', location: '', prizes: '', totalSeats: 30, certificateType: 'Participation', price: 0, why: '', outcomes: '' });
+      setFormData({ title: '', type: 'Hackathon', desc: '', img: '', date: '', location: '', organizer: '', agenda: '', speakerInfo: '', prizes: '', totalSeats: 30, certificateType: 'Participation', price: 0, why: '', outcomes: '' });
       setEditingId(null);
     }
     setFormStep(1);
@@ -87,12 +95,21 @@ const EventsManager = () => {
       if (editingId) {
         await updateDoc(doc(db, 'events', editingId), formData);
       } else {
-        await addDoc(collection(db, 'events'), formData);
+        await addDoc(collection(db, 'events'), { ...formData, status: 'approved' });
       }
       closeForm();
       fetchEvents();
     } catch (err) {
       console.error("Error saving event:", err);
+    }
+  };
+
+  const approveEvent = async (id: string) => {
+    try {
+      await updateDoc(doc(db, 'events', id), { status: 'approved' });
+      fetchEvents();
+    } catch (err) {
+      console.error("Error approving event:", err);
     }
   };
 
@@ -295,24 +312,39 @@ const EventsManager = () => {
     }
   };
 
+  const displayedEvents = events.filter(e => activeTab === 'pending' ? e.status === 'pending' : (e.status === 'approved' || !e.status));
+
   return (
-    <div>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-display font-black uppercase text-white mb-2">
-            Event <span className="text-firefox-orange">Management</span>
-          </h1>
-          <p className="text-zinc-400 text-sm">Create and manage upcoming events.</p>
+          <h2 className="text-2xl font-display font-black text-white uppercase tracking-wider mb-2">Events Management</h2>
+          <p className="text-zinc-400 text-sm">Create, schedule, and approve upcoming ecosystem events.</p>
         </div>
         <button 
           onClick={() => openForm()}
-          className="flex items-center gap-2 px-6 py-3 bg-firefox-orange text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-colors"
+          className="flex items-center gap-2 px-6 py-3 bg-firefox-orange text-white rounded-full font-bold uppercase tracking-widest text-xs hover:bg-white hover:text-black transition-all shadow-[0_0_20px_rgba(255,106,0,0.3)] shrink-0"
         >
-          <Plus size={16} />
-          Create Event
+          <Plus size={16} /> Create Event
         </button>
       </div>
-      
+
+      {/* Tabs */}
+      <div className="flex gap-4 border-b border-white/10 pb-4">
+        <button 
+          onClick={() => setActiveTab('live')}
+          className={`px-6 py-2 rounded-full font-bold text-[10px] uppercase tracking-widest transition-all ${activeTab === 'live' ? 'bg-firefox-orange text-white' : 'bg-white/5 text-zinc-400 hover:text-white'}`}
+        >
+          Live Events ({events.filter(e => e.status === 'approved' || !e.status).length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('pending')}
+          className={`px-6 py-2 rounded-full font-bold text-[10px] uppercase tracking-widest transition-all ${activeTab === 'pending' ? 'bg-firefox-orange text-white' : 'bg-white/5 text-zinc-400 hover:text-white'}`}
+        >
+          Pending Approvals ({events.filter(e => e.status === 'pending').length})
+        </button>
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <div className="w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
@@ -326,8 +358,8 @@ const EventsManager = () => {
           <p className="text-zinc-400 text-sm max-w-md">You haven't created any events yet. Click the create button above to add a new event.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => (
+        <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-6">
+          {displayedEvents.map(event => (
             <motion.div 
               key={event.id}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -342,28 +374,41 @@ const EventsManager = () => {
                     <ImageIcon size={32} />
                   </div>
                 )}
-                <div className="absolute top-4 right-4 flex gap-2">
-                  <button 
-                    onClick={() => openAttendeesManager(event.id)}
-                    title="Manage Attendees"
-                    className="w-8 h-8 rounded-full bg-black/50 backdrop-blur text-blue-400 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-colors"
-                  >
-                    <User size={14} />
-                  </button>
-                  <button 
-                    onClick={() => downloadCancelled(event.id, event.title)}
-                    title="Download Cancelled CSV"
-                    className="w-8 h-8 rounded-full bg-black/50 backdrop-blur text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
-                  >
-                    <X size={14} />
-                  </button>
-                  <button 
-                    onClick={() => downloadAttendees(event.id, event.title)}
-                    title="Download Attendees CSV"
-                    className="w-8 h-8 rounded-full bg-black/50 backdrop-blur text-green-400 flex items-center justify-center hover:bg-green-500 hover:text-white transition-colors"
-                  >
-                    <Download size={14} />
-                  </button>
+                <div className="absolute top-4 right-4 flex gap-2 z-10">
+                  {activeTab === 'pending' && (
+                    <button 
+                      onClick={() => approveEvent(event.id)}
+                      title="Approve Event"
+                      className="w-8 h-8 rounded-full bg-green-500/20 backdrop-blur text-green-400 flex items-center justify-center hover:bg-green-500 hover:text-white transition-colors border border-green-500/50"
+                    >
+                      <CheckCircle2 size={14} />
+                    </button>
+                  )}
+                  {activeTab === 'live' && (
+                    <>
+                      <button 
+                        onClick={() => openAttendeesManager(event.id)}
+                        title="Manage Attendees"
+                        className="w-8 h-8 rounded-full bg-black/50 backdrop-blur text-blue-400 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-colors"
+                      >
+                        <User size={14} />
+                      </button>
+                      <button 
+                        onClick={() => downloadCancelled(event.id, event.title)}
+                        title="Download Cancelled CSV"
+                        className="w-8 h-8 rounded-full bg-black/50 backdrop-blur text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                      <button 
+                        onClick={() => downloadAttendees(event.id, event.title)}
+                        title="Download Attendees CSV"
+                        className="w-8 h-8 rounded-full bg-black/50 backdrop-blur text-green-400 flex items-center justify-center hover:bg-green-500 hover:text-white transition-colors"
+                      >
+                        <Download size={14} />
+                      </button>
+                    </>
+                  )}
                   <button 
                     onClick={() => openForm(event)}
                     title="Edit Event"
@@ -387,10 +432,18 @@ const EventsManager = () => {
               <div className="p-6 flex-1 flex flex-col">
                 <h3 className="text-xl font-display font-bold text-white mb-2">{event.title}</h3>
                 <p className="text-zinc-400 text-sm line-clamp-2 mb-4 flex-1">{event.desc}</p>
-                <div className="flex items-center gap-2 text-xs text-zinc-500 font-bold tracking-wider">
+                <div className="flex items-center gap-2 text-xs text-zinc-500 font-bold tracking-wider mb-2">
                   <Calendar size={14} className="text-firefox-orange" />
                   {event.date ? new Date(event.date).toLocaleDateString() : 'TBA'}
                 </div>
+                {activeTab === 'pending' && event.hostName && (
+                  <div className="mt-4 pt-4 border-t border-white/5 space-y-1">
+                    <p className="text-[10px] uppercase font-black tracking-widest text-firefox-orange">Host Details</p>
+                    <p className="text-xs text-zinc-400">Name: {event.hostName}</p>
+                    <p className="text-xs text-zinc-400">Contact: {event.hostPhone || event.hostEmail}</p>
+                    {event.expectedBudget && <p className="text-xs text-zinc-400">Budget/Needs: {event.expectedBudget}</p>}
+                  </div>
+                )}
               </div>
             </motion.div>
           ))}
@@ -422,7 +475,7 @@ const EventsManager = () => {
                 
                 {/* Stepper Progress */}
                 <div className="flex gap-2 p-4 sm:px-6 bg-white/5 shrink-0">
-                  {[1, 2, 3].map(step => (
+                  {[1, 2, 3, 4].map(step => (
                     <div key={step} className={`h-1 flex-1 rounded-full ${formStep >= step ? 'bg-firefox-orange' : 'bg-white/10'}`} />
                   ))}
                 </div>
@@ -442,7 +495,6 @@ const EventsManager = () => {
                             name="title"
                             value={formData.title}
                             onChange={handleChange}
-                            required
                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
                           />
                         </div>
@@ -458,41 +510,29 @@ const EventsManager = () => {
                             <option value="Workshop">Workshop</option>
                             <option value="Open Source Sprint">Open Source Sprint</option>
                             <option value="Meetup">Meetup</option>
+                            <option value="Competition">Competition</option>
+                            <option value="Guest Lecture">Guest Lecture</option>
                           </select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Description</label>
-                          <textarea 
-                            name="desc"
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Organizer</label>
+                          <input 
+                            type="text" 
+                            name="organizer"
+                            value={formData.organizer}
+                            onChange={handleChange}
+                            placeholder="e.g. MFC Core Team"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                          />
+                        </div>
+                        <div className="space-y-2" data-color-mode="dark">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Description (Markdown)</label>
+                          <MDEditor
                             value={formData.desc}
-                            onChange={handleChange}
-                            required
-                            rows={4}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Why Attend? (Reason for hosting)</label>
-                          <textarea 
-                            name="why"
-                            value={formData.why}
-                            onChange={handleChange}
-                            required
-                            rows={3}
-                            placeholder="Why should students attend this event?"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Key Outcomes (What will they get?)</label>
-                          <textarea 
-                            name="outcomes"
-                            value={formData.outcomes}
-                            onChange={handleChange}
-                            required
-                            rows={3}
-                            placeholder="Certificates, knowledge, swags..."
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
+                            onChange={(val) => setFormData(prev => ({ ...prev, desc: val || '' }))}
+                            preview="edit"
+                            height={200}
+                            className="border border-white/10 rounded-xl overflow-hidden"
                           />
                         </div>
                       </motion.div>
@@ -500,25 +540,26 @@ const EventsManager = () => {
 
                     {formStep === 2 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Date & Time</label>
-                          <input 
-                            type="datetime-local" 
-                            name="date"
-                            value={formData.date}
-                            onChange={handleChange}
-                            required
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
-                          />
+                        <div className="grid grid-cols-1 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Event Date & Time</label>
+                            <input 
+                              type="datetime-local" 
+                              name="date"
+                              value={formData.date}
+                              onChange={handleChange}
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                            />
+                          </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Location</label>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Venue / Location</label>
                           <input 
                             type="text" 
                             name="location"
                             value={formData.location}
                             onChange={handleChange}
-                            required
+                            placeholder="e.g. Auditorium, ZCOER"
                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
                           />
                         </div>
@@ -538,6 +579,67 @@ const EventsManager = () => {
 
                     {formStep === 3 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                        <div className="space-y-2" data-color-mode="dark">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Agenda (Markdown)</label>
+                          <MDEditor
+                            value={formData.agenda}
+                            onChange={(val) => setFormData(prev => ({ ...prev, agenda: val || '' }))}
+                            preview="edit"
+                            height={150}
+                            className="border border-white/10 rounded-xl overflow-hidden"
+                          />
+                        </div>
+                        <div className="space-y-2" data-color-mode="dark">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Speaker Info (Markdown)</label>
+                          <MDEditor
+                            value={formData.speakerInfo}
+                            onChange={(val) => setFormData(prev => ({ ...prev, speakerInfo: val || '' }))}
+                            preview="edit"
+                            height={150}
+                            className="border border-white/10 rounded-xl overflow-hidden"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Prizes / Perks (Optional)</label>
+                          <input 
+                            type="text" 
+                            name="prizes"
+                            value={formData.prizes}
+                            onChange={handleChange}
+                            placeholder="e.g. ₹50,000 Pool + Exclusive Swags"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {formStep === 4 && (
+                      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Total Capacity (Seats)</label>
+                            <input 
+                              type="number" 
+                              name="totalSeats"
+                              value={formData.totalSeats}
+                              onChange={handleChange}
+                              min="1"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Base Price (₹) - Enter 0 for Free</label>
+                            <input 
+                              type="number" 
+                              name="price"
+                              value={formData.price}
+                              onChange={handleChange}
+                              min="0"
+                              required
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                            />
+                          </div>
+                        </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Certificate Type</label>
                           <select 
@@ -553,38 +655,27 @@ const EventsManager = () => {
                           </select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Prizes (Optional)</label>
-                          <input 
-                            type="text" 
-                            name="prizes"
-                            value={formData.prizes}
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Why Attend? (Reason for hosting)</label>
+                          <textarea 
+                            name="why"
+                            value={formData.why}
                             onChange={handleChange}
-                            placeholder="e.g. ₹50,000 Pool + Exclusive Swags"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                            required
+                            rows={2}
+                            placeholder="Why should students attend this event?"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Total Seats</label>
-                          <input 
-                            type="number" 
-                            name="totalSeats"
-                            value={formData.totalSeats}
+                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Key Outcomes</label>
+                          <textarea 
+                            name="outcomes"
+                            value={formData.outcomes}
                             onChange={handleChange}
-                            min="1"
                             required
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Base Price (₹) - Enter 0 for Free</label>
-                          <input 
-                            type="number" 
-                            name="price"
-                            value={formData.price}
-                            onChange={handleChange}
-                            min="0"
-                            required
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors"
+                            rows={2}
+                            placeholder="Certificates, knowledge, swags..."
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors resize-none"
                           />
                         </div>
                       </motion.div>
@@ -612,7 +703,7 @@ const EventsManager = () => {
                     </button>
                   )}
 
-                  {formStep < 3 ? (
+                  {formStep < 4 ? (
                     <button 
                       type="button"
                       onClick={() => {

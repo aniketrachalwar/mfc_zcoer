@@ -24,11 +24,7 @@ const LeaderboardPreview = () => {
         );
 
         const data = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const filtered = data.filter((u: any) => 
-          u.isLeadership !== true && 
-          !['admin', 'president', 'core_team'].includes(u.role) &&
-          !leadershipUserIds.has(u.id)
-        ).slice(0, 3);
+        const filtered = data.filter((u: any) => !leadershipUserIds.has(u.id)).slice(0, 3);
         setLeaders(filtered);
       } catch (err) {
         console.error("Failed to fetch leaderboard", err);
@@ -86,7 +82,7 @@ const LeaderboardPreview = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <img loading="lazy" 
-                      src={leader.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${leader.username}`} 
+                      src={leader.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(leader.username)}&background=FF5C00&color=fff&bold=true`} 
                       alt={leader.fullName} 
                       className="w-10 h-10 rounded-full object-cover border border-white/20"
                     />

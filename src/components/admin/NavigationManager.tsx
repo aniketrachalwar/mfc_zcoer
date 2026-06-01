@@ -34,8 +34,7 @@ export default function NavigationManager() {
     { id: '5', name: 'Events', href: '/events', type: 'link', icon: 'Calendar', enabled: true },
     { id: '6', name: 'Projects', href: '/projects', type: 'link', icon: 'Rocket', enabled: true },
     { id: '7', name: 'Team', href: '/team', type: 'link', icon: 'Users', enabled: true },
-    { id: '8', name: 'Shop', href: '/shop', type: 'link', icon: 'ShoppingBag', enabled: true },
-    { id: '9', name: 'Community', href: '/community', type: 'link', icon: 'Zap', enabled: true },
+    { id: '8', name: 'Community', href: '/community', type: 'link', icon: 'Zap', enabled: true },
   ];
 
   const defaultSocials: SocialLink[] = [
@@ -202,7 +201,6 @@ export default function NavigationManager() {
                     <option value="Calendar">Calendar</option>
                     <option value="Rocket">Rocket</option>
                     <option value="Users">Users</option>
-                    <option value="ShoppingBag">Shop</option>
                     <option value="Zap">Zap</option>
                     <option value="MessageSquare">Chat</option>
                   </select>

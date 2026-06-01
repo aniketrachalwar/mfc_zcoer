@@ -192,7 +192,7 @@ const ProfileForm: React.FC = () => {
           <div className="absolute inset-0 bg-firefox-orange blur-3xl opacity-20 group-hover:opacity-40 transition-opacity" />
           <div className="relative w-32 h-32 rounded-full border-4 border-zinc-800 overflow-hidden bg-zinc-900 flex items-center justify-center">
             {formData.photoURL ? (
-              <img loading="lazy" src={formData.photoURL} alt="Profile" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.username || 'error'}`; }} />
+              <img loading="lazy" src={formData.photoURL} alt="Profile" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.username || 'error')}&background=FF5C00&color=fff&bold=true`; }} />
             ) : (
               <User size={48} className="text-zinc-700" />
             )}
