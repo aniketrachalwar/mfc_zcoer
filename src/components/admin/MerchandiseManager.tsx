@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Plus, Edit2, Trash2, X, Package, DollarSign } from 'lucide-react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
@@ -162,7 +163,7 @@ const MerchandiseManager = () => {
         <div>
           {loadingOrders ? (
             <div className="flex justify-center py-12">
-              <div className="w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+              <PageLoader fullScreen={false} />
             </div>
           ) : orders.length === 0 ? (
             <div className="bg-white/5 border border-white/10 rounded-2xl p-12 text-center flex flex-col items-center justify-center">
@@ -210,7 +211,7 @@ const MerchandiseManager = () => {
         <div>
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+              <PageLoader fullScreen={false} />
             </div>
           ) : products.length === 0 ? (
             <div className="bg-white/5 border border-white/10 rounded-2xl p-12 text-center flex flex-col items-center justify-center">

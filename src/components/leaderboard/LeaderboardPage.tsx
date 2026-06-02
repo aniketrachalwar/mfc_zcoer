@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
@@ -42,7 +43,7 @@ const LeaderboardPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen pt-32 pb-20 relative bg-zinc-950 overflow-hidden flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+        <PageLoader fullScreen={false} />
       </div>
     );
   }

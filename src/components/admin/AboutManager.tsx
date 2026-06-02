@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import React, { useState, useEffect } from 'react';
 import { db } from '../../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -78,7 +79,7 @@ const AboutManager = () => {
 
   if (loading) return (
     <div className="flex justify-center p-20">
-      <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+      <PageLoader fullScreen={false} />
     </div>
   );
 

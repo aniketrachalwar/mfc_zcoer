@@ -1,3 +1,4 @@
+import PageLoader from './PageLoader';
 import { useState, useEffect } from 'react';
 import { Calendar, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -65,7 +66,7 @@ const UpcomingEvent = () => {
   if (loading) {
     return (
       <section className="bg-zinc-950 py-16 flex items-center justify-center min-h-[300px]">
-        <div className="w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+        <PageLoader fullScreen={false} />
       </section>
     );
   }

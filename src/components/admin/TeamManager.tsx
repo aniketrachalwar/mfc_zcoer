@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { UserPlus, Trash2, Search, Users as UsersIcon, CheckSquare } from 'lucide-react';
+import { UserPlus, Trash2, Search, Users as UsersIcon, CheckSquare, Edit } from 'lucide-react';
 import { motion } from 'motion/react';
 import TeamApplicationsList from './TeamApplicationsList';
 
@@ -18,9 +18,15 @@ const TeamManager = () => {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [teamRole, setTeamRole] = useState('');
   const [cohort, setCohort] = useState('25-26');
-  const [category, setCategory] = useState('Active Contributors');
+  const [category, setCategory] = useState('Technical');
 
   const [filterCohort, setFilterCohort] = useState('25-26');
+
+  // Edit member state
+  const [editingMember, setEditingMember] = useState<any>(null);
+  const [editRole, setEditRole] = useState('');
+  const [editCategory, setEditCategory] = useState('');
+  const [editCohort, setEditCohort] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
@@ -68,7 +74,7 @@ const TeamManager = () => {
       setShowAddForm(false);
       setSelectedUserId('');
       setTeamRole('');
-      setCategory('Active Contributors');
+      setCategory('Technical');
       fetchData();
     } catch (err) {
       console.error("Error adding team member", err);
@@ -89,6 +95,52 @@ const TeamManager = () => {
     }
   };
 
+  const openEditModal = (member: any) => {
+    setEditingMember(member);
+    setEditRole(member.role);
+    setEditCategory(member.category);
+    setEditCohort(member.cohort || '25-26');
+  };
+
+  const handleUpdateMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMember) return;
+    
+    try {
+      const oldDocId = editingMember.id;
+      const newDocId = `${editingMember.userId}_${editCohort}`;
+      
+      const newMemberData = {
+        userId: editingMember.userId,
+        role: editRole,
+        category: editCategory,
+        cohort: editCohort,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (oldDocId !== newDocId) {
+        // Changed cohort -> delete old, create new
+        await deleteDoc(doc(db, 'team', oldDocId));
+        await setDoc(doc(db, 'team', newDocId), newMemberData);
+      } else {
+        // Just update existing
+        await setDoc(doc(db, 'team', oldDocId), newMemberData, { merge: true });
+      }
+
+      // Update user leadership status
+      const isLeadership = editCategory === 'Core Leadership';
+      await setDoc(doc(db, 'users', editingMember.userId), {
+        isLeadership: isLeadership
+      }, { merge: true });
+
+      setEditingMember(null);
+      fetchData();
+    } catch (err) {
+      console.error("Error updating member", err);
+      alert("Failed to update team member.");
+    }
+  };
+
   const getUserData = (userId: string) => {
     return allUsers.find(u => u.id === userId) || {};
   };
@@ -100,7 +152,7 @@ const TeamManager = () => {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-display font-black uppercase text-white mb-2">Team Management</h2>
@@ -197,8 +249,13 @@ const TeamManager = () => {
                 className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors text-sm"
               >
                 <option value="Core Leadership">Core Leadership</option>
-                <option value="Department Leads">Department Leads</option>
-                <option value="Active Contributors">Active Contributors</option>
+                <option value="Technical">Technical</option>
+                <option value="Events & Community">Events & Community</option>
+                <option value="Marketing & Media">Marketing & Media</option>
+                <option value="Content & Newsletter">Content & Newsletter</option>
+                <option value="Design">Design</option>
+                <option value="Growth & Partnerships">Growth & Partnerships</option>
+                <option value="Operations">Operations</option>
               </select>
             </div>
 
@@ -266,12 +323,20 @@ const TeamManager = () => {
                       <p className="text-xs text-zinc-500 truncate">@{user.username || 'unknown'}</p>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => handleRemoveMember(member.id, member.userId)}
-                    className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button 
+                      onClick={() => openEditModal(member)}
+                      className="p-2 text-zinc-500 hover:text-firefox-orange hover:bg-firefox-orange/10 rounded-lg transition-colors"
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button 
+                      onClick={() => handleRemoveMember(member.id, member.userId)}
+                      className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="flex items-center justify-between pt-4 border-t border-white/5">
@@ -298,6 +363,74 @@ const TeamManager = () => {
       )}
       </>
       )}
+
+      {/* Edit Modal */}
+      {editingMember && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-zinc-900 border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl"
+          >
+            <h3 className="text-xl font-display font-black uppercase text-white mb-6">Edit Team Member</h3>
+            <form onSubmit={handleUpdateMember} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">Team Role</label>
+                <input 
+                  type="text" 
+                  required
+                  value={editRole}
+                  onChange={(e) => setEditRole(e.target.value)}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">Category</label>
+                <select 
+                  required
+                  value={editCategory}
+                  onChange={(e) => setEditCategory(e.target.value)}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors text-sm"
+                >
+                  <option value="Core Leadership">Core Leadership</option>
+                  <option value="Technical">Technical</option>
+                  <option value="Events & Community">Events & Community</option>
+                  <option value="Marketing & Media">Marketing & Media</option>
+                  <option value="Content & Newsletter">Content & Newsletter</option>
+                  <option value="Design">Design</option>
+                  <option value="Growth & Partnerships">Growth & Partnerships</option>
+                  <option value="Operations">Operations</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">Cohort</label>
+                <select 
+                  required
+                  value={editCohort}
+                  onChange={(e) => setEditCohort(e.target.value)}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors text-sm"
+                >
+                  <option value="25-26">25-26</option>
+                  <option value="26-27">26-27</option>
+                  <option value="27-28">27-28</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-6">
+                <button type="button" onClick={() => setEditingMember(null)} className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-display font-black text-[10px] uppercase tracking-widest transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" className="px-6 py-3 bg-firefox-orange hover:bg-orange-600 text-white rounded-xl font-display font-black text-[10px] uppercase tracking-widest transition-colors shadow-[0_0_15px_rgba(255,92,0,0.3)]">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
     </div>
   );
 };

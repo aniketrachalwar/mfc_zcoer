@@ -9,6 +9,7 @@ import AdSenseBlock from '../AdSenseBlock';
 import { Blog } from '../../types/blog';
 import { Helmet } from 'react-helmet-async';
 import MDEditor from '@uiw/react-md-editor';
+import PageLoader from '../PageLoader';
 
 const BlogDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -61,7 +62,7 @@ const BlogDetails = () => {
   if (loading) {
     return (
       <div className="min-h-screen pt-32 pb-20 flex justify-center bg-zinc-950">
-        <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+        <PageLoader fullScreen={false} />
       </div>
     );
   }

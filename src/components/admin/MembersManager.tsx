@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, updateDoc, doc, deleteDoc, query, limit, startAfter } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -134,7 +135,7 @@ const MembersManager = () => {
       <div className="space-y-4">
         {loading ? (
           <div className="p-8 text-center text-zinc-500">
-            <div className="inline-block w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+            <PageLoader fullScreen={false} />
           </div>
         ) : filteredMembers.length === 0 ? (
           <div className="p-8 text-center bg-white/5 border border-white/10 rounded-2xl text-zinc-500">

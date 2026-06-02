@@ -8,6 +8,7 @@ import { Blog } from '../../types/blog';
 import { useAuth } from '../../lib/AuthContext';
 import { Helmet } from 'react-helmet-async';
 import AdSenseBlock from '../AdSenseBlock';
+import PageLoader from '../PageLoader';
 
 const BlogsPage = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -126,7 +127,7 @@ const BlogsPage = () => {
 
               {loading ? (
                 <div className="flex justify-center p-20">
-                  <div className="w-10 h-10 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+                  <PageLoader fullScreen={false} />
                 </div>
               ) : filteredBlogs.length === 0 ? (
                 <div className="text-center py-20 text-zinc-500">

@@ -7,6 +7,7 @@ import { collection, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ArrowLeft, Image as ImageIcon, Send, Link as LinkIcon, Sparkles } from 'lucide-react';
 import { Blog } from '../../types/blog';
 import MDEditor from '@uiw/react-md-editor';
+import PageLoader from '../PageLoader';
 
 const WriteBlog = () => {
   const { id } = useParams<{ id: string }>();
@@ -85,7 +86,7 @@ const WriteBlog = () => {
   if (fetching) {
     return (
       <div className="min-h-screen pt-32 pb-20 flex justify-center bg-zinc-950">
-        <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+        <PageLoader fullScreen={false} />
       </div>
     );
   }

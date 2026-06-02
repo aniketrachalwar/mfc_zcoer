@@ -1,3 +1,4 @@
+import PageLoader from './PageLoader';
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Clock, ArrowRight, PenTool } from 'lucide-react';
@@ -85,7 +86,7 @@ const Blogs = () => {
 
         {loading ? (
           <div className="flex justify-center p-12">
-            <div className="w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+            <PageLoader fullScreen={false} />
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-10">

@@ -1,3 +1,4 @@
+import PageLoader from './PageLoader';
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, ArrowUpRight, Briefcase, Github, Plus } from 'lucide-react';
@@ -75,7 +76,7 @@ const Projects = () => {
 
         {loading ? (
           <div className="flex justify-center py-24">
-            <div className="w-10 h-10 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+            <PageLoader fullScreen={false} />
           </div>
         ) : projects.length === 0 ? (
           <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-[2rem] p-6 sm:p-12 text-center flex flex-col items-center">

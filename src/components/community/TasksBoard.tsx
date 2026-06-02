@@ -5,6 +5,7 @@ import { useAuth } from '../../lib/AuthContext';
 import { Navigate, useOutletContext } from 'react-router-dom';
 import { Award, CheckCircle2, Shield, Users, Target, ShieldAlert } from 'lucide-react';
 import { motion } from 'motion/react';
+import PageLoader from '../PageLoader';
 
 const TasksBoard = () => {
   const { user } = useAuth();
@@ -107,7 +108,7 @@ const TasksBoard = () => {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+          <PageLoader fullScreen={false} />
         </div>
       ) : activeTab === 'open' ? (
         openTasks.length === 0 ? (

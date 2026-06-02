@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import React, { useState, useEffect } from 'react';
 import { Calendar, Plus, Edit2, Trash2, X, Image as ImageIcon, Download, User, CheckCircle2 } from 'lucide-react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
@@ -347,7 +348,7 @@ const EventsManager = () => {
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+          <PageLoader fullScreen={false} />
         </div>
       ) : events.length === 0 ? (
         <div className="bg-white/5 border border-white/10 rounded-2xl p-12 text-center flex flex-col items-center justify-center">
@@ -755,7 +756,7 @@ const EventsManager = () => {
               <div className="p-6 overflow-y-auto flex-1">
                 {loadingAttendees ? (
                   <div className="flex justify-center py-12">
-                    <div className="w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+                    <PageLoader fullScreen={false} />
                   </div>
                 ) : attendees.length === 0 ? (
                   <p className="text-center text-zinc-500 py-12">No verified attendees yet.</p>

@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import { useState, useEffect } from 'react';
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -78,7 +79,7 @@ const CommunityPage = () => {
   if (authLoading) {
     return (
       <div className="pt-32 pb-20 px-4 min-h-screen flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+        <PageLoader fullScreen={false} />
       </div>
     );
   }

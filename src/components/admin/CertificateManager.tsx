@@ -3,6 +3,7 @@ import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, query, where, w
 import { db } from '../../lib/firebase';
 import { Image as ImageIcon, Save, Plus, Trash2, CheckCircle2, Ticket, Settings2, FileText, ArrowLeft, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import PageLoader from '../PageLoader';
 
 export default function CertificateManager() {
   const [activeTab, setActiveTab] = useState<'templates' | 'issuance'>('issuance');
@@ -161,7 +162,7 @@ export default function CertificateManager() {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[400px]">
-        <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+        <PageLoader fullScreen={false} />
       </div>
     );
   }

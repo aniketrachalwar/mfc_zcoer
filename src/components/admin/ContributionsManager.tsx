@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, getDoc, addDoc, updateDoc, doc, arrayUnion } from 'firebase/firestore';
+import { collection, getDocs, getDoc, addDoc, updateDoc, doc, arrayUnion, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
-import { Award, Plus, X, Users, CheckCircle2, Shield, Loader2 } from 'lucide-react';
+import { Award, Plus, X, Users, CheckCircle2, Shield, Loader2, Edit2, Trash2 } from 'lucide-react';
+import PageLoader from '../PageLoader';
 
 const ContributionsManager = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -35,23 +37,56 @@ const ContributionsManager = () => {
     fetchTasks();
   }, []);
 
-  const handleCreateTask = async (e: React.FormEvent) => {
+  const handleSubmitTask = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await addDoc(collection(db, 'tasks'), {
-        ...formData,
-        contributors: [],
-        createdAt: new Date().toISOString()
-      });
+      if (editingTaskId) {
+        await updateDoc(doc(db, 'tasks', editingTaskId), {
+          title: formData.title,
+          description: formData.description,
+          maxContributors: formData.maxContributors,
+          pointsReward: formData.pointsReward
+        });
+      } else {
+        await addDoc(collection(db, 'tasks'), {
+          ...formData,
+          contributors: [],
+          createdAt: new Date().toISOString()
+        });
+      }
       setIsFormOpen(false);
+      setEditingTaskId(null);
       setFormData({ title: '', description: '', maxContributors: 1, pointsReward: 0, status: 'open' });
       fetchTasks();
     } catch (err) {
-      console.error("Error creating task:", err);
-      alert("Failed to create task");
+      console.error("Error saving task:", err);
+      alert("Failed to save task");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEditClick = (task: any) => {
+    setFormData({
+      title: task.title,
+      description: task.description,
+      maxContributors: task.maxContributors || 1,
+      pointsReward: task.pointsReward || 0,
+      status: task.status
+    });
+    setEditingTaskId(task.id);
+    setIsFormOpen(true);
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!window.confirm("Are you sure you want to delete this task? This action cannot be undone.")) return;
+    try {
+      await deleteDoc(doc(db, 'tasks', taskId));
+      fetchTasks();
+    } catch (err) {
+      console.error("Error deleting task:", err);
+      alert("Failed to delete task.");
     }
   };
 
@@ -98,7 +133,11 @@ const ContributionsManager = () => {
           <p className="text-zinc-400 text-sm">Assign responsibilities to team members and track contributions.</p>
         </div>
         <button 
-          onClick={() => setIsFormOpen(true)}
+          onClick={() => {
+            setEditingTaskId(null);
+            setFormData({ title: '', description: '', maxContributors: 1, pointsReward: 0, status: 'open' });
+            setIsFormOpen(true);
+          }}
           className="flex items-center gap-2 px-6 py-3 bg-firefox-orange text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-colors"
         >
           <Plus size={16} />
@@ -108,7 +147,7 @@ const ContributionsManager = () => {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+          <PageLoader fullScreen={false} />
         </div>
       ) : tasks.length === 0 ? (
         <div className="bg-white/5 border border-white/10 rounded-2xl p-12 text-center flex flex-col items-center justify-center">
@@ -131,13 +170,23 @@ const ContributionsManager = () => {
                   <h3 className="text-lg font-bold text-white mb-1">{task.title}</h3>
                   <p className="text-xs font-black uppercase tracking-widest text-firefox-orange">Reward: {task.pointsReward || 50} Points</p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                  task.status === 'completed' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 
-                  task.status === 'in-progress' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' : 
-                  'bg-firefox-orange/10 text-firefox-orange border border-firefox-orange/20'
-                }`}>
-                  {task.status}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                    task.status === 'completed' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 
+                    task.status === 'in-progress' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' : 
+                    'bg-firefox-orange/10 text-firefox-orange border border-firefox-orange/20'
+                  }`}>
+                    {task.status}
+                  </span>
+                  <div className="flex items-center gap-1 ml-2">
+                    <button onClick={() => handleEditClick(task)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Edit Task">
+                      <Edit2 size={14} />
+                    </button>
+                    <button onClick={() => handleDeleteTask(task.id)} className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors" title="Delete Task">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
               </div>
               
               <p className="text-zinc-400 text-sm mb-6 flex-1 relative z-10">{task.description}</p>
@@ -192,14 +241,14 @@ const ContributionsManager = () => {
               className="bg-zinc-950 border border-white/10 rounded-3xl w-full max-w-lg relative z-10 shadow-2xl flex flex-col"
             >
               <div className="p-6 border-b border-white/10 flex justify-between items-center">
-                <h2 className="text-xl font-display font-black uppercase text-white">Create New Task</h2>
+                <h2 className="text-xl font-display font-black uppercase text-white">{editingTaskId ? 'Edit Task' : 'Create New Task'}</h2>
                 <button onClick={() => setIsFormOpen(false)} className="text-zinc-500 hover:text-white transition-colors">
                   <X size={20} />
                 </button>
               </div>
               
               <div className="p-6">
-                <form id="task-form" onSubmit={handleCreateTask} className="space-y-6">
+                <form id="task-form" onSubmit={handleSubmitTask} className="space-y-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Task Title</label>
                     <input 
@@ -255,14 +304,14 @@ const ContributionsManager = () => {
                 <button 
                   onClick={(e) => {
                     const form = document.getElementById('task-form') as HTMLFormElement;
-                    if (form.checkValidity()) handleCreateTask(e as any);
+                    if (form.checkValidity()) handleSubmitTask(e as any);
                     else form.reportValidity();
                   }} 
                   disabled={isSubmitting}
                   className="flex-1 px-4 py-3 bg-firefox-orange text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />}
-                  Publish Task
+                  {editingTaskId ? 'Update Task' : 'Publish Task'}
                 </button>
               </div>
             </motion.div>

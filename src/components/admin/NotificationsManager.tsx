@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import React, { useState, useEffect } from 'react';
 import { Bell, Save, Plus, Trash2, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -97,7 +98,7 @@ export default function NotificationsManager() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="animate-spin text-firefox-orange" size={48} />
+        <PageLoader fullScreen={false} />
       </div>
     );
   }

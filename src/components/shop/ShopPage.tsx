@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -94,7 +95,7 @@ const ShopPage = () => {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+          <PageLoader fullScreen={false} />
         </div>
       ) : products.length === 0 ? (
         <div className="bg-white/5 border border-white/10 rounded-3xl p-16 text-center max-w-2xl mx-auto">

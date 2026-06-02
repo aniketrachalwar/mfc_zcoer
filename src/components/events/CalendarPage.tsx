@@ -70,26 +70,26 @@ const CalendarPage = () => {
                 
                 <div 
                   onClick={() => navigate(`/event/${event.id}`)} 
-                  className="relative overflow-hidden rounded-3xl cursor-pointer transition-all hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(255,92,0,0.2)] border border-white/10 group-hover:border-firefox-orange/50 min-h-[220px] flex flex-col justify-end p-6 md:p-8"
+                  className="relative overflow-hidden rounded-3xl cursor-pointer transition-all hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(255,92,0,0.2)] border border-white/10 group-hover:border-firefox-orange/50 min-h-[250px] flex flex-col justify-end p-6 md:p-8"
                 >
                   {/* Background Image */}
                   {event.img && (
                     <div 
-                      className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                      className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
                       style={{ backgroundImage: `url(${event.img})` }}
                     />
                   )}
-                  {/* Gradient Overlay for Text Readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent" />
+                  {/* Glassmorphic/Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent group-hover:via-[#050505]/60 transition-all duration-500" />
                   
                   {/* Content */}
                   <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-4 mt-12">
-                    <div className="flex-1">
+                    <div className="flex-1 transform transition-transform duration-500 group-hover:translate-y-[-8px]">
                       <div className="text-firefox-orange text-xs font-bold tracking-widest mb-3 uppercase flex items-center gap-2 drop-shadow-md">
                         <Calendar size={14} />
                         {new Date(event.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                       </div>
-                      <h3 className="text-2xl md:text-3xl font-display font-black text-white mb-3 drop-shadow-lg leading-tight">{event.title}</h3>
+                      <h3 className="text-2xl md:text-4xl font-display font-black text-white mb-3 drop-shadow-lg leading-tight">{event.title}</h3>
                       {event.location && (
                          <div className="flex items-center gap-2 text-xs text-zinc-300 font-bold tracking-wider">
                            <MapPin size={14} className="text-firefox-orange" />
@@ -97,7 +97,7 @@ const CalendarPage = () => {
                          </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 transform transition-transform duration-500 group-hover:translate-y-[-8px]">
                       <span className="px-4 py-2 bg-firefox-orange/20 backdrop-blur-md border border-firefox-orange/50 rounded-full text-[10px] font-black uppercase tracking-widest text-firefox-orange whitespace-nowrap shadow-xl">
                         {event.type || 'Event'}
                       </span>
@@ -120,3 +120,4 @@ const CalendarPage = () => {
 };
 
 export default CalendarPage;
+

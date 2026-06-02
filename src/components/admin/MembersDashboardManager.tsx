@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import React, { useState, useEffect } from 'react';
 import { Shield, Save, Settings, Users, Code, ShoppingBag, Plus, Trash2, Link as LinkIcon, Edit2, CheckCircle2 } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -86,7 +87,7 @@ export default function MembersDashboardManager() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
-      <div className="w-8 h-8 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+      <PageLoader fullScreen={false} />
     </div>
   );
 

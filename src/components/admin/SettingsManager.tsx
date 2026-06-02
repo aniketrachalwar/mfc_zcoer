@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Settings as SettingsIcon, Save, Loader2, Sparkles, Plus, X } from 'lucide-react';
@@ -91,7 +92,7 @@ export default function SettingsManager() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="animate-spin text-firefox-orange" size={48} />
+        <PageLoader fullScreen={false} />
       </div>
     );
   }

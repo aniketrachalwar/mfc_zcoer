@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import { useEffect, useState, type FormEvent } from 'react';
 import { motion } from 'motion/react';
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
@@ -275,7 +276,7 @@ const ProjectsManager = () => {
       
       {loading ? (
         <div className="flex justify-center p-12">
-          <div className="w-10 h-10 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+          <PageLoader fullScreen={false} />
         </div>
       ) : projects.length === 0 ? (
         <div className="bg-white/5 border border-white/10 rounded-2xl p-12 text-center flex flex-col items-center justify-center">

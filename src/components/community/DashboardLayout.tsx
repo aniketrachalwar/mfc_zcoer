@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import React, { useEffect, useState } from 'react';
 import { Navigate, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext';
@@ -74,7 +75,7 @@ const DashboardLayout = () => {
 
   if (authLoading || loading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+      <PageLoader fullScreen={false} />
     </div>
   );
 

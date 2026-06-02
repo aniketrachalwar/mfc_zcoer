@@ -1,3 +1,4 @@
+import PageLoader from './PageLoader';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Github, Linkedin, Instagram, User, ArrowRight } from 'lucide-react';
@@ -5,6 +6,16 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import TeamApplicationModal from './TeamApplicationModal';
+
+const DOMAINS = [
+  'Technical',
+  'Events & Community',
+  'Marketing & Media',
+  'Content & Newsletter',
+  'Design',
+  'Growth & Partnerships',
+  'Operations'
+];
 
 const TeamPage = () => {
   const [loading, setLoading] = useState(true);
@@ -19,12 +30,11 @@ const TeamPage = () => {
   }, [location.search]);
 
   const [coreLeadership, setCoreLeadership] = useState<any[]>([]);
-  const [departmentLeads, setDepartmentLeads] = useState<any[]>([]);
-  const [activeContributors, setActiveContributors] = useState<any[]>([]);
+  const [domainMembers, setDomainMembers] = useState<Record<string, any[]>>({});
 
   const [availableCohorts, setAvailableCohorts] = useState<string[]>([]);
   const [selectedCohort, setSelectedCohort] = useState<string>('');
-  const [cohortData, setCohortData] = useState<Record<string, { core: any[], leads: any[], contributors: any[] }>>({});
+  const [cohortData, setCohortData] = useState<Record<string, { core: any[], domains: Record<string, any[]> }>>({});
 
   useEffect(() => {
     const fetchTeam = async () => {
@@ -37,7 +47,7 @@ const TeamPage = () => {
         const usersList = usersSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
         const teamList = teamSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
         
-        const dataMap: Record<string, { core: any[], leads: any[], contributors: any[] }> = {};
+        const dataMap: Record<string, { core: any[], domains: Record<string, any[]> }> = {};
         const cohortsSet = new Set<string>();
         
         teamList.forEach(tm => {
@@ -47,7 +57,8 @@ const TeamPage = () => {
             cohortsSet.add(cohort);
 
             if (!dataMap[cohort]) {
-              dataMap[cohort] = { core: [], leads: [], contributors: [] };
+              dataMap[cohort] = { core: [], domains: {} };
+              DOMAINS.forEach(d => dataMap[cohort].domains[d] = []);
             }
 
             const memberData = {
@@ -66,30 +77,8 @@ const TeamPage = () => {
             
             if (category === 'Core Leadership') {
               dataMap[cohort].core.push(memberData);
-            } else if (category === 'Department Leads') {
-              dataMap[cohort].leads.push(memberData);
-            } else if (category === 'Active Contributors') {
-              dataMap[cohort].contributors.push(memberData);
-            } else {
-              // Legacy fallback
-              const roleLower = memberData.role.toLowerCase();
-              if (
-                roleLower.includes('president') || 
-                roleLower.includes('core') || 
-                roleLower.includes('founder') || 
-                roleLower.includes('vice') ||
-                roleLower.includes('director')
-              ) {
-                dataMap[cohort].core.push(memberData);
-              } else if (
-                roleLower.includes('lead') || 
-                roleLower.includes('head') || 
-                roleLower.includes('manager')
-              ) {
-                dataMap[cohort].leads.push(memberData);
-              } else {
-                dataMap[cohort].contributors.push(memberData);
-              }
+            } else if (DOMAINS.includes(category)) {
+              dataMap[cohort].domains[category].push(memberData);
             }
           }
         });
@@ -108,12 +97,14 @@ const TeamPage = () => {
             const bIsPres = (b.role || '').toLowerCase().includes('president') ? 1 : 0;
             return bIsPres - aIsPres;
           });
-          const sortedLeads = [...dataMap[defaultCohort].leads].sort((a, b) => b.points - a.points);
-          const sortedContributors = [...dataMap[defaultCohort].contributors].sort((a, b) => b.points - a.points);
+          
+          const sortedDomains: Record<string, any[]> = {};
+          DOMAINS.forEach(d => {
+            sortedDomains[d] = [...(dataMap[defaultCohort].domains[d] || [])].sort((a, b) => b.points - a.points);
+          });
           
           setCoreLeadership(sortedCore);
-          setDepartmentLeads(sortedLeads);
-          setActiveContributors(sortedContributors);
+          setDomainMembers(sortedDomains);
         }
       } catch (err) {
         console.error("Error fetching team", err);
@@ -241,7 +232,7 @@ const TeamPage = () => {
           
           {loading ? (
             <div className="flex justify-center items-center py-24">
-              <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+              <PageLoader fullScreen={false} />
             </div>
           ) : (
             <>
@@ -261,12 +252,14 @@ const TeamPage = () => {
                           const bIsPres = (b.role || '').toLowerCase().includes('president') ? 1 : 0;
                           return bIsPres - aIsPres;
                         });
-                        const sortedLeads = [...cohortData[cohort].leads].sort((a, b) => b.points - a.points);
-                        const sortedContributors = [...cohortData[cohort].contributors].sort((a, b) => b.points - a.points);
+                        
+                        const sortedDomains: Record<string, any[]> = {};
+                        DOMAINS.forEach(d => {
+                          sortedDomains[d] = [...(cohortData[cohort].domains[d] || [])].sort((a, b) => b.points - a.points);
+                        });
 
                         setCoreLeadership(sortedCore);
-                        setDepartmentLeads(sortedLeads);
-                        setActiveContributors(sortedContributors);
+                        setDomainMembers(sortedDomains);
                       }}
                       className="appearance-none px-6 py-3 pr-10 bg-zinc-900 border border-white/10 rounded-xl font-display font-black text-sm uppercase tracking-widest text-white focus:outline-none focus:border-firefox-orange transition-colors shadow-lg cursor-pointer"
                     >
@@ -300,23 +293,15 @@ const TeamPage = () => {
                   <MemberGrid members={coreLeadership} />
                 </div>
 
-                {/* Department Leads */}
-                <div>
-                  <div className="mb-12 border-b border-white/10 pb-6">
-                    <h2 className="text-2xl md:text-3xl font-display font-black uppercase tracking-tight text-white mb-2">Department Leads</h2>
-                    <p className="text-zinc-500 text-sm uppercase tracking-widest font-bold text-[10px]">Technical, Design & Operational Heads</p>
+                {/* Domains */}
+                {DOMAINS.map(domain => (
+                  <div key={domain}>
+                    <div className="mb-12 border-b border-white/10 pb-6">
+                      <h2 className="text-2xl md:text-3xl font-display font-black uppercase tracking-tight text-white mb-2">{domain}</h2>
+                    </div>
+                    <MemberGrid members={domainMembers[domain] || []} />
                   </div>
-                  <MemberGrid members={departmentLeads} />
-                </div>
-
-                {/* Active Contributors */}
-                <div>
-                  <div className="mb-12 border-b border-white/10 pb-6">
-                    <h2 className="text-2xl md:text-3xl font-display font-black uppercase tracking-tight text-white mb-2">Active Contributors</h2>
-                    <p className="text-zinc-500 text-sm uppercase tracking-widest font-bold text-[10px]">Core volunteers driving initiatives</p>
-                  </div>
-                  <MemberGrid members={activeContributors} />
-                </div>
+                ))}
 
               </motion.div>
               </AnimatePresence>

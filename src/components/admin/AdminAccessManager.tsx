@@ -7,18 +7,16 @@ import { motion, AnimatePresence } from 'motion/react';
 const availableTabs = [
   'Dashboard',
   'Members',
-  'Applications',
   'Team',
-  'Contributions',
+  'Tasks',
   'Events',
+  'Certificates',
   'Projects',
   'Blogs',
-  'Merchandise',
   'Notifications',
-  'About Page',
-  'Members Dashboard',
   'Workshop Proposals',
-  'Settings'
+  'About Page',
+  'Navigation'
 ];
 
 export default function AdminAccessManager() {

@@ -20,7 +20,8 @@ import {
   MoreHorizontal,
   X,
   Plus,
-  Lightbulb
+  Lightbulb,
+  Shield
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -83,10 +84,16 @@ const AdminLayout = () => {
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { name: 'Members', path: '/admin/members', icon: Users },
     { name: 'Team', path: '/admin/team', icon: Star },
+    { name: 'Tasks', path: '/admin/contributions', icon: Shield },
     { name: 'Events', path: '/admin/events', icon: Calendar },
     { name: 'Certificates', path: '/admin/certificates', icon: FileText },
     { name: 'Projects', path: '/admin/projects', icon: Briefcase },
-    { name: 'Blogs', path: '/admin/blogs', icon: FileText }
+    { name: 'Blogs', path: '/admin/blogs', icon: FileText },
+    { name: 'Notifications', path: '/admin/notifications', icon: Bell },
+    { name: 'Workshop Proposals', path: '/admin/proposals', icon: Lightbulb },
+    { name: 'About Page', path: '/admin/about', icon: Globe },
+    { name: 'Navigation', path: '/admin/navigation', icon: MonitorSmartphone },
+    { name: 'Access Control', path: '/admin/access', icon: ShieldAlert }
   ];
 
   const visibleNavItems = navItems.filter(item => {

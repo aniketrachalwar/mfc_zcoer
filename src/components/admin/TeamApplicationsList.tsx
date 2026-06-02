@@ -3,6 +3,7 @@ import { collection, getDocs, doc, updateDoc, setDoc, query, orderBy } from 'fir
 import { db } from '../../lib/firebase';
 import { CheckCircle, XCircle, Loader2, ExternalLink } from 'lucide-react';
 import { motion } from 'motion/react';
+import PageLoader from '../PageLoader';
 
 const TeamApplicationsList = () => {
   const [applications, setApplications] = useState<any[]>([]);
@@ -66,7 +67,7 @@ const TeamApplicationsList = () => {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <Loader2 className="w-8 h-8 text-firefox-orange animate-spin mx-auto" />
+        <PageLoader fullScreen={false} />
       </div>
     );
   }

@@ -125,6 +125,9 @@ const AdminDashboard = () => {
           <Link to="/admin/applications" className="snap-start shrink-0 flex items-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
             <CheckSquare size={16} /> Approve Members
           </Link>
+          <Link to="/admin/contributions" className="snap-start shrink-0 flex items-center gap-2 bg-zinc-500/10 hover:bg-zinc-500/20 text-zinc-400 border border-zinc-500/20 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+            <CheckSquare size={16} /> Manage Tasks
+          </Link>
           <Link to="/admin/events" className="snap-start shrink-0 flex items-center gap-2 bg-firefox-orange/10 hover:bg-firefox-orange/20 text-firefox-orange border border-firefox-orange/20 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
             <Plus size={16} /> Add Event
           </Link>

@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
@@ -111,7 +112,7 @@ const PublicProfile = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center pt-20">
-        <Loader2 className="text-firefox-orange animate-spin" size={48} />
+        <PageLoader fullScreen={false} />
       </div>
     );
   }

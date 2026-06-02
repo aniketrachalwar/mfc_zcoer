@@ -4,6 +4,7 @@ import { Users, Target, Award, Quote, Sparkles } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { Helmet } from 'react-helmet-async';
+import PageLoader from './PageLoader';
 
 interface AboutData {
   identityText: string;
@@ -58,7 +59,7 @@ const About = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+        <PageLoader fullScreen={false} />
       </div>
     );
   }

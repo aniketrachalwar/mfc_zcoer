@@ -4,6 +4,7 @@ import { CheckSquare, CheckCircle, XCircle, Loader2, Search, Lightbulb, Users } 
 import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
+import PageLoader from '../PageLoader';
 
 export default function WorkshopProposalsManager() {
   const [proposals, setProposals] = useState<any[]>([]);
@@ -77,7 +78,7 @@ export default function WorkshopProposalsManager() {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <Loader2 className="animate-spin text-firefox-orange" size={48} />
+          <PageLoader fullScreen={false} />
         </div>
       ) : (
         <div className="space-y-4">

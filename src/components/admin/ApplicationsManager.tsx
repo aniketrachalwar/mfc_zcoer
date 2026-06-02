@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { CheckSquare, CheckCircle, XCircle, Loader2, Search, Zap, Hand } from 'lucide-react';
@@ -101,7 +102,7 @@ export default function ApplicationsManager() {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <Loader2 className="animate-spin text-firefox-orange" size={48} />
+          <PageLoader fullScreen={false} />
         </div>
       ) : (
         <div className="space-y-4">

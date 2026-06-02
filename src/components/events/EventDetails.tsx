@@ -1,3 +1,4 @@
+import PageLoader from '../PageLoader';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Calendar, MapPin, Trophy, ArrowLeft, CheckCircle2, Clock, Download, XCircle, Ticket, Loader2, Star } from 'lucide-react';
@@ -164,7 +165,7 @@ const EventDetails = () => {
   if (loading) {
     return (
       <div className="pt-32 pb-20 px-4 min-h-screen flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
+        <PageLoader fullScreen={false} />
       </div>
     );
   }
