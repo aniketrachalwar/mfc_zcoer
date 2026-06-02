@@ -5,19 +5,13 @@ import UpcomingEvent from './UpcomingEvent';
 import UniversalEventBanner from './events/UniversalEventBanner';
 import HomeCategories from './HomeCategories';
 import Leaderboard from './Leaderboard';
+import PageLoader from './PageLoader';
 
 // Lazy load off-screen components to reduce initial bundle size
 const Projects = React.lazy(() => import('./Projects'));
 const Blogs = React.lazy(() => import('./Blogs'));
 const TeamPreview = React.lazy(() => import('./TeamPreview'));
 const Contact = React.lazy(() => import('./Contact'));
-
-// Very lightweight fallback for lazy components
-const SectionFallback = () => (
-  <div className="py-20 flex justify-center items-center">
-    <div className="w-8 h-8 border-2 border-firefox-orange border-t-transparent rounded-full animate-spin" />
-  </div>
-);
 
 const Home = () => {
   return (
@@ -42,7 +36,7 @@ const Home = () => {
       <Leaderboard />
       
       {/* Lower priority content loaded lazily */}
-      <Suspense fallback={<SectionFallback />}>
+      <Suspense fallback={<PageLoader fullScreen={false} />}>
         <Projects />
         <Blogs />
         <TeamPreview />

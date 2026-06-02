@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Calendar, MapPin, ArrowRight, Download, Search, Filter, Tag } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
@@ -9,19 +9,30 @@ import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
 import AdSenseBlock from '../AdSenseBlock';
 import UniversalEventBanner from './UniversalEventBanner';
+import PageLoader from '../PageLoader';
 
 const EventsPage = () => {
+  const [searchParams] = useSearchParams();
+  const categoryParam = searchParams.get('category');
+
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedType, setSelectedType] = useState("All");
+  const [selectedType, setSelectedType] = useState(categoryParam || "All");
   const [activeTab, setActiveTab] = useState("upcoming"); // upcoming, past
+
+  useEffect(() => {
+    if (categoryParam) {
+      setSelectedType(categoryParam);
+    }
+  }, [categoryParam]);
 
   const { user } = useAuth();
   const [userTickets, setUserTickets] = useState<any[]>([]);
   const [userFullName, setUserFullName] = useState("");
   const [certData, setCertData] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -104,11 +115,7 @@ const EventsPage = () => {
   }, [events, searchQuery, selectedType]);
 
   if (loading) {
-    return (
-      <div className="pt-32 pb-20 px-4 min-h-screen flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <PageLoader fullScreen={true} />;
   }
 
   const now = new Date().getTime();
@@ -129,7 +136,8 @@ const EventsPage = () => {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden group flex flex-col"
+        onClick={() => navigate(`/event/${event.id}`)}
+        className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden group flex flex-col cursor-pointer hover:border-firefox-orange/30 transition-all"
       >
         <div className="h-48 bg-zinc-900 relative overflow-hidden">
           {event.img ? (
@@ -162,6 +170,7 @@ const EventsPage = () => {
           </div>
           <Link 
             to={`/event/${event.id}`}
+            onClick={(e) => e.stopPropagation()}
             className="flex items-center gap-2 text-white font-bold text-sm hover:text-firefox-orange transition-colors mt-auto"
           >
             View Details <ArrowRight size={16} />
@@ -169,7 +178,7 @@ const EventsPage = () => {
           
           {hasCertificate && (
              <button 
-               onClick={() => handleDownloadPDF(event, ticket)}
+               onClick={(e) => { e.stopPropagation(); handleDownloadPDF(event, ticket); }}
                disabled={isGenerating}
                className="w-full mt-4 py-3 min-h-[44px] bg-firefox-orange/20 border border-firefox-orange/50 text-firefox-orange rounded-xl font-display font-black text-[10px] uppercase tracking-widest hover:bg-firefox-orange hover:text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
              >
@@ -211,10 +220,20 @@ const EventsPage = () => {
     <div className="pt-32 pb-20 px-4 min-h-screen relative">
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="mb-12">
-          <span className="text-firefox-orange font-bold uppercase tracking-widest text-xs mb-2 block">Discovery</span>
-          <h1 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tight mb-8">
-            Explore <span className="text-firefox-orange">Events</span>
-          </h1>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-8">
+            <div>
+              <span className="text-firefox-orange font-bold uppercase tracking-widest text-xs mb-2 block">Discovery</span>
+              <h1 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tight">
+                Explore <span className="text-firefox-orange">Events</span>
+              </h1>
+            </div>
+            <Link
+              to="/events/calendar"
+              className="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm uppercase tracking-widest transition-all self-start bg-firefox-orange/20 text-firefox-orange border border-firefox-orange/50 hover:bg-firefox-orange hover:text-white"
+            >
+              <Calendar size={18} /> Calendar View
+            </Link>
+          </div>
 
           <UniversalEventBanner />
 
@@ -284,7 +303,7 @@ const EventsPage = () => {
                   <p className="text-zinc-400">Try adjusting your search or filter criteria.</p>
                 </div>
               )
-            ) : (
+            ) : activeTab === 'past' ? (
               pastEvents.length > 0 ? (
                 <div className="mb-20">
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 opacity-90 hover:opacity-100 transition-opacity">
@@ -299,7 +318,7 @@ const EventsPage = () => {
                   <p className="text-zinc-400">Try adjusting your search or filter criteria.</p>
                 </div>
               )
-            )}
+            ) : null}
           </motion.div>
         </AnimatePresence>
       </div>

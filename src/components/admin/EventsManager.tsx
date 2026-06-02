@@ -453,13 +453,14 @@ const EventsManager = () => {
       {/* Form Modal */}
       <AnimatePresence>
         {isFormOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
               <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeForm} />
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: '100%' }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="bg-zinc-950 border border-white/10 rounded-t-3xl md:rounded-3xl w-full max-w-2xl h-[90vh] md:h-auto md:max-h-[90vh] flex flex-col relative z-10 shadow-2xl mt-auto md:mt-0"
+                exit={{ opacity: 0, y: '100%' }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="bg-zinc-950 border border-white/10 rounded-t-3xl md:rounded-3xl w-full max-w-2xl h-[95dvh] md:h-auto md:max-h-[90vh] flex flex-col relative z-10 shadow-2xl"
               >
                 <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/5 shrink-0">
                   <h2 className="text-lg sm:text-2xl font-display font-black uppercase text-white">
@@ -684,7 +685,7 @@ const EventsManager = () => {
                 </div>
 
                 {/* Sticky Bottom Actions */}
-                <div className="p-4 sm:p-6 border-t border-white/5 bg-zinc-950/80 backdrop-blur-xl shrink-0 flex items-center justify-between gap-4">
+                <div className="p-4 sm:p-6 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t border-white/5 bg-zinc-950/80 backdrop-blur-xl shrink-0 flex items-center justify-between gap-4">
                   {formStep > 1 ? (
                     <button 
                       type="button"

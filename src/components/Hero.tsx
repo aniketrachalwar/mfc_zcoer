@@ -1,78 +1,69 @@
 import { motion } from 'motion/react';
-import { ChevronDown } from 'lucide-react';
+import { ArrowRight, Calendar } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useEvents } from '../lib/useEvents';
 
 const Hero = () => {
+  const { events } = useEvents();
+  const nextEventId = events.length > 0 ? events[0].id : null;
+
   return (
-    <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#0A0A0A] px-6 text-center">
-      {/* Background radial glow at bottom - Optimized for mobile */}
-      <div className="hidden md:block absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full h-[600px] bg-[#FF5C00]/5 blur-3xl rounded-full pointer-events-none" />
+    <section id="hero" className="relative min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden bg-black px-6 text-center pt-20">
+      
+      {/* Ultra-subtle Linear-style background glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-firefox-orange/10 blur-[100px] rounded-full pointer-events-none opacity-50" />
+      
+      {/* Super fine grid (Notion/Linear style) */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none mix-blend-screen" />
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
+      <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center">
+        
+        {/* Huge Message */}
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col items-center"
+          transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold text-white tracking-tighter leading-[1.1] mb-6 max-w-4xl"
         >
-          <div className="mb-8">
-            {/*<motion.img
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 1, delay: 0.2 }}
-              src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png"
-              alt="Mozilla Logo"
-              className="w-20 h-20 md:w-28 md:h-28 drop-shadow-[0_0_50px_rgba(255,92,0,0.4)]"
-            />*/}
-          </div>
-          <h1 className="flex flex-col leading-[0.85] font-display font-black uppercase text-center">
-            <motion.span
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 1, delay: 0.4 }}
-              className="text-white tracking-[0.1em] md:tracking-[0.2em]"
-              style={{ fontSize: 'clamp(2.5rem, 10vw, 9rem)' }}
-            >
-              MOZILLA
-            </motion.span>
-            <motion.span
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 1, delay: 0.6 }}
-              className="tracking-[0.1em] md:tracking-[0.2em]"
-              style={{
-                fontSize: 'clamp(2.5rem, 10vw, 9rem)',
-                color: 'transparent',
-                WebkitTextStroke: 'clamp(1px, 0.2vw, 2px) #FF5C00'
-              }}
-            >
-              FIREFOX
-            </motion.span>
-          </h1>
+          Find events.<br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-200 via-white to-zinc-500">
+            Build opportunities.
+          </span>
+        </motion.h1>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 1 }}
-            className="mt-16 flex flex-col md:flex-row items-center gap-6 md:gap-12 text-[#A0A0A0] text-sm md:text-[1.1rem] tracking-[0.1em] md:tracking-[0.3em] font-bold uppercase font-display max-w-6xl px-4 text-center"
+        {/* Concise Subtext */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="text-zinc-400 text-lg md:text-xl max-w-2xl font-medium tracking-tight mb-10 leading-relaxed"
+        >
+          Your gateway to open-source collaboration. Discover workshops, hackathons, and a community of builders pushing the web forward.
+        </motion.p>
+
+        {/* Sleek CTAs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto"
+        >
+          <Link 
+            to="/events" 
+            className="w-full sm:w-auto px-8 py-3.5 bg-white text-black rounded-full font-semibold text-sm hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
           >
-            <span className="order-1">Discover Exclusive Events</span>
-
-            <div className="order-3 md:order-2 flex flex-col items-center gap-4 py-4 mt-8 md:mt-0">
-              <span className="text-[9px] font-black uppercase tracking-[0.5em] rotate-90 mb-4 opacity-50 text-firefox-orange">SCROLL</span>
-              <div className="w-[1px] h-12 bg-gradient-to-b from-firefox-orange to-transparent" />
-            </div>
-
-            <span className="order-2 md:order-3">Build The Open Web</span>
-          </motion.div>
+            <Calendar size={16} className="text-black" />
+            Explore Events
+          </Link>
+          
+          <Link 
+            to={nextEventId ? `/event/${nextEventId}` : "/events"}
+            className="w-full sm:w-auto px-8 py-3.5 bg-transparent border border-white/20 text-white rounded-full font-semibold text-sm hover:bg-white/5 transition-colors flex items-center justify-center gap-2 group"
+          >
+            {nextEventId ? 'Our Next Event' : 'Attend Event'} <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
         </motion.div>
       </div>
-
-      {/* Decorative vertical lines */}
-      <div className="absolute inset-0 z-0 opacity-5 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-[1px] h-full bg-gradient-to-b from-transparent via-white to-transparent" />
-        <div className="absolute top-0 right-1/4 w-[1px] h-full bg-gradient-to-b from-transparent via-white to-transparent" />
-      </div>
-
     </section>
   );
 };

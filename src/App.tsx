@@ -7,7 +7,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Home from './components/Home';
+// Home will be lazy loaded
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import NotFound from './components/NotFound';
@@ -16,8 +16,10 @@ import InstallPwaBanner from './components/InstallPwaBanner';
 import RequireAuth from './components/RequireAuth';
 import NavigationManager from './components/admin/NavigationManager';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import PageLoader from './components/PageLoader';
 
 // Lazy loaded components
+const Home = React.lazy(() => import('./components/Home'));
 const About = React.lazy(() => import('./components/About'));
 const Projects = React.lazy(() => import('./components/Projects'));
 const TeamPage = React.lazy(() => import('./components/TeamPage'));
@@ -32,6 +34,7 @@ const VerifyProfile = React.lazy(() => import('./components/community/VerifyProf
 const TasksBoard = React.lazy(() => import('./components/community/TasksBoard'));
 const EventDetails = React.lazy(() => import('./components/events/EventDetails'));
 const EventsPage = React.lazy(() => import('./components/events/EventsPage'));
+const CalendarPage = React.lazy(() => import('./components/events/CalendarPage'));
 const HostEvent = React.lazy(() => import('./components/events/HostEvent'));
 const MemberProfilePage = React.lazy(() => import('./components/progression').then(m => ({ default: m.MemberProfilePage })));
 const AdminLayout = React.lazy(() => import('./components/admin/AdminLayout'));
@@ -62,12 +65,6 @@ const PurchasedItems = React.lazy(() => import('./components/student/PurchasedIt
 const LeaderboardPage = React.lazy(() => import('./components/leaderboard/LeaderboardPage'));
 
 const ShopPage = React.lazy(() => import('./components/shop/ShopPage'));
-
-const PageLoader = () => (
-  <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-    <div className="w-12 h-12 border-4 border-firefox-orange border-t-transparent rounded-full animate-spin" />
-  </div>
-);
 
 import { motion, useScroll, useSpring, AnimatePresence } from 'motion/react';
 import { useAuth } from './lib/AuthContext';
@@ -255,6 +252,7 @@ export default function App() {
                   <Route path="/profile" element={<MemberProfilePage />} />
                   <Route path="/profile/:username" element={<PublicProfile />} />
                   <Route path="/events" element={<EventsPage />} />
+                  <Route path="/events/calendar" element={<CalendarPage />} />
                   <Route path="/event/:id" element={<EventDetails />} />
                   <Route path="/host-event" element={<HostEvent />} />
                   <Route path="/verify" element={<VerifyProfile />} />

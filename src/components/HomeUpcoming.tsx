@@ -1,35 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Calendar, MapPin, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEvents } from '../lib/useEvents';
 
 const HomeUpcoming = () => {
-  const [events, setEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const q = query(collection(db, 'events'), orderBy('date', 'asc'));
-        const snap = await getDocs(q);
-        const now = new Date().getTime();
-        
-        const fetchedEvents = snap.docs
-          .map(doc => ({ id: doc.id, ...doc.data() } as any))
-          .filter((event: any) => (event.status === 'approved' || !event.status) && new Date(event.date).getTime() > now)
-          .slice(0, 3); // Just show top 3 upcoming
-
-        setEvents(fetchedEvents);
-      } catch (err) {
-        console.error("Error fetching upcoming events:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchEvents();
-  }, []);
+  const { events: allEvents, loading } = useEvents();
+  const events = allEvents.slice(0, 3);
+  const navigate = useNavigate();
 
   return (
     <div className="bg-zinc-950 pt-16 pb-16 relative border-t border-white/5">
@@ -67,43 +45,45 @@ const HomeUpcoming = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-zinc-900/50 border border-white/10 rounded-2xl overflow-hidden group flex flex-col hover:border-firefox-orange/30 transition-all backdrop-blur-md"
+                onClick={() => navigate(`/event/${event.id}`)}
+                className="relative h-[340px] rounded-3xl overflow-hidden group flex flex-col justify-end cursor-pointer border border-white/10 hover:border-firefox-orange/50 transition-all shadow-2xl"
               >
-                <div className="h-48 bg-zinc-950 relative overflow-hidden">
+                {/* Background Image */}
+                <div className="absolute inset-0 bg-zinc-950">
                   {event.img ? (
-                    <img loading="lazy" src={event.img} alt={event.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
+                    <img loading="lazy" src={event.img} alt={event.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-900 to-black">
-                      <Calendar size={32} className="text-zinc-800" />
+                      <Calendar size={48} className="text-zinc-800" />
                     </div>
                   )}
-                  <div className="absolute top-4 left-4">
-                    <span className="px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-firefox-orange">
+                </div>
+
+                {/* Gradient Overlay for Text Readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-90 group-hover:opacity-100 transition-opacity" />
+                
+                {/* Content */}
+                <div className="relative z-10 p-6 w-full flex flex-col gap-3 translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+                  <div className="flex items-start">
+                    <span className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-[10px] font-black uppercase tracking-widest text-firefox-orange mb-2">
                       {event.type || 'Event'}
                     </span>
                   </div>
-                </div>
-                <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-xl font-display font-bold text-white mb-2 line-clamp-2">{event.title}</h3>
-                  <p className="text-zinc-400 text-sm line-clamp-2 mb-6 flex-1">{event.desc}</p>
-                  <div className="space-y-2 mb-6">
-                    <div className="flex items-center gap-2 text-xs text-zinc-500 font-bold tracking-wider">
+                  
+                  <h3 className="text-2xl font-display font-black text-white line-clamp-2 uppercase tracking-tight group-hover:text-firefox-orange transition-colors">
+                    {event.title}
+                  </h3>
+                  
+                  <div className="flex items-center justify-between mt-2 pt-4 border-t border-white/10">
+                    <div className="flex items-center gap-2 text-xs text-zinc-300 font-bold tracking-widest uppercase">
                       <Calendar size={14} className="text-firefox-orange" />
-                      {new Date(event.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>
-                    {event.location && (
-                      <div className="flex items-center gap-2 text-xs text-zinc-500 font-bold tracking-wider">
-                        <MapPin size={14} className="text-firefox-orange" />
-                        {event.location}
-                      </div>
-                    )}
+                    
+                    <div className="w-8 h-8 rounded-full bg-firefox-orange/20 flex items-center justify-center text-firefox-orange group-hover:bg-firefox-orange group-hover:text-white transition-all shadow-[0_0_15px_rgba(255,92,0,0)] group-hover:shadow-[0_0_15px_rgba(255,92,0,0.5)]">
+                      <ArrowRight size={14} className="group-hover:-rotate-45 transition-transform" />
+                    </div>
                   </div>
-                  <Link 
-                    to={`/event/${event.id}`}
-                    className="flex items-center gap-2 text-white font-bold text-[10px] uppercase tracking-widest hover:text-firefox-orange transition-colors mt-auto group/btn"
-                  >
-                    View Details <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
-                  </Link>
                 </div>
               </motion.div>
             ))}
