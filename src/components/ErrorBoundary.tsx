@@ -22,10 +22,47 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
+    
+    // Check if it's a chunk load error (Vite dynamic import failure)
+    const isChunkLoadError = error?.message?.match(/Failed to fetch dynamically imported module/i) || 
+                             error?.message?.match(/Importing a module script failed/i) ||
+                             error?.name === 'ChunkLoadError';
+    
+    if (isChunkLoadError) {
+      const lastReload = sessionStorage.getItem('chunk-load-error-reloaded');
+      const now = Date.now();
+      
+      // Only reload if we haven't reloaded in the last 10 seconds to prevent infinite loops
+      if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+        sessionStorage.setItem('chunk-load-error-reloaded', now.toString());
+        window.location.reload();
+      }
+    }
   }
 
   public render() {
     if (this.state.hasError) {
+      const isChunkLoadError = this.state.error?.message?.match(/Failed to fetch dynamically imported module/i) || 
+                               this.state.error?.message?.match(/Importing a module script failed/i) ||
+                               this.state.error?.name === 'ChunkLoadError';
+      
+      const lastReload = sessionStorage.getItem('chunk-load-error-reloaded');
+      const isRecentReload = lastReload && (Date.now() - parseInt(lastReload, 10) < 10000);
+
+      if (isChunkLoadError && !isRecentReload) {
+        return (
+          <div className="min-h-[70vh] flex flex-col items-center justify-center p-4 text-center">
+             <RefreshCw size={40} className="text-zinc-500 animate-spin mb-4" />
+             <h2 className="text-xl font-display font-bold text-white mb-2 tracking-tight">
+               Applying Updates...
+             </h2>
+             <p className="text-zinc-400">
+               Please wait while we refresh the application.
+             </p>
+          </div>
+        );
+      }
+
       return (
         <div className="min-h-[70vh] flex flex-col items-center justify-center p-4 text-center">
           <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mb-6">

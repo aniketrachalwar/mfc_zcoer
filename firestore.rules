@@ -160,6 +160,16 @@ service cloud.firestore {
       allow write: if canManageContent();
     }
 
+    match /certificateTemplates/{templateId} {
+      allow read: if true;
+      allow write: if canManageContent();
+    }
+
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if canManageContent();
+    }
+
     match /orders/{orderId} {
       allow create: if true;
       allow read: if isStaff() || (isSignedIn() && resource.data.userId == request.auth.uid);

@@ -131,9 +131,6 @@ const AdminDashboard = () => {
           <Link to="/admin/events" className="snap-start shrink-0 flex items-center gap-2 bg-firefox-orange/10 hover:bg-firefox-orange/20 text-firefox-orange border border-firefox-orange/20 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
             <Plus size={16} /> Add Event
           </Link>
-          <Link to="/admin/merch" className="snap-start shrink-0 flex items-center gap-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
-            <ShoppingBag size={16} /> Add Merchandise
-          </Link>
           <Link to="/admin/about" className="snap-start shrink-0 flex items-center gap-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
             <Globe size={16} /> Edit About Page
           </Link>

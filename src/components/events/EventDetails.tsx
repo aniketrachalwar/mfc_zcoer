@@ -45,6 +45,7 @@ const EventDetails = () => {
   const [couponError, setCouponError] = useState('');
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [transactionId, setTransactionId] = useState('');
+  const [customTemplateData, setCustomTemplateData] = useState<any>(null);
 
   const { user } = useAuth();
 
@@ -71,7 +72,18 @@ const EventDetails = () => {
         const docRef = doc(db, 'events', id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setEvent({ id: docSnap.id, ...docSnap.data() });
+          const evData = { id: docSnap.id, ...docSnap.data() };
+          setEvent(evData);
+          if (evData.assignedTemplateId) {
+             try {
+                const tSnap = await getDoc(doc(db, 'certificateTemplates', evData.assignedTemplateId));
+                if (tSnap.exists()) {
+                   setCustomTemplateData({ id: tSnap.id, ...tSnap.data() });
+                }
+             } catch(err) {
+                console.error("Failed to fetch template", err);
+             }
+          }
         } else {
           console.error("Event not found");
         }
@@ -772,10 +784,132 @@ const EventDetails = () => {
       </div>
 
       {/* Hidden Certificate Element */}
-      <div id="certificate-card" style={{ display: 'none', width: '1200px', height: '900px' }} className="flex-col items-center bg-[#050505] p-[20px] relative overflow-hidden text-center z-[-100] font-sans">
-        {/* Outer Border */}
-        <div className="w-full h-full border-[12px] border-firefox-orange/20 p-[10px] relative">
-          <div className="w-full h-full border-[4px] border-firefox-orange/50 relative overflow-hidden bg-gradient-to-br from-[#09090b] via-[#151010] to-[#201005] flex flex-col items-center py-16 px-24">
+      <div id="certificate-card" style={{ display: 'none', width: '1600px', height: '900px' }} className="flex-col items-center bg-[#050505] p-[20px] relative overflow-hidden text-center z-[-100] font-sans">
+        {customTemplateData && customTemplateData.config ? (
+          <div className="relative w-full h-full bg-black overflow-hidden">
+            {customTemplateData.bgUrl && (
+              <img src={customTemplateData.bgUrl} alt="Background" className="absolute inset-0 w-full h-full object-cover" crossOrigin="anonymous" />
+            )}
+            
+            <div 
+              className="absolute whitespace-nowrap transform -translate-x-1/2 -translate-y-1/2 font-serif font-black italic drop-shadow-lg"
+              style={{
+                left: `${customTemplateData.config.name?.x || 50}%`,
+                top: `${customTemplateData.config.name?.y || 50}%`,
+                fontSize: `${customTemplateData.config.name?.size || 60}px`,
+                color: customTemplateData.config.name?.color || '#ffffff'
+              }}
+            >
+              {userFullName || 'Participant'}
+            </div>
+            
+            <div 
+              className="absolute whitespace-nowrap transform -translate-x-1/2 -translate-y-1/2 font-display font-black uppercase drop-shadow-md"
+              style={{
+                left: `${customTemplateData.config.event?.x || 50}%`,
+                top: `${customTemplateData.config.event?.y || 70}%`,
+                fontSize: `${customTemplateData.config.event?.size || 30}px`,
+                color: customTemplateData.config.event?.color || '#ff5c00'
+              }}
+            >
+              {event.title}
+            </div>
+            
+            <div 
+              className="absolute whitespace-nowrap transform -translate-x-1/2 -translate-y-1/2 font-serif italic drop-shadow-md"
+              style={{
+                left: `${customTemplateData.config.date?.x || 20}%`,
+                top: `${customTemplateData.config.date?.y || 85}%`,
+                fontSize: `${customTemplateData.config.date?.size || 20}px`,
+                color: customTemplateData.config.date?.color || '#a1a1aa'
+              }}
+            >
+              {new Date(event.date).toLocaleDateString()}
+            </div>
+
+            <div 
+              className="absolute whitespace-nowrap transform -translate-x-1/2 -translate-y-1/2 font-display font-black uppercase drop-shadow-md"
+              style={{
+                left: `${customTemplateData.config.position?.x || 80}%`,
+                top: `${customTemplateData.config.position?.y || 85}%`,
+                fontSize: `${customTemplateData.config.position?.size || 20}px`,
+                color: customTemplateData.config.position?.color || '#a1a1aa'
+              }}
+            >
+              {displayCertType}
+            </div>
+
+            {customTemplateData.config.verificationId && (
+              <div 
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2"
+                style={{
+                  left: `${customTemplateData.config.verificationId.x}%`,
+                  top: `${customTemplateData.config.verificationId.y}%`,
+                }}
+              >
+                <div className="bg-white p-2 rounded-xl shadow-lg border border-white/20">
+                  <QRCodeSVG 
+                    value={ticketId ? `${window.location.origin}/verify/${ticketId}` : 'https://mfcopenweb.vercel.app/verify'} 
+                    size={Math.max(40, customTemplateData.config.verificationId.size * 3)} 
+                  />
+                </div>
+                <div 
+                  className="font-mono uppercase drop-shadow-md tracking-widest whitespace-nowrap bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm"
+                  style={{
+                    fontSize: `${customTemplateData.config.verificationId.size}px`,
+                    color: customTemplateData.config.verificationId.color || '#ffffff'
+                  }}
+                >
+                  ID: {ticketId ? ticketId.substring(0, 8) : 'PREVIEW'}
+                </div>
+              </div>
+            )}
+
+            {customTemplateData.config.logoUrl && (
+              <img 
+                src={customTemplateData.config.logoUrl} 
+                alt="Logo"
+                crossOrigin="anonymous"
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 object-contain"
+                style={{
+                  left: `${customTemplateData.config.logo?.x || 50}%`,
+                  top: `${customTemplateData.config.logo?.y || 20}%`,
+                  width: `${customTemplateData.config.logo?.size || 100}px`
+                }}
+              />
+            )}
+
+            {customTemplateData.config.signatureUrl && (
+              <img 
+                src={customTemplateData.config.signatureUrl} 
+                alt="President Signature"
+                crossOrigin="anonymous"
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 object-contain filter invert"
+                style={{
+                  left: `${customTemplateData.config.signature?.x || 80}%`,
+                  top: `${customTemplateData.config.signature?.y || 75}%`,
+                  width: `${customTemplateData.config.signature?.size || 120}px`
+                }}
+              />
+            )}
+
+            {customTemplateData.config.signature2Url && (
+              <img 
+                src={customTemplateData.config.signature2Url} 
+                alt="HOD Signature"
+                crossOrigin="anonymous"
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 object-contain filter invert"
+                style={{
+                  left: `${customTemplateData.config.signature2?.x || 20}%`,
+                  top: `${customTemplateData.config.signature2?.y || 75}%`,
+                  width: `${customTemplateData.config.signature2?.size || 120}px`
+                }}
+              />
+            )}
+          </div>
+        ) : (
+          <div className="w-full h-full border-[12px] border-firefox-orange/20 p-[10px] relative">
+            <div className="w-full h-full border-[4px] border-firefox-orange/50 relative overflow-hidden bg-gradient-to-br from-[#09090b] via-[#151010] to-[#201005] flex flex-col items-center py-16 px-24">
             
             {/* Background Graphics */}
             <div className="absolute top-[-200px] left-[-200px] w-[600px] h-[600px] bg-firefox-orange/10 blur-[120px] rounded-full pointer-events-none" />
@@ -783,11 +917,18 @@ const EventDetails = () => {
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
 
             {/* Logo / Header */}
-            <div className="flex items-center gap-6 mb-12 relative z-10 w-full justify-center">
-               <img loading="lazy" src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png" className="w-32 h-32 drop-shadow-[0_0_25px_rgba(255,106,0,0.4)]" crossOrigin="anonymous" alt="Logo" />
-               <div className="text-left border-l-2 border-white/10 pl-6">
-                 <h2 className="text-4xl font-display font-black text-white tracking-widest uppercase mb-1">Mozilla Firefox Club</h2>
-                 <p className="text-firefox-orange tracking-[0.4em] uppercase text-lg font-bold">MFC Open Web</p>
+            <div className="flex justify-between items-start mb-12 relative z-10 w-full px-12 pt-4">
+               <div className="flex items-center gap-6">
+                 <img loading="lazy" src="https://res.cloudinary.com/diyulegc1/image/upload/v1778406665/logo-removebg-preview_b9u9z8.png" className="w-32 h-32 drop-shadow-[0_0_25px_rgba(255,106,0,0.4)]" crossOrigin="anonymous" alt="Logo" />
+                 <div className="text-left border-l-2 border-white/10 pl-6">
+                   <h2 className="text-4xl font-display font-black text-white tracking-widest uppercase mb-1">Mozilla Firefox Club</h2>
+                   <p className="text-firefox-orange tracking-[0.4em] uppercase text-lg font-bold">MFC Open Web</p>
+                 </div>
+               </div>
+               
+               <div className="text-right max-w-lg pt-4">
+                 <h3 className="font-display font-black text-white text-4xl uppercase text-firefox-orange drop-shadow-[0_0_15px_rgba(255,92,0,0.3)] tracking-wide leading-tight">{event.title}</h3>
+                 <p className="text-zinc-400 mt-2 uppercase tracking-widest font-bold text-sm">Official Event</p>
                </div>
             </div>
 
@@ -800,33 +941,37 @@ const EventDetails = () => {
             </div>
 
             {/* Body */}
-            <p className="text-[1.75rem] text-zinc-300 max-w-4xl leading-relaxed relative z-10 font-light mb-auto mt-4">
+            <p className="text-[1.75rem] text-zinc-300 max-w-4xl leading-relaxed relative z-10 font-light mb-auto mt-4 px-12">
               {subText}
-              <br />
-              <span className="font-display font-bold text-white text-5xl uppercase mt-8 block text-firefox-orange drop-shadow-[0_0_15px_rgba(255,92,0,0.3)] tracking-wide">{event.title}</span>
             </p>
 
             {/* Footer Signatures */}
-            <div className="flex justify-between items-end w-full relative z-10 px-8 pb-4 mt-12">
+            <div className="flex justify-between items-end w-full relative z-10 px-16 pb-4 mt-12">
                <div className="flex flex-col items-center w-64">
-                 <span className="text-white text-3xl font-serif italic mb-3">{new Date(event.date).toLocaleDateString()}</span>
-                 <div className="w-full border-b-2 border-zinc-600 mb-4"></div>
-                 <p className="text-zinc-500 uppercase tracking-[0.3em] text-sm font-bold">Date of Issue</p>
-               </div>
-
-               {/* Seal */}
-               <div className="relative flex items-center justify-center -translate-y-4">
-                 <div className="absolute inset-0 bg-firefox-orange blur-[30px] opacity-20 rounded-full" />
-                 <div className="w-40 h-40 border-[6px] border-firefox-orange/50 bg-[#09090b] rounded-full flex flex-col items-center justify-center text-firefox-orange -rotate-[15deg] backdrop-blur-xl shadow-2xl relative">
-                   <div className="absolute inset-2 border-2 border-dashed border-firefox-orange/30 rounded-full" />
-                   <span className="font-display font-black uppercase text-2xl tracking-[0.2em] relative z-10">Verified</span>
-                   <span className="text-[9px] font-bold tracking-[0.3em] opacity-80 mt-2 bg-firefox-orange text-black px-2 py-0.5 rounded-full relative z-10">MFC Open Web</span>
+                 <div className="h-24 w-full flex justify-center mb-3 relative">
+                   {/* Placeholder for HOD Signature */}
+                   <img loading="lazy" src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Signature_of_John_Hancock.svg" className="w-48 opacity-40 filter invert" alt="Signature" crossOrigin="anonymous" style={{ objectFit: 'contain' }} />
                  </div>
+                 <div className="w-full border-b-2 border-zinc-600 mb-4"></div>
+                 <p className="text-zinc-500 uppercase tracking-[0.3em] text-sm font-bold">Head of Department</p>
+               </div>
+
+               {/* Date & Seal */}
+               <div className="flex flex-col items-center justify-center">
+                 <div className="relative flex items-center justify-center -translate-y-4 mb-4">
+                   <div className="absolute inset-0 bg-firefox-orange blur-[30px] opacity-20 rounded-full" />
+                   <div className="w-40 h-40 border-[6px] border-firefox-orange/50 bg-[#09090b] rounded-full flex flex-col items-center justify-center text-firefox-orange -rotate-[15deg] backdrop-blur-xl shadow-2xl relative">
+                     <div className="absolute inset-2 border-2 border-dashed border-firefox-orange/30 rounded-full" />
+                     <span className="font-display font-black uppercase text-2xl tracking-[0.2em] relative z-10">Verified</span>
+                     <span className="text-[9px] font-bold tracking-[0.3em] opacity-80 mt-2 bg-firefox-orange text-black px-2 py-0.5 rounded-full relative z-10">MFC Open Web</span>
+                   </div>
+                 </div>
+                 <span className="text-zinc-400 text-xl font-serif italic">{new Date(event.date).toLocaleDateString()}</span>
                </div>
 
                <div className="flex flex-col items-center w-64">
-                 <div className="h-12 w-full flex justify-center mb-3">
-                   <img loading="lazy" src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Signature_of_John_Hancock.svg" className="w-40 opacity-40 filter invert" alt="Signature" crossOrigin="anonymous" style={{ objectFit: 'contain' }} />
+                 <div className="h-24 w-full flex justify-center mb-3 relative">
+                   <img loading="lazy" src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Signature_of_John_Hancock.svg" className="w-48 opacity-40 filter invert" alt="Signature" crossOrigin="anonymous" style={{ objectFit: 'contain' }} />
                  </div>
                  <div className="w-full border-b-2 border-zinc-600 mb-4"></div>
                  <p className="text-zinc-500 uppercase tracking-[0.3em] text-sm font-bold">Club President</p>
@@ -835,6 +980,7 @@ const EventDetails = () => {
 
           </div>
         </div>
+        )}
       </div>
 
     </div>

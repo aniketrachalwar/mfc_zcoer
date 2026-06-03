@@ -4,6 +4,7 @@ import { db } from '../../lib/firebase';
 import { Image as ImageIcon, Save, Plus, Trash2, CheckCircle2, Ticket, Settings2, FileText, ArrowLeft, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import PageLoader from '../PageLoader';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function CertificateManager() {
   const [activeTab, setActiveTab] = useState<'templates' | 'issuance'>('issuance');
@@ -26,6 +27,13 @@ export default function CertificateManager() {
       event: { x: 50, y: 70, size: 30, color: '#ff5c00' },
       date: { x: 20, y: 85, size: 20, color: '#a1a1aa' },
       position: { x: 80, y: 85, size: 20, color: '#a1a1aa' },
+      verificationId: { x: 50, y: 92, size: 12, color: '#666666' },
+      logoUrl: '',
+      logo: { x: 50, y: 20, size: 100 },
+      signatureUrl: '',
+      signature: { x: 80, y: 75, size: 120 },
+      signature2Url: '',
+      signature2: { x: 20, y: 75, size: 120 }
     }
   });
 
@@ -314,6 +322,13 @@ export default function CertificateManager() {
                         event: { x: 50, y: 70, size: 30, color: '#ff5c00' },
                         date: { x: 20, y: 85, size: 20, color: '#a1a1aa' },
                         position: { x: 80, y: 85, size: 20, color: '#a1a1aa' },
+                        verificationId: { x: 50, y: 92, size: 12, color: '#666666' },
+                        logoUrl: '',
+                        logo: { x: 50, y: 20, size: 100 },
+                        signatureUrl: '',
+                        signature: { x: 80, y: 75, size: 120 },
+                        signature2Url: '',
+                        signature2: { x: 20, y: 75, size: 120 }
                       }
                     });
                     setIsEditingTemplate(true);
@@ -398,11 +413,41 @@ export default function CertificateManager() {
                         />
                       </div>
                       <div>
-                        <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold block mb-2">Background Image URL (1200x900 recommended)</label>
+                        <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold block mb-2">Background Image URL (1600x900 recommended)</label>
                         <input 
                           type="text"
                           value={currentTemplate.bgUrl}
                           onChange={(e) => setCurrentTemplate({...currentTemplate, bgUrl: e.target.value})}
+                          placeholder="https://..."
+                          className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:border-firefox-orange focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold block mb-2">Logo Image URL (Optional)</label>
+                        <input 
+                          type="text"
+                          value={currentTemplate.config?.logoUrl || ''}
+                          onChange={(e) => setCurrentTemplate({...currentTemplate, config: {...currentTemplate.config, logoUrl: e.target.value}})}
+                          placeholder="https://..."
+                          className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:border-firefox-orange focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold block mb-2">President Signature URL (Optional)</label>
+                        <input 
+                          type="text"
+                          value={currentTemplate.config?.signatureUrl || ''}
+                          onChange={(e) => setCurrentTemplate({...currentTemplate, config: {...currentTemplate.config, signatureUrl: e.target.value}})}
+                          placeholder="https://..."
+                          className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:border-firefox-orange focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold block mb-2">HOD Signature URL (Optional)</label>
+                        <input 
+                          type="text"
+                          value={currentTemplate.config?.signature2Url || ''}
+                          onChange={(e) => setCurrentTemplate({...currentTemplate, config: {...currentTemplate.config, signature2Url: e.target.value}})}
                           placeholder="https://..."
                           className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:border-firefox-orange focus:outline-none"
                         />
@@ -414,7 +459,7 @@ export default function CertificateManager() {
                     <h3 className="font-display font-black text-xl text-white uppercase tracking-wider mb-6">Field Mappings</h3>
                     <p className="text-xs text-zinc-400 mb-6">Adjust the X (horizontal), Y (vertical), Font Size, and Color for each placeholder.</p>
                     
-                    {['name', 'event', 'date', 'position'].map((field) => (
+                    {['name', 'event', 'date', 'position', 'verificationId', 'logo', 'signature', 'signature2'].map((field) => (
                       <div key={field} className="mb-6 bg-black/30 p-4 rounded-2xl border border-white/5">
                         <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4 capitalize">{field}</h4>
                         <div className="space-y-3">
@@ -422,33 +467,33 @@ export default function CertificateManager() {
                             <label className="text-xs text-zinc-500 w-8">X %</label>
                             <input 
                               type="range" min="0" max="100" 
-                              value={currentTemplate.config[field].x}
+                              value={currentTemplate.config[field]?.x || 50}
                               onChange={(e) => setCurrentTemplate({
                                 ...currentTemplate, 
                                 config: { ...currentTemplate.config, [field]: { ...currentTemplate.config[field], x: Number(e.target.value) } }
                               })}
                               className="flex-1 accent-firefox-orange"
                             />
-                            <span className="text-xs text-zinc-300 w-8 text-right">{currentTemplate.config[field].x}%</span>
+                            <span className="text-xs text-zinc-300 w-8 text-right">{currentTemplate.config[field]?.x || 50}%</span>
                           </div>
                           <div className="flex items-center gap-4">
                             <label className="text-xs text-zinc-500 w-8">Y %</label>
                             <input 
                               type="range" min="0" max="100" 
-                              value={currentTemplate.config[field].y}
+                              value={currentTemplate.config[field]?.y || 50}
                               onChange={(e) => setCurrentTemplate({
                                 ...currentTemplate, 
                                 config: { ...currentTemplate.config, [field]: { ...currentTemplate.config[field], y: Number(e.target.value) } }
                               })}
                               className="flex-1 accent-firefox-orange"
                             />
-                            <span className="text-xs text-zinc-300 w-8 text-right">{currentTemplate.config[field].y}%</span>
+                            <span className="text-xs text-zinc-300 w-8 text-right">{currentTemplate.config[field]?.y || 50}%</span>
                           </div>
                           <div className="flex items-center gap-4">
-                            <label className="text-xs text-zinc-500 w-8">Size</label>
+                            <label className="text-xs text-zinc-500 w-8">{field === 'logo' || field.startsWith('signature') ? 'Width' : 'Size'}</label>
                             <input 
-                              type="number" min="10" max="120" 
-                              value={currentTemplate.config[field].size}
+                              type="number" min="10" max="400" 
+                              value={currentTemplate.config[field]?.size || 20}
                               onChange={(e) => setCurrentTemplate({
                                 ...currentTemplate, 
                                 config: { ...currentTemplate.config, [field]: { ...currentTemplate.config[field], size: Number(e.target.value) } }
@@ -456,18 +501,20 @@ export default function CertificateManager() {
                               className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-1 text-white text-sm"
                             />
                           </div>
-                          <div className="flex items-center gap-4">
-                            <label className="text-xs text-zinc-500 w-8">Color</label>
-                            <input 
-                              type="color" 
-                              value={currentTemplate.config[field].color}
-                              onChange={(e) => setCurrentTemplate({
-                                ...currentTemplate, 
-                                config: { ...currentTemplate.config, [field]: { ...currentTemplate.config[field], color: e.target.value } }
-                              })}
-                              className="w-full h-8 rounded cursor-pointer bg-transparent"
-                            />
-                          </div>
+                          {field !== 'logo' && !field.startsWith('signature') && (
+                            <div className="flex items-center gap-4">
+                              <label className="text-xs text-zinc-500 w-8">Color</label>
+                              <input 
+                                type="color" 
+                                value={currentTemplate.config[field]?.color || '#ffffff'}
+                                onChange={(e) => setCurrentTemplate({
+                                  ...currentTemplate, 
+                                  config: { ...currentTemplate.config, [field]: { ...currentTemplate.config[field], color: e.target.value } }
+                                })}
+                                className="w-full h-8 rounded cursor-pointer bg-transparent"
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -480,7 +527,7 @@ export default function CertificateManager() {
                       <Eye size={20} className="text-firefox-orange" /> Live Preview
                     </h3>
                     
-                    <div className="relative w-full aspect-[4/3] bg-black border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                    <div className="relative w-full aspect-video bg-black border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
                       {currentTemplate.bgUrl ? (
                         <img src={currentTemplate.bgUrl} alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-60" />
                       ) : (
@@ -529,14 +576,88 @@ export default function CertificateManager() {
                       <div 
                         className="absolute whitespace-nowrap transform -translate-x-1/2 -translate-y-1/2 font-display font-black uppercase drop-shadow-md"
                         style={{
-                          left: `${currentTemplate.config.position.x}%`,
-                          top: `${currentTemplate.config.position.y}%`,
-                          fontSize: `${currentTemplate.config.position.size}px`,
-                          color: currentTemplate.config.position.color
+                          left: `${currentTemplate.config.position?.x || 50}%`,
+                          top: `${currentTemplate.config.position?.y || 50}%`,
+                          fontSize: `${currentTemplate.config.position?.size || 20}px`,
+                          color: currentTemplate.config.position?.color || '#ffffff'
                         }}
                       >
                         1st Position
                       </div>
+                      
+                      {currentTemplate.config.verificationId && (
+                        <div 
+                          className="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2"
+                          style={{
+                            left: `${currentTemplate.config.verificationId.x}%`,
+                            top: `${currentTemplate.config.verificationId.y}%`,
+                          }}
+                        >
+                          <div className="bg-white p-2 rounded-xl shadow-lg border border-white/20">
+                            <QRCodeSVG 
+                              value="https://mfcopenweb.vercel.app/verify/preview" 
+                              size={Math.max(40, currentTemplate.config.verificationId.size * 3)} 
+                            />
+                          </div>
+                          <div 
+                            className="font-mono uppercase drop-shadow-md tracking-widest whitespace-nowrap bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm"
+                            style={{
+                              fontSize: `${currentTemplate.config.verificationId.size}px`,
+                              color: currentTemplate.config.verificationId.color || '#ffffff'
+                            }}
+                          >
+                            ID: PREVIEW
+                          </div>
+                        </div>
+                      )}
+
+                      {currentTemplate.config.logoUrl && (
+                        <img 
+                          src={currentTemplate.config.logoUrl} 
+                          alt="Logo"
+                          crossOrigin="anonymous"
+                          className="absolute transform -translate-x-1/2 -translate-y-1/2 object-contain"
+                          onError={(e) => { e.currentTarget.style.display = 'none'; alert("Failed to load Logo image. Please ensure it's a valid direct image URL."); }}
+                          onLoad={(e) => { e.currentTarget.style.display = 'block'; }}
+                          style={{
+                            left: `${currentTemplate.config.logo?.x || 50}%`,
+                            top: `${currentTemplate.config.logo?.y || 20}%`,
+                            width: `${currentTemplate.config.logo?.size || 100}px`
+                          }}
+                        />
+                      )}
+
+                      {currentTemplate.config.signatureUrl && (
+                        <img 
+                          src={currentTemplate.config.signatureUrl} 
+                          alt="President Signature"
+                          crossOrigin="anonymous"
+                          className="absolute transform -translate-x-1/2 -translate-y-1/2 object-contain filter invert"
+                          onError={(e) => { e.currentTarget.style.display = 'none'; alert("Failed to load President Signature image."); }}
+                          onLoad={(e) => { e.currentTarget.style.display = 'block'; }}
+                          style={{
+                            left: `${currentTemplate.config.signature?.x || 80}%`,
+                            top: `${currentTemplate.config.signature?.y || 75}%`,
+                            width: `${currentTemplate.config.signature?.size || 120}px`
+                          }}
+                        />
+                      )}
+
+                      {currentTemplate.config.signature2Url && (
+                        <img 
+                          src={currentTemplate.config.signature2Url} 
+                          alt="HOD Signature"
+                          crossOrigin="anonymous"
+                          className="absolute transform -translate-x-1/2 -translate-y-1/2 object-contain filter invert"
+                          onError={(e) => { e.currentTarget.style.display = 'none'; alert("Failed to load HOD Signature image."); }}
+                          onLoad={(e) => { e.currentTarget.style.display = 'block'; }}
+                          style={{
+                            left: `${currentTemplate.config.signature2?.x || 20}%`,
+                            top: `${currentTemplate.config.signature2?.y || 75}%`,
+                            width: `${currentTemplate.config.signature2?.size || 120}px`
+                          }}
+                        />
+                      )}
 
                       {/* Helper grids */}
                       <div className="absolute inset-0 pointer-events-none opacity-10" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '10% 10%' }} />
