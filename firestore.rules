@@ -86,7 +86,7 @@ service cloud.firestore {
                         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['points']) &&
                         request.resource.data.get('points', 0) == resource.data.get('points', 0) + 20) ||
                        isStaff();
-      allow delete: if isStaff();
+      allow delete: if isStaff() || (isSignedIn() && request.auth.uid == userId);
     }
 
     match /blogs/{blogId} {

@@ -232,10 +232,10 @@ export default function App() {
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
                 
                 {/* Protected Routes (Everything Else) */}
                 <Route element={<RequireAuth />}>
-                  <Route path="/about" element={<About />} />
                   <Route path="/projects" element={<Projects />} />
                   <Route path="/team" element={<TeamPage />} />
                   <Route path="/community" element={<CommunityPage />} />

@@ -58,12 +58,19 @@ export function MemberProfilePage() {
     );
   }
   
-  const profileCompletion = [
-    profile.name ? '✓' : '',
-    profile.photoURL ? '✓' : '',
-    profile.bio ? '✓' : '',
-    profile.skills.length > 0 ? '✓' : '',
+  const totalFields = 9;
+  const completedFields = [
+    (profile.name || profile.fullName),
+    (profile.photoURL || profile.avatar),
+    profile.bio,
+    (profile.skills && profile.skills.length > 0),
+    (profile.domains && profile.domains.length > 0),
+    profile.department,
+    profile.year,
+    profile.favMozTech,
+    profile.username
   ].filter(Boolean).length;
+  const completionPercentage = Math.round((completedFields / totalFields) * 100);
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -71,7 +78,7 @@ export function MemberProfilePage() {
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 py-8 text-white">
         <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
           <div className="flex-1">
-            <h1 className="text-3xl font-bold">{profile.name}</h1>
+            <h1 className="text-3xl font-bold">{profile.name || profile.fullName}</h1>
             <p className="text-white/80 mt-1">{profile.email}</p>
           </div>
           <button
@@ -133,13 +140,13 @@ export function MemberProfilePage() {
             {/* Profile Completion */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-white/80">Profile Completion</span>
-                <span className="text-sm font-bold text-blue-600">{profileCompletion}/4</span>
+                <span className="text-sm font-medium text-gray-700">Profile Completion</span>
+                <span className="text-sm font-bold text-blue-600">{completionPercentage}%</span>
               </div>
-              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-green-500 transition-all"
-                  style={{ width: `${(profileCompletion / 4) * 100}%` }}
+                  style={{ width: `${completionPercentage}%` }}
                 />
               </div>
             </div>

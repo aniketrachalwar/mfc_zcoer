@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Chrome, Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
+import { X, Chrome, Loader2, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { doc, setDoc, updateDoc, increment, collection, query, where, getDocs } from 'firebase/firestore';
+import { db, auth } from '../lib/firebase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,6 +17,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [referralCode, setReferralCode] = useState('');
+  const [showReferralStep, setShowReferralStep] = useState(false);
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState('');
   
@@ -30,8 +33,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setLoading(true);
     setLocalError('');
     try {
-      await loginWithGoogle();
-      handleSuccess();
+      const result = await loginWithGoogle();
+      if (result?.isNewUser) {
+        setShowReferralStep(true);
+      } else {
+        handleSuccess();
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -51,18 +58,51 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     try {
       if (isLogin) {
         await loginWithEmail(email, password);
+        handleSuccess();
       } else {
-        if (referralCode.trim()) {
-          sessionStorage.setItem('pendingReferral', referralCode.trim().toUpperCase());
+        const result = await signupWithEmail(email, password);
+        if (result?.isNewUser) {
+           setShowReferralStep(true);
+        } else {
+           onClose();
+           navigate('/profile');
         }
-        await signupWithEmail(email, password);
       }
-      handleSuccess();
     } catch (err: any) {
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleReferralSubmit = async () => {
+    setLoading(true);
+    try {
+      if (referralCode.trim() && auth.currentUser) {
+        const refQuery = query(collection(db, 'users'), where('referralCode', '==', referralCode.trim().toUpperCase()));
+        const refSnap = await getDocs(refQuery);
+        if (!refSnap.empty) {
+          const referrerDoc = refSnap.docs[0];
+          await setDoc(doc(db, 'users', referrerDoc.id), {
+            points: increment(20)
+          }, { merge: true });
+          await setDoc(doc(db, 'users', auth.currentUser.uid), {
+            points: increment(10)
+          }, { merge: true });
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+      onClose();
+      navigate('/leaderboard');
+    }
+  };
+
+  const handleSkipReferral = () => {
+    onClose();
+    navigate('/leaderboard');
   };
 
   return createPortal(
@@ -95,103 +135,139 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </button>
 
             <div className="relative z-10">
-              <h2 className="text-2xl sm:text-3xl font-display font-black uppercase text-white mb-1.5">
-                Join <span className="text-firefox-orange">MFC Open Web</span>
-              </h2>
-              <p className="text-zinc-400 text-xs sm:text-sm mb-4 sm:mb-6 font-medium">
-                {isLogin ? 'Sign in to access your portal and manage your profile.' : 'Create an account to become an official member.'}
-              </p>
+              {showReferralStep ? (
+                <>
+                  <h2 className="text-2xl sm:text-3xl font-display font-black uppercase text-white mb-1.5">
+                    Got a <span className="text-firefox-orange">Referral Code?</span>
+                  </h2>
+                  <p className="text-zinc-400 text-xs sm:text-sm mb-4 sm:mb-6 font-medium">
+                    Enter a friend's referral code to get a head start with +10 bonus points! (Optional)
+                  </p>
 
-              {localError && (
-                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-2 text-red-400 text-sm">
-                  <AlertCircle size={16} />
-                  {localError}
-                </div>
-              )}
+                  <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+                    <div>
+                      <div className="relative">
+                        <Chrome size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+                        <input
+                          type="text"
+                          placeholder="Referral Code (Optional)"
+                          value={referralCode}
+                          onChange={(e) => setReferralCode(e.target.value)}
+                          className="w-full bg-black/50 border border-white/5 rounded-xl py-2.5 sm:py-3 pl-12 pr-4 text-[15px] sm:text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors uppercase"
+                        />
+                      </div>
+                    </div>
 
-              <form onSubmit={handleEmailAuth} className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
-                <div>
-                  <div className="relative">
-                    <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-                    <input
-                      type="email"
-                      placeholder="Email Address"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-black/50 border border-white/5 rounded-xl py-2.5 sm:py-3 pl-12 pr-4 text-[15px] sm:text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors"
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <div className="relative">
-                    <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-                    <input
-                      type="password"
-                      placeholder="Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-black/50 border border-white/5 rounded-xl py-2.5 sm:py-3 pl-12 pr-4 text-[15px] sm:text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors"
-                      required
-                      minLength={6}
-                    />
-                  </div>
-                </div>
-
-                {!isLogin && (
-                  <div>
-                    <div className="relative">
-                      <Chrome size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-                      <input
-                        type="text"
-                        placeholder="Referral Code (Optional)"
-                        value={referralCode}
-                        onChange={(e) => setReferralCode(e.target.value)}
-                        className="w-full bg-black/50 border border-white/5 rounded-xl py-2.5 sm:py-3 pl-12 pr-4 text-[15px] sm:text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors uppercase"
-                      />
+                    <div className="flex gap-3 pt-2">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleSkipReferral}
+                        disabled={loading}
+                        className="flex-1 py-3 sm:py-4 bg-white/5 hover:bg-white/10 text-white rounded-xl font-display font-black text-[10px] sm:text-[11px] uppercase tracking-widest disabled:opacity-50 transition-all border border-white/10"
+                      >
+                        Skip
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleReferralSubmit}
+                        disabled={loading}
+                        className="flex-[2] py-3 sm:py-4 bg-gradient-to-r from-firefox-orange to-firefox-yellow text-white rounded-xl font-display font-black text-[10px] sm:text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 transition-all shadow-lg shadow-firefox-orange/20"
+                      >
+                        {loading ? <Loader2 size={16} className="animate-spin" /> : null}
+                        {loading ? 'Processing...' : 'Continue'}
+                        {!loading && <ArrowRight size={16} />}
+                      </motion.button>
                     </div>
                   </div>
-                )}
+                </>
+              ) : (
+                <>
+                  <h2 className="text-2xl sm:text-3xl font-display font-black uppercase text-white mb-1.5">
+                    Join <span className="text-firefox-orange">MFC Open Web</span>
+                  </h2>
+                  <p className="text-zinc-400 text-xs sm:text-sm mb-4 sm:mb-6 font-medium">
+                    {isLogin ? 'Sign in to access your portal and manage your profile.' : 'Create an account to become an official member.'}
+                  </p>
 
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 sm:py-4 bg-gradient-to-r from-firefox-orange to-firefox-yellow text-white rounded-xl font-display font-black text-[10px] sm:text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 transition-all shadow-lg shadow-firefox-orange/20"
-                >
-                  {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-                  {loading ? 'Processing...' : (isLogin ? 'Sign In with Email' : 'Sign Up with Email')}
-                </motion.button>
-              </form>
+                  {localError && (
+                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-2 text-red-400 text-sm">
+                      <AlertCircle size={16} />
+                      {localError}
+                    </div>
+                  )}
 
-              <div className="relative flex items-center gap-3 sm:gap-4 py-2 sm:py-4">
-                <div className="flex-1 h-[1px] bg-white/10" />
-                <span className="text-zinc-500 text-[10px] sm:text-xs font-medium uppercase tracking-wider">or</span>
-                <div className="flex-1 h-[1px] bg-white/10" />
-              </div>
+                  <form onSubmit={handleEmailAuth} className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+                    <div>
+                      <div className="relative">
+                        <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+                        <input
+                          type="email"
+                          placeholder="Email Address"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full bg-black/50 border border-white/5 rounded-xl py-2.5 sm:py-3 pl-12 pr-4 text-[15px] sm:text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="relative">
+                        <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+                        <input
+                          type="password"
+                          placeholder="Password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full bg-black/50 border border-white/5 rounded-xl py-2.5 sm:py-3 pl-12 pr-4 text-[15px] sm:text-[16px] text-white placeholder-zinc-500 focus:outline-none focus:border-firefox-orange/50 transition-colors"
+                          required
+                          minLength={6}
+                        />
+                      </div>
+                    </div>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleGoogleAuth}
-                disabled={loading}
-                type="button"
-                className="w-full mt-2 sm:mt-4 py-3 sm:py-4 bg-white text-black rounded-xl font-display font-black text-[10px] sm:text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 transition-all hover:bg-zinc-200"
-              >
-                {loading ? <Loader2 size={16} className="animate-spin" /> : <Chrome size={16} />}
-                {loading ? 'Connecting...' : 'Continue with Google'}
-              </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-3 sm:py-4 bg-gradient-to-r from-firefox-orange to-firefox-yellow text-white rounded-xl font-display font-black text-[10px] sm:text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 transition-all shadow-lg shadow-firefox-orange/20"
+                    >
+                      {loading ? <Loader2 size={16} className="animate-spin" /> : null}
+                      {loading ? 'Processing...' : (isLogin ? 'Sign In with Email' : 'Sign Up with Email')}
+                    </motion.button>
+                  </form>
 
-              <div className="mt-4 sm:mt-6 text-center">
-                <button
-                  type="button"
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-zinc-400 hover:text-white text-xs sm:text-sm transition-colors"
-                >
-                  {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-                </button>
-              </div>
+                  <div className="relative flex items-center gap-3 sm:gap-4 py-2 sm:py-4">
+                    <div className="flex-1 h-[1px] bg-white/10" />
+                    <span className="text-zinc-500 text-[10px] sm:text-xs font-medium uppercase tracking-wider">or</span>
+                    <div className="flex-1 h-[1px] bg-white/10" />
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleGoogleAuth}
+                    disabled={loading}
+                    type="button"
+                    className="w-full mt-2 sm:mt-4 py-3 sm:py-4 bg-white text-black rounded-xl font-display font-black text-[10px] sm:text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 transition-all hover:bg-zinc-200"
+                  >
+                    {loading ? <Loader2 size={16} className="animate-spin" /> : <Chrome size={16} />}
+                    {loading ? 'Connecting...' : 'Continue with Google'}
+                  </motion.button>
+
+                  <div className="mt-4 sm:mt-6 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setIsLogin(!isLogin)}
+                      className="text-zinc-400 hover:text-white text-xs sm:text-sm transition-colors"
+                    >
+                      {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </motion.div>
         </div>

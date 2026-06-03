@@ -9,7 +9,8 @@ import {
   signInWithEmailAndPassword,
   deleteUser,
   signInWithRedirect,
-  getRedirectResult
+  getRedirectResult,
+  getAdditionalUserInfo
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from './firebase';
@@ -19,10 +20,10 @@ interface AuthContextType {
   userProfile: Record<string, any> | null;
   loading: boolean;
   error: string | null;
-  login: () => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  signupWithEmail: (email: string, pass: string) => Promise<void>;
-  loginWithEmail: (email: string, pass: string) => Promise<void>;
+  login: () => Promise<any>;
+  loginWithGoogle: () => Promise<{ isNewUser?: boolean } | void>;
+  signupWithEmail: (email: string, pass: string) => Promise<{ isNewUser: boolean }>;
+  loginWithEmail: (email: string, pass: string) => Promise<{ isNewUser?: boolean } | void>;
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   setError: (msg: string | null) => void;
@@ -103,22 +104,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
         } else {
           // Auto-onboard the user
-          const baseUsername = currentUser.email?.split('@')[0] || currentUser.displayName?.split(' ').join('').toLowerCase() || 'user';
-          const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-          const username = `${baseUsername}${randomSuffix}`;
+          const mailPrefix = currentUser.email?.split('@')[0] || 'user';
           const newMemberId = `MFC-${Math.floor(1000 + Math.random() * 9000)}`;
           
           const newProfile = {
-            fullName: currentUser.displayName || 'Participant',
-            username: username,
+            fullName: currentUser.displayName || mailPrefix,
+            username: mailPrefix.toLowerCase().replace(/[^a-z0-9]/g, ''),
             email: currentUser.email,
             avatar: currentUser.photoURL || '',
-            role: 'member',
             memberId: newMemberId,
             points: 10,
             createdAt: new Date().toISOString(),
             profileCompleted: true,
-            onboardedAt: new Date().toISOString()
+            onboardedAt: new Date().toISOString(),
+            bio: "Hello, I'm new here!",
+            skills: [],
+            domains: [],
+            college: "Zeal College of Engineering and Research",
+            year: "First",
+            department: ""
           };
           
           await setDoc(doc(db, 'users', currentUser.uid), newProfile);
@@ -206,8 +210,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const provider = new GoogleAuthProvider();
 
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      let isNewUser = getAdditionalUserInfo(result)?.isNewUser;
+      
+      if (!isNewUser) {
+        const docSnap = await getDoc(doc(db, 'users', result.user.uid));
+        if (!docSnap.exists()) {
+          isNewUser = true;
+        }
+      }
+
       setSuccess("Successfully logged in with Google!");
+      return { isNewUser };
     } catch (err: any) {
       if (err.code === 'auth/popup-closed-by-user') {
         setError("The login popup was closed before completion. Please try again and keep the window open.");
@@ -232,6 +246,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await createUserWithEmailAndPassword(auth, email, pass);
       setSuccess("Account created successfully!");
+      return { isNewUser: true };
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
         setError("An account with this email already exists. Please log in.");
@@ -250,8 +265,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithEmail = async (email: string, pass: string) => {
     setError(null);
     try {
-      await signInWithEmailAndPassword(auth, email, pass);
+      const result = await signInWithEmailAndPassword(auth, email, pass);
+      const docSnap = await getDoc(doc(db, 'users', result.user.uid));
+      const isNewUser = !docSnap.exists();
+      
       setSuccess("Successfully logged in!");
+      return { isNewUser };
     } catch (err: any) {
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
         setError("Invalid email or password. Please try again.");

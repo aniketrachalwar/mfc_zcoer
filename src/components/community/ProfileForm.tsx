@@ -16,13 +16,10 @@ const ProfileForm: React.FC = () => {
   const data = profile || {};
   const isNewUser = data.points === undefined;
   
-  const { deleteAccount, refetchProfile } = useAuth();
+  const { deleteAccount, refetchProfile, logout } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);  
-  const isGoogleAuth = user?.providerData?.some((p: any) => p.providerId === 'google.com');
-  const creationTime = user?.metadata?.creationTime ? new Date(user.metadata.creationTime).getTime() : 0;
-  const isWithinOneMinute = (Date.now() - creationTime) <= 60000;
-  const showReferralBox = isNewUser && isGoogleAuth && isWithinOneMinute;
+  const showReferralBox = isNewUser && !sessionStorage.getItem('pendingReferral');
 
   const [referralInput, setReferralInput] = useState('');
   const [formData, setFormData] = useState({
@@ -136,6 +133,19 @@ const ProfileForm: React.FC = () => {
     }
   };
 
+  const completedFields = [
+    formData.fullName, 
+    formData.username, 
+    formData.bio, 
+    formData.photoURL, 
+    formData.skills, 
+    formData.domains, 
+    formData.department, 
+    formData.year, 
+    formData.favMozTech
+  ].filter(Boolean).length;
+  const completionPercentage = Math.round((completedFields / 9) * 100);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-12">
       {showReferralBox && (
@@ -164,15 +174,27 @@ const ProfileForm: React.FC = () => {
              </div>
              <p className="text-[10px] text-zinc-500 mt-3 font-medium">Share this code with friends! When they join, they get +10 pts and you get +20 pts.</p>
           </div>
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center flex flex-col items-center justify-center">
-             <h4 className="text-zinc-500 font-black uppercase text-[10px] tracking-widest mb-2">Profile Completion</h4>
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 w-full flex flex-col justify-center">
+             <div className="flex justify-between items-center mb-2">
+               <h4 className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">Profile Completion</h4>
+               <span className="text-firefox-orange font-black text-xs">{completionPercentage}%</span>
+             </div>
+             
+             <div className="w-full bg-white/5 rounded-full h-2 mb-4 overflow-hidden border border-white/10">
+               <motion.div 
+                 initial={{ width: 0 }}
+                 animate={{ width: `${completionPercentage}%` }}
+                 className="bg-gradient-to-r from-firefox-orange to-firefox-yellow h-full rounded-full"
+               />
+             </div>
+
              {data.profileCompletedRewarded ? (
-                <div className="bg-green-500/10 text-green-400 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-green-500/20">
+                <div className="bg-green-500/10 text-green-400 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-500/20 text-center">
                   100% Complete (+20 PTS Earned)
                 </div>
              ) : (
-                <div className="text-firefox-orange text-xs font-black uppercase tracking-widest">
-                  Incomplete - Finish all fields for +20 PTS!
+                <div className="text-firefox-orange text-[10px] font-black uppercase tracking-widest text-center">
+                  {completionPercentage === 100 ? "Ready to save! Earn +20 PTS" : "Finish all fields for +20 PTS!"}
                 </div>
              )}
           </div>
@@ -426,10 +448,14 @@ const ProfileForm: React.FC = () => {
                   try {
                     await deleteDoc(doc(db, 'users', user.uid));
                     await deleteAccount();
+                    await logout();
+                    window.location.href = '/';
                   } catch (err) {
                     console.error(err);
                     setIsDeleting(false);
                     setShowDeleteConfirm(false);
+                    await logout();
+                    window.location.href = '/';
                   }
                 }}
                 className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-2 uppercase tracking-wider"
