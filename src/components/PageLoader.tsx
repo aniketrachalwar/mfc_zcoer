@@ -2,32 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const LOADING_PHRASES = [
-  "We are genuinely building something beautiful...",
-  "Our words hold true value...",
-  "We always keep our promises...",
-  "We don't compare, we just stand out...",
-  "Waiting for Shree to reconnect...",
-  "Prem is silently building the future...",
-  "True value is never really lost...",
-  "Some connections are worth waiting for...",
-  "A genuine promise never expires...",
-  "Building spaces you'd want to return to...",
-  "Every single line holds deep value...",
-  "The best connections find their way back...",
-  "We genuinely value every interaction...",
-  "Prem is keeping the promise...",
-  "Shree's impact remains in the foundation...",
-  "Building a legacy with genuine effort...",
-  "Our commitment never drops...",
-  "Waiting for the perfect callback...",
-  "We never break our promises...",
-  "Creating something worth coming back to...",
-  "Prem is building what was promised...",
-  "Genuinely waiting for the right ping...",
-  "True value takes time to realize...",
-  "The open web remembers genuine connections...",
-  "Shree is always welcome in the ecosystem...",
-  "We genuinely build with love..."
+  "Building the future...",
+  "Innovation takes time...",
+  "Great things are coming...",
+  "Fueling your potential...",
+  "Preparing your workspace...",
+  "Almost there, keep going...",
+  "Success is a journey...",
+  "Empowering your ideas...",
+  "Crafting a better experience...",
+  "Stay curious, keep learning...",
+  "Unlocking new possibilities...",
+  "Connecting the dots...",
+  "Loading brilliance...",
+  "Your next big idea awaits...",
+  "Pushing the boundaries..."
 ];
 
 const PageLoader = ({ fullScreen = true }: { fullScreen?: boolean }) => {
@@ -72,7 +61,7 @@ const PageLoader = ({ fullScreen = true }: { fullScreen?: boolean }) => {
                 hidden: { opacity: 0, y: 10 },
                 visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } }
               }}
-              className={word.includes('Shree') || word.includes('Prem') || word.includes('value') || word.includes('genuinely') ? 'text-firefox-orange' : ''}
+              className={['future', 'innovation', 'great', 'potential', 'success', 'empowering', 'curious', 'possibilities', 'brilliance', 'idea', 'boundaries'].some(w => word.toLowerCase().includes(w)) ? 'text-firefox-orange' : ''}
             >
               {word}
             </motion.span>

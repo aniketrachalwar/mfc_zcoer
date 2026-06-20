@@ -7,7 +7,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Blog } from '../../types/blog';
 import { useAuth } from '../../lib/AuthContext';
 import { Helmet } from 'react-helmet-async';
-import AdSenseBlock from '../AdSenseBlock';
+
 import PageLoader from '../PageLoader';
 
 const BlogsPage = () => {
@@ -291,7 +291,7 @@ const BlogsPage = () => {
                 )}
 
                 {/* AdSense Sidebar Block */}
-                <AdSenseBlock adSlot="blogs_sidebar" className="mt-8" />
+
                 
                 {/* Footer Links */}
                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-[10px] text-zinc-600 uppercase font-bold tracking-wider pt-6 border-t border-zinc-800">
@@ -307,7 +307,7 @@ const BlogsPage = () => {
 
           {/* AdSense Placeholder: Bottom Banner (Mobile Only) */}
           <div className="lg:hidden">
-            <AdSenseBlock adSlot="blogs_bottom_banner" className="mt-12" />
+
           </div>
         </div>
       </main>

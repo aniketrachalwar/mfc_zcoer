@@ -6,7 +6,7 @@ import { Search, Trophy, ExternalLink, Sparkles } from 'lucide-react';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Link } from 'react-router-dom';
-import AdSenseBlock from '../AdSenseBlock';
+
 import { useAuth } from '../../lib/AuthContext';
 import AuthModal from '../AuthModal';
 
@@ -137,7 +137,7 @@ const CommunityPage = () => {
         </div>
 
         {/* AdSense Placeholder - Top */}
-        <AdSenseBlock adSlot="community_top_banner" className="mb-12" />
+
 
         {/* Member Grid */}
         <AnimatePresence mode="popLayout">
@@ -157,7 +157,7 @@ const CommunityPage = () => {
                   {/* Inject Advertisement every 12 profiles */}
                   {i > 0 && i % 12 === 0 && (
                     <div className="col-span-full w-full my-4">
-                      <AdSenseBlock adSlot={`community_mid_${i}`} />
+
                     </div>
                   )}
                   <motion.div
@@ -224,7 +224,7 @@ const CommunityPage = () => {
         )}
 
         {/* AdSense Placeholder - Bottom */}
-        <AdSenseBlock adSlot="community_bottom_banner" className="mt-12" />
+
       </div>
     </div>
   );

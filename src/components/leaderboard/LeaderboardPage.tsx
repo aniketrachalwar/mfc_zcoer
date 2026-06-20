@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import AdSenseBlock from '../AdSenseBlock';
+
 import { Trophy, Medal, Star, Award, Sparkles, HelpCircle, X, CheckCircle2, Gift, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -89,7 +89,7 @@ const LeaderboardPage = () => {
           </header>
 
           {/* AdSense Placeholder: Top Banner */}
-          <AdSenseBlock adSlot="leaderboard_top_banner" className="mb-12" />
+
 
           {leaders.length === 0 ? (
             <div className="text-center py-12 border border-white/10 rounded-3xl bg-white/5">
@@ -228,7 +228,7 @@ const LeaderboardPage = () => {
                         {/* AdSense Placeholder: Middle List Banner (inject every 10th item) */}
                         {rank % 10 === 0 && (
                           <div className="py-4">
-                            <AdSenseBlock adSlot={`leaderboard_middle_${rank}`} />
+
                           </div>
                         )}
                       </motion.div>
@@ -240,7 +240,7 @@ const LeaderboardPage = () => {
           )}
 
           {/* AdSense Placeholder: Bottom Banner */}
-          <AdSenseBlock adSlot="leaderboard_bottom_banner" className="mt-16" />
+
         </div>
       </main>
 

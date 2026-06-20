@@ -5,7 +5,7 @@ import { motion } from 'motion/react';
 import { collection, query, where, getDocs, limit, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import ProfileCard from './ProfileCard';
-import AdSenseBlock from '../AdSenseBlock';
+
 import { Share2, ArrowLeft, Loader2, Twitter, Linkedin, MessageCircle, Send, Instagram, Facebook, Github, ExternalLink, Calendar, CheckCircle2, Award } from 'lucide-react';
 import { 
   TwitterShareButton, 
@@ -320,7 +320,7 @@ const PublicProfile = () => {
         </div>
 
         {/* AdSense Placeholder */}
-        <AdSenseBlock adSlot="public_profile_bottom" className="mt-16" />
+
       </div>
     </div>
   );

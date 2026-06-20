@@ -7,7 +7,7 @@ import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
 import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
-import AdSenseBlock from '../AdSenseBlock';
+
 import UniversalEventBanner from './UniversalEventBanner';
 import PageLoader from '../PageLoader';
 
@@ -294,7 +294,7 @@ const EventsPage = () => {
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {upcomingEvents.map(event => <EventCard key={event.id} event={event} />)}
                   </div>
-                  <AdSenseBlock adSlot="events_upcoming_bottom" className="mt-16" />
+
                 </div>
               ) : (
                 <div className="text-center py-20 bg-white/5 border border-white/10 rounded-3xl">
@@ -309,7 +309,7 @@ const EventsPage = () => {
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 opacity-90 hover:opacity-100 transition-opacity">
                     {pastEvents.map(event => <EventCard key={event.id} event={event} />)}
                   </div>
-                  <AdSenseBlock adSlot="events_past_bottom" className="mt-16" />
+
                 </div>
               ) : (
                 <div className="text-center py-20 bg-white/5 border border-white/10 rounded-3xl">

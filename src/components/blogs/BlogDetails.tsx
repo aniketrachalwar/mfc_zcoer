@@ -5,7 +5,7 @@ import { doc, getDoc, updateDoc, increment, arrayUnion } from 'firebase/firestor
 import { ArrowLeft, Clock, Edit3, ExternalLink, CheckCircle2, XCircle } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
-import AdSenseBlock from '../AdSenseBlock';
+
 import { Blog } from '../../types/blog';
 import { Helmet } from 'react-helmet-async';
 import MDEditor from '@uiw/react-md-editor';
@@ -209,7 +209,7 @@ const BlogDetails = () => {
             )}
 
             {/* AdSense Placeholder: Top Banner */}
-            <AdSenseBlock adSlot="blog_details_top" className="mb-12" />
+
 
             <div className="prose prose-invert prose-zinc max-w-none text-lg leading-relaxed text-zinc-300 font-serif" data-color-mode="dark">
               {blog.isExternal && blog.externalUrl ? (
@@ -232,7 +232,7 @@ const BlogDetails = () => {
             </div>
 
             {/* AdSense Placeholder: Bottom Banner */}
-            <AdSenseBlock adSlot="blog_details_bottom" className="mt-16 mb-16" />
+
 
             {/* Gamification MCQ Section */}
             {blog.mcq && (

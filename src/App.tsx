@@ -58,13 +58,10 @@ const WriteBlog = React.lazy(() => import('./components/blogs/WriteBlog'));
 const WorkshopProposalsManager = React.lazy(() => import('./components/admin/WorkshopProposalsManager'));
 
 const RunningProjects = React.lazy(() => import('./components/student/RunningProjects'));
-const PurchasedItems = React.lazy(() => import('./components/student/PurchasedItems'));
 
 
 // Leaderboard will be lazy loaded
 const LeaderboardPage = React.lazy(() => import('./components/leaderboard/LeaderboardPage'));
-
-const ShopPage = React.lazy(() => import('./components/shop/ShopPage'));
 
 import { motion, useScroll, useSpring, AnimatePresence } from 'motion/react';
 import { useAuth } from './lib/AuthContext';
@@ -242,7 +239,6 @@ export default function App() {
                   <Route path="/dashboard" element={<DashboardLayout />}>
                     <Route index element={<DashboardOverview />} />
                     <Route path="projects" element={<RunningProjects />} />
-                    <Route path="purchases" element={<PurchasedItems />} />
 
                     <Route path="tasks" element={<TasksBoard />} />
                     <Route path="id-card" element={<ProfileCard />} />

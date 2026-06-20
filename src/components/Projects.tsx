@@ -7,7 +7,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../lib/AuthContext';
 import { Project } from '../types/project';
-import AdSenseBlock from './AdSenseBlock';
+
 
 const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -175,7 +175,7 @@ const Projects = () => {
                   </div>
                 </motion.div>
                 
-                <AdSenseBlock adSlot="projects_details_bottom" className="mt-8" />
+
               </div>
             )}
           </div>
