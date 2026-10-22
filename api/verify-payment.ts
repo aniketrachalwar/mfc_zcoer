@@ -19,8 +19,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Secret fallback for local testing
-    const secret = process.env.RAZORPAY_KEY_SECRET || 'MOCK_SECRET';
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!secret) {
+      return res.status(500).json({ error: 'Payment gateway configuration is missing on server.' });
+    }
 
     // Verify Signature
     const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -29,9 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .update(body.toString())
       .digest('hex');
 
-    const isAuthentic = expectedSignature === razorpay_signature || secret === 'MOCK_SECRET';
-
-    if (!isAuthentic) {
+    if (expectedSignature !== razorpay_signature) {
       return res.status(400).json({ error: 'Invalid payment signature' });
     }
 

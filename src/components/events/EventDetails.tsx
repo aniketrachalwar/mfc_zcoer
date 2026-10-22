@@ -1,13 +1,15 @@
 import PageLoader from '../PageLoader';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, MapPin, Trophy, ArrowLeft, CheckCircle2, Clock, Download, XCircle, Ticket, Loader2, Star } from 'lucide-react';
+import { Calendar, MapPin, Trophy, ArrowLeft, CheckCircle2, Clock, Download, XCircle, Ticket, Loader2, Star, Upload, Copy, Check, Eye, AlertCircle, QrCode } from 'lucide-react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { doc, getDoc, setDoc, updateDoc, increment, collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
 import { toPng } from 'html-to-image';
+import MDEditor from '@uiw/react-md-editor';
 
 const EventDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +21,7 @@ const EventDetails = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [attending, setAttending] = useState(false);
   const [ticketId, setTicketId] = useState<string | null>(null);
+  const [ticketData, setTicketData] = useState<any>(null);
   const [customCertificate, setCustomCertificate] = useState("");
   const [userFullName, setUserFullName] = useState("");
   const [showCancelForm, setShowCancelForm] = useState(false);
@@ -46,6 +49,12 @@ const EventDetails = () => {
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [transactionId, setTransactionId] = useState('');
   const [customTemplateData, setCustomTemplateData] = useState<any>(null);
+
+  // Payment Screenshot & Direct UPI States
+  const [paymentScreenshotFile, setPaymentScreenshotFile] = useState<File | null>(null);
+  const [paymentScreenshotPreview, setPaymentScreenshotPreview] = useState<string | null>(null);
+  const [isUploadingScreenshot, setIsUploadingScreenshot] = useState(false);
+  const [copiedUpi, setCopiedUpi] = useState(false);
 
   const { user } = useAuth();
 
@@ -97,13 +106,15 @@ const EventDetails = () => {
           const tktRef = doc(db, 'tickets', `${user.uid}_${id}`);
           const tktSnap = await getDoc(tktRef);
           if (tktSnap.exists() && !tktSnap.data().cancelled) {
+            const data = tktSnap.data();
             setAttending(true);
             setTicketId(tktSnap.id);
-            setCustomCertificate(tktSnap.data().customCertificate || "");
-            if (tktSnap.data().verified) {
+            setTicketData({ id: tktSnap.id, ...data });
+            setCustomCertificate(data.customCertificate || "");
+            if (data.verified) {
               setIsVerified(true);
             }
-            if (tktSnap.data().feedback) {
+            if (data.feedback) {
               setFeedbackSubmitted(true);
             }
           }
@@ -132,12 +143,18 @@ const EventDetails = () => {
         }
       }
       
+      // Determine registered count from event document or fallback query
       try {
-        const q = query(collection(db, 'tickets'), where('eventId', '==', id), where('cancelled', '==', false));
-        const snap = await getDocs(q);
-        setRegisteredCount(snap.size);
+        const evDoc = await getDoc(doc(db, 'events', id));
+        if (evDoc.exists() && evDoc.data().registeredCount !== undefined) {
+          setRegisteredCount(evDoc.data().registeredCount);
+        } else {
+          const q = query(collection(db, 'tickets'), where('eventId', '==', id), where('cancelled', '==', false));
+          const snap = await getDocs(q);
+          setRegisteredCount(snap.size);
+        }
       } catch (err) {
-        console.error(err);
+        // Tickets query is restricted for non-staff; event.registeredCount handles public counter
       }
 
       setLoading(false);
@@ -263,15 +280,40 @@ const EventDetails = () => {
       setShowRegistrationForm(false);
       return;
     }
+
+    // Overbooking prevention check
+    const currentRegistered = event?.registeredCount !== undefined ? event.registeredCount : registeredCount;
+    const availableSeats = (event?.totalSeats || 30) - currentRegistered;
+    if (availableSeats <= 0) {
+      alert("Sorry! All seats for this event are fully booked.");
+      return;
+    }
     
     const finalAmount = getFinalAmount();
-    if (finalAmount > 0 && !transactionId.trim()) {
-      alert("Please enter a valid Transaction ID.");
-      return;
+    if (finalAmount > 0) {
+      if (!transactionId.trim()) {
+        alert("Please enter a valid UPI Transaction ID / UTR number.");
+        return;
+      }
+      if (!paymentScreenshotFile) {
+        alert("Please upload a screenshot of your payment receipt.");
+        return;
+      }
     }
 
     const newTicketId = `${user.uid}_${id}`;
+    setIsUploadingScreenshot(true);
+
     try {
+      let uploadedScreenshotUrl = '';
+      if (finalAmount > 0 && paymentScreenshotFile) {
+        const ext = paymentScreenshotFile.name.split('.').pop() || 'jpg';
+        const fileName = `${Date.now()}_${id}.${ext}`;
+        const storageRef = ref(storage, `payment_screenshots/${user.uid}/${fileName}`);
+        const uploadTask = await uploadBytesResumable(storageRef, paymentScreenshotFile);
+        uploadedScreenshotUrl = await getDownloadURL(uploadTask.ref);
+      }
+
       // Save details back to user profile for future auto-fill
       await updateDoc(doc(db, 'users', user.uid), {
         collegeName: registrationData.collegeName,
@@ -281,7 +323,7 @@ const EventDetails = () => {
         rollNo: registrationData.rollNo
       });
 
-      await setDoc(doc(db, 'tickets', newTicketId), {
+      const ticketPayload = {
         userId: user.uid,
         eventId: id,
         verified: false,
@@ -289,15 +331,33 @@ const EventDetails = () => {
         timestamp: new Date().toISOString(),
         amount: finalAmount,
         transactionId: finalAmount > 0 ? transactionId.trim() : 'FREE_OR_WAIVED',
+        paymentScreenshotUrl: uploadedScreenshotUrl || null,
+        paymentStatus: finalAmount > 0 ? 'pending_verification' : 'free',
         couponUsed: appliedCoupon ? appliedCoupon.code : null,
         ...registrationData
-      }, { merge: true });
+      };
+
+      await setDoc(doc(db, 'tickets', newTicketId), ticketPayload, { merge: true });
+
+      // Atomically increment registered count on event
+      try {
+        await updateDoc(doc(db, 'events', id), {
+          registeredCount: increment(1)
+        });
+        setRegisteredCount(prev => prev + 1);
+      } catch (cntErr) {
+        console.warn("Could not increment event registeredCount:", cntErr);
+      }
+
       setAttending(true);
       setTicketId(newTicketId);
+      setTicketData({ id: newTicketId, ...ticketPayload });
       setShowRegistrationForm(false);
     } catch (e) {
       console.error("Failed to register for event", e);
-      alert("Failed to register. Please try again.");
+      alert("Failed to register. Please check your network and try again.");
+    } finally {
+      setIsUploadingScreenshot(false);
     }
   };
 
@@ -313,8 +373,18 @@ const EventDetails = () => {
         cancelledAt: new Date().toISOString()
       }, { merge: true });
       
+      try {
+        await updateDoc(doc(db, 'events', id), {
+          registeredCount: increment(-1)
+        });
+        setRegisteredCount(prev => Math.max(0, prev - 1));
+      } catch (err) {
+        console.warn("Could not decrement event registeredCount:", err);
+      }
+
       setAttending(false);
       setTicketId(null);
+      setTicketData(null);
       setShowCancelForm(false);
       setCancelReason("");
     } catch (err) {
@@ -429,9 +499,12 @@ const EventDetails = () => {
               <span className="text-firefox-orange">{event.title?.split(' ').slice(2).join(' ')}</span>
             </h1>
             
-            <p className="text-zinc-400 text-lg mb-12 leading-relaxed">
-              {event.desc}
-            </p>
+            <div className="markdown-body !bg-transparent !text-zinc-300 text-base md:text-lg mb-12 leading-relaxed" data-color-mode="dark">
+              <MDEditor.Markdown 
+                source={event.desc || ''} 
+                style={{ backgroundColor: 'transparent', color: '#d4d4d8' }} 
+              />
+            </div>
 
             <div className="space-y-8 mb-12">
               <div className="flex items-center gap-6">
@@ -466,6 +539,30 @@ const EventDetails = () => {
                 </div>
               )}
             </div>
+
+            {event.agenda && (
+              <div className="mb-12">
+                <h2 className="text-2xl font-display font-black text-white uppercase tracking-wider mb-4 border-l-4 border-firefox-orange pl-4">Agenda</h2>
+                <div className="markdown-body !bg-transparent !text-zinc-300 bg-white/5 border border-white/10 p-6 rounded-2xl leading-relaxed" data-color-mode="dark">
+                  <MDEditor.Markdown 
+                    source={event.agenda} 
+                    style={{ backgroundColor: 'transparent', color: '#d4d4d8' }} 
+                  />
+                </div>
+              </div>
+            )}
+
+            {event.speakerInfo && (
+              <div className="mb-12">
+                <h2 className="text-2xl font-display font-black text-white uppercase tracking-wider mb-4 border-l-4 border-firefox-orange pl-4">Speaker & Guests</h2>
+                <div className="markdown-body !bg-transparent !text-zinc-300 bg-white/5 border border-white/10 p-6 rounded-2xl leading-relaxed" data-color-mode="dark">
+                  <MDEditor.Markdown 
+                    source={event.speakerInfo} 
+                    style={{ backgroundColor: 'transparent', color: '#d4d4d8' }} 
+                  />
+                </div>
+              </div>
+            )}
 
             {event.why && (
               <div className="mb-12">
@@ -639,7 +736,7 @@ const EventDetails = () => {
                         </div>
 
                         {(event.price > 0) && (
-                          <div className="bg-black/50 p-4 rounded-xl border border-white/5 space-y-4 mt-2">
+                          <div className="bg-black/50 p-4 rounded-2xl border border-white/10 space-y-4 mt-2">
                              <div className="flex justify-between items-center text-sm">
                                 <span className="text-zinc-400">Base Price:</span>
                                 <span className="text-white font-bold">₹{event.price}</span>
@@ -657,7 +754,7 @@ const EventDetails = () => {
                                 </div>
                              )}
                              <div className="flex justify-between items-center text-lg border-t border-white/10 pt-2">
-                                <span className="text-zinc-300 font-bold">Total:</span>
+                                <span className="text-zinc-300 font-bold">Total Amount:</span>
                                 <span className="text-white font-black">₹{getFinalAmount()}</span>
                              </div>
                              
@@ -683,10 +780,99 @@ const EventDetails = () => {
                                     </div>
                                     {couponError && <p className="text-red-400 text-[10px]">{couponError}</p>}
                                  </div>
-                                 <div className="pt-2">
-                                   <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 block">Transaction ID / UTR</label>
-                                   <input type="text" required value={transactionId} onChange={e => setTransactionId(e.target.value)} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-firefox-orange transition-colors" placeholder="Enter UPI Transaction ID" />
-                                   <p className="text-[9px] text-zinc-500 mt-1">Pay exact amount to: mfc.zcoer@upi</p>
+
+                                 {/* UPI QR Code & Direct Payment Details */}
+                                 <div className="pt-2 border-t border-white/10 space-y-3">
+                                   <div className="flex items-center justify-between">
+                                     <span className="text-[10px] font-black uppercase tracking-widest text-firefox-orange">
+                                       Step 1: Scan & Pay ₹{getFinalAmount()}
+                                     </span>
+                                     <span className="text-[9px] text-zinc-500 uppercase tracking-widest font-mono">Instant UPI</span>
+                                   </div>
+
+                                   {/* Generated UPI QR Code */}
+                                   <div className="flex flex-col items-center bg-zinc-950 p-4 rounded-xl border border-white/10">
+                                     <div className="bg-white p-3 rounded-xl mb-3 shadow-md">
+                                       <QRCodeSVG 
+                                         value={`upi://pay?pa=${encodeURIComponent(event.upiId || 'mfc.zcoer@upi')}&pn=MFC%20ZCOER&am=${getFinalAmount()}&cu=INR&tn=${encodeURIComponent(`Registration for ${event.title.substring(0, 20)}`)}`} 
+                                         size={140} 
+                                       />
+                                     </div>
+                                     <p className="text-[10px] text-zinc-400 font-bold mb-2">Scan with GPay / PhonePe / Paytm / BHIM</p>
+                                     
+                                     {/* UPI ID copy pill */}
+                                     <div className="w-full flex items-center justify-between bg-zinc-900 border border-white/10 rounded-xl px-3 py-2 text-xs">
+                                       <span className="font-mono text-zinc-200 text-xs font-bold truncate mr-2">
+                                         {event.upiId || 'mfc.zcoer@upi'}
+                                       </span>
+                                       <button 
+                                         type="button" 
+                                         onClick={() => {
+                                           navigator.clipboard.writeText(event.upiId || 'mfc.zcoer@upi');
+                                           setCopiedUpi(true);
+                                           setTimeout(() => setCopiedUpi(false), 2000);
+                                         }}
+                                         className="text-firefox-orange hover:text-white flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider shrink-0 transition-colors"
+                                       >
+                                         {copiedUpi ? <><Check size={12} className="text-green-400" /> Copied</> : <><Copy size={12} /> Copy UPI</>}
+                                       </button>
+                                     </div>
+                                   </div>
+
+                                   {/* Step 2: Transaction ID */}
+                                   <div className="pt-2">
+                                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1 block">
+                                       Step 2: Enter Transaction ID / UTR <span className="text-red-400">*</span>
+                                     </label>
+                                     <input 
+                                       type="text" 
+                                       required 
+                                       value={transactionId} 
+                                       onChange={e => setTransactionId(e.target.value)} 
+                                       className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-firefox-orange transition-colors font-mono" 
+                                       placeholder="e.g. 412345678901 (12-digit UPI Ref)" 
+                                     />
+                                   </div>
+
+                                   {/* Step 3: Payment Screenshot Upload */}
+                                   <div className="pt-2">
+                                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1 block">
+                                       Step 3: Upload Payment Screenshot <span className="text-red-400">*</span>
+                                     </label>
+                                     <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/10 hover:border-firefox-orange/50 rounded-2xl p-4 cursor-pointer bg-zinc-900/50 transition-colors group">
+                                       <input 
+                                         type="file" 
+                                         accept="image/*" 
+                                         required={!paymentScreenshotFile}
+                                         className="hidden" 
+                                         onChange={(e) => {
+                                           const file = e.target.files?.[0];
+                                           if (file) {
+                                             if (file.size > 10 * 1024 * 1024) {
+                                               alert("File size exceeds 10MB limit. Please upload a smaller image.");
+                                               return;
+                                             }
+                                             setPaymentScreenshotFile(file);
+                                             setPaymentScreenshotPreview(URL.createObjectURL(file));
+                                           }
+                                         }} 
+                                       />
+                                       {paymentScreenshotPreview ? (
+                                         <div className="flex flex-col items-center w-full">
+                                           <img src={paymentScreenshotPreview} alt="Payment Receipt" className="h-32 object-contain rounded-lg border border-white/10 mb-2" />
+                                           <span className="text-[10px] text-zinc-400 font-bold group-hover:text-firefox-orange transition-colors">
+                                             Tap to change receipt image
+                                           </span>
+                                         </div>
+                                       ) : (
+                                         <div className="flex flex-col items-center text-center py-2">
+                                           <Upload size={24} className="text-firefox-orange mb-2 group-hover:scale-110 transition-transform" />
+                                           <p className="text-xs text-white font-bold">Tap to upload receipt screenshot</p>
+                                           <p className="text-[10px] text-zinc-500 mt-1">PNG, JPG, or WEBP up to 10MB</p>
+                                         </div>
+                                       )}
+                                     </label>
+                                   </div>
                                  </div>
                                </>
                              )}
@@ -694,8 +880,25 @@ const EventDetails = () => {
                         )}
 
                         <div className="flex gap-2 pt-4">
-                          <button type="button" onClick={() => setShowRegistrationForm(false)} className="flex-1 py-3 bg-white/5 text-zinc-400 rounded-lg font-display font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">Cancel</button>
-                          <button type="submit" className="flex-1 py-3 bg-firefox-orange text-white rounded-lg font-display font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-all">Get Ticket</button>
+                          <button 
+                            type="button" 
+                            onClick={() => setShowRegistrationForm(false)} 
+                            disabled={isUploadingScreenshot}
+                            className="flex-1 py-3 bg-white/5 text-zinc-400 rounded-lg font-display font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+                          <button 
+                            type="submit" 
+                            disabled={isUploadingScreenshot}
+                            className="flex-1 py-3 bg-firefox-orange text-white rounded-lg font-display font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                          >
+                            {isUploadingScreenshot ? (
+                              <><Loader2 size={14} className="animate-spin" /> Uploading Receipt...</>
+                            ) : (
+                              'Get Ticket'
+                            )}
+                          </button>
                         </div>
                       </form>
                     </motion.div>
@@ -707,10 +910,17 @@ const EventDetails = () => {
                     className="w-full bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col items-center gap-4"
                   >
                     <div id="ticket-card" className="w-full flex flex-col items-center bg-[#09090b] p-6 rounded-2xl border border-white/10">
-                      <div className="w-full flex items-center justify-center gap-2 text-green-400 font-display font-black text-sm uppercase tracking-widest mb-4">
-                        <CheckCircle2 size={20} />
-                        Ticket Confirmed
-                      </div>
+                      {ticketData?.paymentStatus === 'pending_verification' ? (
+                        <div className="w-full flex items-center justify-center gap-2 text-amber-400 bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl font-display font-black text-xs uppercase tracking-widest mb-4">
+                          <Clock size={16} />
+                          Payment Verification Pending
+                        </div>
+                      ) : (
+                        <div className="w-full flex items-center justify-center gap-2 text-green-400 font-display font-black text-sm uppercase tracking-widest mb-4">
+                          <CheckCircle2 size={20} />
+                          Ticket Confirmed
+                        </div>
+                      )}
                       <h3 className="text-white font-bold text-center mb-2">{event.title}</h3>
                       <div className="flex items-center gap-2 text-zinc-400 text-xs font-bold uppercase tracking-widest mb-6">
                         <Calendar size={14} />
@@ -718,10 +928,36 @@ const EventDetails = () => {
                       </div>
                       {ticketId ? (
                         <>
-                          <div className="bg-white p-4 rounded-2xl mb-4">
+                          <div className="bg-white p-4 rounded-2xl mb-4 shadow-lg">
                             <QRCodeSVG value={`${window.location.origin}/verify/${ticketId}`} size={150} />
                           </div>
                           <p className="text-zinc-500 text-[10px] font-mono uppercase tracking-widest text-center">ID: {ticketId.substring(0, 15)}...</p>
+
+                          {/* Payment Details summary on ticket */}
+                          {ticketData?.amount > 0 && (
+                            <div className="w-full mt-4 p-3 bg-zinc-900 border border-white/5 rounded-xl text-left space-y-1 text-xs">
+                              <div className="flex justify-between">
+                                <span className="text-zinc-500 text-[10px] uppercase font-bold">Amount Paid:</span>
+                                <span className="text-white font-bold">₹{ticketData.amount}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-zinc-500 text-[10px] uppercase font-bold">UTR / Ref:</span>
+                                <span className="font-mono text-zinc-300 text-[10px] truncate max-w-[150px]">{ticketData.transactionId}</span>
+                              </div>
+                              {ticketData.paymentScreenshotUrl && (
+                                <div className="pt-1 border-t border-white/5 flex justify-end">
+                                  <a 
+                                    href={ticketData.paymentScreenshotUrl} 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    className="text-firefox-orange hover:text-white flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider"
+                                  >
+                                    <Eye size={12} /> View Uploaded Receipt
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </>
                       ) : (
                         <p className="text-zinc-400 text-xs text-center my-8">You are registered for this preview event!</p>

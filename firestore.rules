@@ -36,7 +36,14 @@ service cloud.firestore {
 
     match /events/{eventId} {
       allow read: if true;
-      allow write: if canManageContent();
+      allow create: if canManageContent() || 
+                    (isSignedIn() && 
+                     request.resource.data.userId == request.auth.uid && 
+                     request.resource.data.status == 'pending');
+      allow update: if canManageContent() || 
+                    (isSignedIn() && 
+                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['registeredCount']));
+      allow delete: if canManageContent();
     }
 
     match /team/{memberId} {
@@ -63,7 +70,7 @@ service cloud.firestore {
                          isSignedIn() &&
                          resource.data.userId == request.auth.uid &&
                          request.resource.data.userId == request.auth.uid &&
-                         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'customCertificate'])
+                         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'customCertificate', 'paymentStatus'])
                        );
       allow delete: if isStaff();
     }

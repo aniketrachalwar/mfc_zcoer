@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { collection, query, where, getDocs, limit, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { ShieldCheck, XCircle, Loader2, ArrowLeft, Search, ScanLine, TicketCheck, Lock, Camera } from 'lucide-react';
+import { ShieldCheck, XCircle, Loader2, ArrowLeft, Search, ScanLine, TicketCheck, Lock, Camera, Eye, ExternalLink, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { Html5Qrcode } from 'html5-qrcode';
 
@@ -417,7 +417,7 @@ const VerifyProfile = () => {
             <div className="w-full space-y-3 bg-black/40 rounded-xl p-4 border border-white/5">
               <div className="flex justify-between items-center py-2 border-b border-white/5">
                 <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Event</span>
-                <span className="text-white text-xs font-bold uppercase">{eventData.title}</span>
+                <span className="text-white text-xs font-bold uppercase truncate max-w-[200px] text-right">{eventData.title}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-white/5">
                 <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Ticket ID</span>
@@ -427,6 +427,46 @@ const VerifyProfile = () => {
                 <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Origin</span>
                 <span className="text-firefox-orange text-[10px] font-black uppercase tracking-widest text-right">{paymentOrigin}</span>
               </div>
+
+              {/* Payment Details for Gate Staff */}
+              {ticket.amount > 0 && (
+                <>
+                  <div className="flex justify-between items-center py-2 border-b border-white/5">
+                    <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Amount Paid</span>
+                    <span className="text-white text-xs font-bold font-mono">₹{ticket.amount}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-white/5">
+                    <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">UTR / Ref</span>
+                    <span className="text-zinc-200 text-xs font-mono font-bold truncate max-w-[180px] text-right">{ticket.transactionId || 'None'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-white/5">
+                    <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Payment Status</span>
+                    {ticket.paymentStatus === 'verified' ? (
+                      <span className="text-green-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                        <ShieldCheck size={12} /> Verified
+                      </span>
+                    ) : (
+                      <span className="text-amber-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                        <AlertCircle size={12} /> Pending Check
+                      </span>
+                    )}
+                  </div>
+                  {ticket.paymentScreenshotUrl && (
+                    <div className="pt-2 flex justify-end">
+                      <a 
+                        href={ticket.paymentScreenshotUrl} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-firefox-orange/20 hover:bg-firefox-orange text-firefox-orange hover:text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Eye size={12} /> Check Receipt Screenshot
+                      </a>
+                    </div>
+                  )}
+                </>
+              )}
+
               <div className="flex justify-between items-center py-2">
                 <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Admit</span>
                 <span className="text-white text-xs font-bold uppercase">1 Person</span>

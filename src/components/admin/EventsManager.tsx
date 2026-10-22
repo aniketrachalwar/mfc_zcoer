@@ -1,7 +1,7 @@
 import PageLoader from '../PageLoader';
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Edit2, Trash2, X, Image as ImageIcon, Download, User, CheckCircle2 } from 'lucide-react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { Calendar, Plus, Edit2, Trash2, X, Image as ImageIcon, Download, User, CheckCircle2, Eye, Check, Clock, ExternalLink, ShieldAlert, Filter, AlertCircle, Copy } from 'lucide-react';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
 import MDEditor from '@uiw/react-md-editor';
@@ -12,8 +12,11 @@ const EventsManager = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [managingEventId, setManagingEventId] = useState<string | null>(null);
+  const [managingEventTitle, setManagingEventTitle] = useState<string>('');
   const [attendees, setAttendees] = useState<any[]>([]);
   const [loadingAttendees, setLoadingAttendees] = useState(false);
+  const [attendeeFilter, setAttendeeFilter] = useState<'all' | 'pending' | 'verified' | 'cancelled'>('all');
+  const [previewScreenshotUrl, setPreviewScreenshotUrl] = useState<string | null>(null);
   const [formStep, setFormStep] = useState(1);
   const [activeTab, setActiveTab] = useState<'live' | 'pending'>('live');
 
@@ -32,6 +35,7 @@ const EventsManager = () => {
     totalSeats: 30,
     certificateType: 'Participation',
     price: 0,
+    upiId: 'mfc.zcoer@upi',
     why: '',
     outcomes: ''
   });
@@ -69,12 +73,13 @@ const EventsManager = () => {
         totalSeats: event.totalSeats || 30,
         certificateType: event.certificateType || 'Participation',
         price: event.price || 0,
+        upiId: event.upiId || 'mfc.zcoer@upi',
         why: event.why || '',
         outcomes: event.outcomes || ''
       });
       setEditingId(event.id);
     } else {
-      setFormData({ title: '', type: 'Hackathon', desc: '', img: '', date: '', location: '', organizer: '', agenda: '', speakerInfo: '', prizes: '', totalSeats: 30, certificateType: 'Participation', price: 0, why: '', outcomes: '' });
+      setFormData({ title: '', type: 'Hackathon', desc: '', img: '', date: '', location: '', organizer: '', agenda: '', speakerInfo: '', prizes: '', totalSeats: 30, certificateType: 'Participation', price: 0, upiId: 'mfc.zcoer@upi', why: '', outcomes: '' });
       setEditingId(null);
     }
     setFormStep(1);
@@ -137,21 +142,19 @@ const EventsManager = () => {
 
   const downloadAttendees = async (eventId: string, eventTitle: string) => {
     try {
-      const q = query(collection(db, 'tickets'), where('eventId', '==', eventId), where('verified', '==', true));
+      const q = query(collection(db, 'tickets'), where('eventId', '==', eventId));
       const querySnapshot = await getDocs(q);
       
       if (querySnapshot.empty) {
-        alert("No attendees marked present for this event yet.");
+        alert("No registrations found for this event yet.");
         return;
       }
 
       let csvContent = "data:text/csv;charset=utf-8,";
-      csvContent += "Name,Username,Email,ZPRN,Department,Division,Roll No,Verified At\n";
+      csvContent += "Name,Username,Email,ZPRN,Department,Division,Roll No,Amount,Transaction_ID_UTR,Payment_Status,Payment_Screenshot_URL,Gate_Verified,Verified_At,Cancelled\n";
 
       for (const tktDoc of querySnapshot.docs) {
         const data = tktDoc.data();
-        
-        // Fetch user info for name/email
         let name = "Unknown";
         let username = "unknown";
         let email = "";
@@ -163,10 +166,9 @@ const EventsManager = () => {
             username = userData.username || "unknown";
             email = userData.email || "";
           } else {
-             // Try fetching by doc id
-             const uDoc = await getDocs(query(collection(db, 'users'), where('__name__', '==', data.userId)));
-             if (!uDoc.empty) {
-                const userData = uDoc.docs[0].data();
+             const uDoc = await getDoc(doc(db, 'users', data.userId));
+             if (uDoc.exists()) {
+                const userData = uDoc.data();
                 name = userData.fullName || "Unknown";
                 username = userData.username || "unknown";
                 email = userData.email || "";
@@ -184,7 +186,13 @@ const EventsManager = () => {
           `"${data.department || ''}"`,
           `"${data.division || ''}"`,
           `"${data.rollNo || ''}"`,
-          `"${data.verifiedAt || ''}"`
+          `"${data.amount || 0}"`,
+          `"${data.transactionId || ''}"`,
+          `"${data.paymentStatus || 'free'}"`,
+          `"${data.paymentScreenshotUrl || ''}"`,
+          `"${data.verified ? 'Yes' : 'No'}"`,
+          `"${data.verifiedAt || ''}"`,
+          `"${data.cancelled ? 'Yes' : 'No'}"`
         ];
         csvContent += row.join(",") + "\n";
       }
@@ -192,48 +200,70 @@ const EventsManager = () => {
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `${eventTitle.replace(/\\s+/g, '_')}_Attendees.csv`);
+      link.setAttribute("download", `${eventTitle.replace(/\s+/g, '_')}_Registrations.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
     } catch (err) {
-      console.error("Error downloading attendees:", err);
-      alert("Failed to download attendees.");
+      console.error("Error downloading registrations:", err);
+      alert("Failed to download registrations.");
     }
   };
 
-  const openAttendeesManager = async (eventId: string) => {
+  const openAttendeesManager = async (eventId: string, eventTitle: string = '') => {
     setManagingEventId(eventId);
+    setManagingEventTitle(eventTitle);
+    setAttendeeFilter('all');
     setLoadingAttendees(true);
     try {
-      const q = query(collection(db, 'tickets'), where('eventId', '==', eventId), where('verified', '==', true));
+      const q = query(collection(db, 'tickets'), where('eventId', '==', eventId));
       const querySnapshot = await getDocs(q);
       const list = [];
       for (const tktDoc of querySnapshot.docs) {
         const data = tktDoc.data();
         let name = "Unknown";
+        let username = "unknown";
+        let email = "";
         try {
           const userSnap = await getDocs(query(collection(db, 'users'), where('uid', '==', data.userId)));
           if (!userSnap.empty) {
-            name = userSnap.docs[0].data().fullName || "Unknown";
+            const u = userSnap.docs[0].data();
+            name = u.fullName || "Unknown";
+            username = u.username || "unknown";
+            email = u.email || "";
           } else {
-             const uDoc = await getDocs(query(collection(db, 'users'), where('__name__', '==', data.userId)));
-             if (!uDoc.empty) {
-                name = uDoc.docs[0].data().fullName || "Unknown";
+             const uDoc = await getDoc(doc(db, 'users', data.userId));
+             if (uDoc.exists()) {
+                const u = uDoc.data();
+                name = u.fullName || "Unknown";
+                username = u.username || "unknown";
+                email = u.email || "";
              }
           }
         } catch (e) {
           console.error(e);
         }
-        list.push({ id: tktDoc.id, name, customCertificate: data.customCertificate || '', ...data });
+        list.push({ id: tktDoc.id, name, username, email, customCertificate: data.customCertificate || '', ...data });
       }
       setAttendees(list);
     } catch (err) {
       console.error(err);
-      alert("Failed to load attendees.");
+      alert("Failed to load registrations.");
     } finally {
       setLoadingAttendees(false);
+    }
+  };
+
+  const verifyTicketPayment = async (ticketId: string) => {
+    try {
+      await updateDoc(doc(db, 'tickets', ticketId), {
+        paymentStatus: 'verified'
+      });
+      setAttendees(prev => prev.map(a => a.id === ticketId ? { ...a, paymentStatus: 'verified' } : a));
+    } catch (err) {
+      console.error("Failed to verify payment:", err);
+      alert("Failed to verify payment.");
     }
   };
 
@@ -388,8 +418,8 @@ const EventsManager = () => {
                   {activeTab === 'live' && (
                     <>
                       <button 
-                        onClick={() => openAttendeesManager(event.id)}
-                        title="Manage Attendees"
+                        onClick={() => openAttendeesManager(event.id, event.title)}
+                        title="Manage Registrations & Payments"
                         className="w-8 h-8 rounded-full bg-black/50 backdrop-blur text-blue-400 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-colors"
                       >
                         <User size={14} />
@@ -642,6 +672,21 @@ const EventsManager = () => {
                             />
                           </div>
                         </div>
+
+                        {Number(formData.price) > 0 && (
+                          <div className="space-y-2 bg-white/5 p-4 rounded-xl border border-white/10">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-firefox-orange">UPI ID for Direct Payment QR</label>
+                            <input 
+                              type="text" 
+                              name="upiId"
+                              value={formData.upiId || ''}
+                              onChange={handleChange}
+                              placeholder="e.g. mfc.zcoer@upi"
+                              className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-firefox-orange transition-colors font-mono"
+                            />
+                            <p className="text-[10px] text-zinc-400">Attendees will scan the UPI QR code on the event page to pay directly to this UPI address.</p>
+                          </div>
+                        )}
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Certificate Type</label>
                           <select 
@@ -738,57 +783,216 @@ const EventsManager = () => {
       {/* Attendees Manager Modal */}
       <AnimatePresence>
         {managingEventId && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setManagingEventId(null)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+            <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={() => setManagingEventId(null)} />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-zinc-950 border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative z-10 shadow-2xl"
+              className="bg-zinc-950 border border-white/10 rounded-3xl w-full max-w-5xl max-h-[92vh] overflow-hidden flex flex-col relative z-10 shadow-2xl"
             >
-              <div className="p-6 border-b border-white/10 flex justify-between items-center">
-                <h2 className="text-xl font-display font-black uppercase text-white">Manage Attendees</h2>
-                <button onClick={() => setManagingEventId(null)} className="text-zinc-500 hover:text-white transition-colors">
-                  <X size={20} />
+              <div className="p-4 sm:p-6 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-display font-black uppercase text-white">Manage Registrations & Payments</h2>
+                  <p className="text-xs text-firefox-orange font-bold truncate max-w-md">{managingEventTitle}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => downloadAttendees(managingEventId, managingEventTitle)}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
+                  >
+                    <Download size={14} /> Export CSV
+                  </button>
+                  <button onClick={() => setManagingEventId(null)} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter Tabs */}
+              <div className="px-4 sm:px-6 py-3 border-b border-white/5 bg-white/[0.02] flex flex-wrap gap-2">
+                <button
+                  onClick={() => setAttendeeFilter('all')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                    attendeeFilter === 'all' ? 'bg-firefox-orange text-white' : 'bg-white/5 text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  All ({attendees.length})
+                </button>
+                <button
+                  onClick={() => setAttendeeFilter('pending')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                    attendeeFilter === 'pending' ? 'bg-amber-500 text-black' : 'bg-white/5 text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Payment Pending ({attendees.filter(a => a.paymentStatus === 'pending_verification' && !a.cancelled).length})
+                </button>
+                <button
+                  onClick={() => setAttendeeFilter('verified')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                    attendeeFilter === 'verified' ? 'bg-green-600 text-white' : 'bg-white/5 text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Gate Attended ({attendees.filter(a => a.verified).length})
+                </button>
+                <button
+                  onClick={() => setAttendeeFilter('cancelled')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                    attendeeFilter === 'cancelled' ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Cancelled ({attendees.filter(a => a.cancelled).length})
                 </button>
               </div>
               
-              <div className="p-6 overflow-y-auto flex-1">
+              <div className="p-4 sm:p-6 overflow-y-auto flex-1">
                 {loadingAttendees ? (
-                  <div className="flex justify-center py-12">
+                  <div className="flex justify-center py-16">
                     <PageLoader fullScreen={false} />
                   </div>
                 ) : attendees.length === 0 ? (
-                  <p className="text-center text-zinc-500 py-12">No verified attendees yet.</p>
+                  <div className="text-center py-16 text-zinc-500 text-sm">
+                    No registrations found for this event yet.
+                  </div>
                 ) : (
                   <div className="space-y-4">
-                    {attendees.map(attendee => (
-                      <div key={attendee.id} className="flex items-center justify-between bg-white/5 border border-white/10 p-4 rounded-xl">
-                        <div>
-                          <p className="text-white font-bold">{attendee.name}</p>
-                          <p className="text-zinc-500 text-xs">{attendee.userId}</p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="flex flex-col">
-                            <label className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">Custom Certificate</label>
-                            <select 
-                              value={attendee.customCertificate || ''}
-                              onChange={(e) => updateCustomCertificate(attendee.id, e.target.value)}
-                              className="bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-firefox-orange outline-none"
-                            >
-                              <option value="">Default (Event Type)</option>
-                              <option value="1st Position">1st Position</option>
-                              <option value="2nd Position">2nd Position</option>
-                              <option value="3rd Position">3rd Position</option>
-                              <option value="Winner">Winner</option>
-                              <option value="Excellence">Excellence</option>
-                            </select>
+                    {attendees
+                      .filter(attendee => {
+                        if (attendeeFilter === 'pending') return attendee.paymentStatus === 'pending_verification' && !attendee.cancelled;
+                        if (attendeeFilter === 'verified') return attendee.verified;
+                        if (attendeeFilter === 'cancelled') return attendee.cancelled;
+                        return true;
+                      })
+                      .map(attendee => (
+                        <div key={attendee.id} className="flex flex-col md:flex-row md:items-center justify-between bg-zinc-900 border border-white/10 p-4 sm:p-5 rounded-2xl gap-4 hover:border-white/20 transition-colors">
+                          <div className="flex-1 space-y-1.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-white font-bold text-base">{attendee.name}</p>
+                              {attendee.username && <span className="text-zinc-500 text-xs font-mono">@{attendee.username}</span>}
+                              
+                              {attendee.verified ? (
+                                <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-[10px] font-black uppercase tracking-wider rounded-md border border-green-500/30">
+                                  Gate Verified
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 bg-white/5 text-zinc-400 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                                  Not Scanned Yet
+                                </span>
+                              )}
+
+                              {attendee.cancelled && (
+                                <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-wider rounded-md">
+                                  Cancelled
+                                </span>
+                              )}
+                            </div>
+
+                            <p className="text-zinc-400 text-xs">
+                              {attendee.email && <span className="mr-3">{attendee.email}</span>}
+                              {attendee.zprn && <span className="mr-3 font-mono">ZPRN: {attendee.zprn}</span>}
+                              {attendee.department && <span>{attendee.department} {attendee.division ? `(${attendee.division})` : ''} {attendee.rollNo ? `• Roll: ${attendee.rollNo}` : ''}</span>}
+                            </p>
+
+                            {/* Payment details */}
+                            {attendee.amount > 0 && (
+                              <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
+                                <span className="px-2.5 py-1 bg-black/60 rounded-lg border border-white/5 font-bold text-white">
+                                  Paid: ₹{attendee.amount}
+                                </span>
+                                
+                                <span className="font-mono text-zinc-300 bg-black/60 px-2.5 py-1 rounded-lg border border-white/5">
+                                  UTR: {attendee.transactionId || 'None'}
+                                </span>
+
+                                {attendee.paymentScreenshotUrl && (
+                                  <button 
+                                    onClick={() => setPreviewScreenshotUrl(attendee.paymentScreenshotUrl)}
+                                    className="inline-flex items-center gap-1.5 text-firefox-orange hover:text-white font-bold text-xs underline underline-offset-4 cursor-pointer"
+                                  >
+                                    <Eye size={14} /> View Receipt
+                                  </button>
+                                )}
+
+                                {attendee.paymentStatus === 'verified' ? (
+                                  <span className="inline-flex items-center gap-1 text-green-400 font-bold text-xs bg-green-500/10 border border-green-500/30 px-2 py-0.5 rounded-md">
+                                    <CheckCircle2 size={12} /> Payment Approved
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => verifyTicketPayment(attendee.id)}
+                                    className="inline-flex items-center gap-1 text-black font-black text-xs bg-amber-400 hover:bg-amber-300 px-3 py-1 rounded-lg shadow-sm transition-colors cursor-pointer"
+                                  >
+                                    <Check size={12} /> Approve Payment
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Actions / Custom Cert */}
+                          <div className="flex items-center gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
+                            <div className="flex flex-col">
+                              <label className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1 font-bold">Certificate Level</label>
+                              <select 
+                                value={attendee.customCertificate || ''}
+                                onChange={(e) => updateCustomCertificate(attendee.id, e.target.value)}
+                                className="bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-firefox-orange outline-none"
+                              >
+                                <option value="">Default (Event Type)</option>
+                                <option value="1st Position">1st Position</option>
+                                <option value="2nd Position">2nd Position</option>
+                                <option value="3rd Position">3rd Position</option>
+                                <option value="Winner">Winner</option>
+                                <option value="Excellence">Excellence</option>
+                              </select>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Payment Screenshot Preview Modal */}
+      <AnimatePresence>
+        {previewScreenshotUrl && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={() => setPreviewScreenshotUrl(null)} />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-zinc-950 border border-white/20 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col relative z-10 shadow-2xl"
+            >
+              <div className="p-4 border-b border-white/10 flex justify-between items-center bg-zinc-900">
+                <span className="text-xs font-black uppercase tracking-wider text-white">Payment Receipt Screenshot</span>
+                <button 
+                  onClick={() => setPreviewScreenshotUrl(null)} 
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-zinc-400 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="p-4 overflow-auto flex items-center justify-center bg-black">
+                <img 
+                  src={previewScreenshotUrl} 
+                  alt="Payment Receipt" 
+                  className="max-h-[75vh] w-auto object-contain rounded-xl"
+                />
+              </div>
+              <div className="p-3 bg-zinc-900 border-t border-white/10 flex justify-end">
+                <a 
+                  href={previewScreenshotUrl} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="px-4 py-2 bg-firefox-orange text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
+                >
+                  <ExternalLink size={14} /> Open Full Size
+                </a>
               </div>
             </motion.div>
           </div>

@@ -230,11 +230,18 @@ export default function App() {
                 {/* Public Routes */}
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/team" element={<TeamPage />} />
+                <Route path="/blogs" element={<BlogsPage />} />
+                <Route path="/blog/:id" element={<BlogDetails />} />
+                <Route path="/leaderboard" element={<LeaderboardPage />} />
+                <Route path="/events" element={<EventsPage />} />
+                <Route path="/events/calendar" element={<CalendarPage />} />
+                <Route path="/event/:id" element={<EventDetails />} />
+                <Route path="/profile/:username" element={<PublicProfile />} />
                 
-                {/* Protected Routes (Everything Else) */}
+                {/* Protected Routes (Member/Admin Only) */}
                 <Route element={<RequireAuth />}>
-                  <Route path="/projects" element={<Projects />} />
-                  <Route path="/team" element={<TeamPage />} />
                   <Route path="/community" element={<CommunityPage />} />
                   <Route path="/dashboard" element={<DashboardLayout />}>
                     <Route index element={<DashboardOverview />} />
@@ -246,18 +253,11 @@ export default function App() {
 
                   </Route>
                   <Route path="/profile" element={<MemberProfilePage />} />
-                  <Route path="/profile/:username" element={<PublicProfile />} />
-                  <Route path="/events" element={<EventsPage />} />
-                  <Route path="/events/calendar" element={<CalendarPage />} />
-                  <Route path="/event/:id" element={<EventDetails />} />
                   <Route path="/host-event" element={<HostEvent />} />
                   <Route path="/verify" element={<VerifyProfile />} />
                   <Route path="/verify/:username" element={<VerifyProfile />} />
-                  <Route path="/blogs" element={<BlogsPage />} />
-                  <Route path="/blog/:id" element={<BlogDetails />} />
                   <Route path="/write-blog" element={<WriteBlog />} />
                   <Route path="/edit-blog/:id" element={<WriteBlog />} />
-                  <Route path="/leaderboard" element={<LeaderboardPage />} />
                   
                   {/* Admin Routes */}
                   <Route path="/admin" element={<AdminLayout />}>
